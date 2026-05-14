@@ -8,6 +8,7 @@
  * 경로 감지가 필요한 네비게이션은 AdminNav(클라이언트)로 분리되어 있습니다.
  *
  * ── 변경 이력 ──────────────────────────────────────────────────────
+ * v0.2  2026-05-14  전역 Sonner Toaster는 layout.tsx로 이동 (중복 제거)
  * v0.1  2026-05-14  최초 생성
  *       - 로열 블루 사이드바 레이아웃 구현
  *       - AdminNav 클라이언트 컴포넌트로 활성 경로 감지 분리
@@ -16,7 +17,6 @@
 
 import Link from "next/link";
 import { AdminNav } from "./AdminNav";
-import { Toaster } from "@/components/ui/sonner";
 
 export default function AdminLayout({
   children,
@@ -82,9 +82,6 @@ export default function AdminLayout({
       <main className="flex-1 bg-gray-50 overflow-auto">
         {children}
       </main>
-
-      {/* Toast 알림 (shadcn/sonner) */}
-      <Toaster richColors position="top-right" />
     </div>
   );
 }

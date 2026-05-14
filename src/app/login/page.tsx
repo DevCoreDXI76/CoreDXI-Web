@@ -4,9 +4,12 @@
  * Loom.com 스타일의 깔끔한 로그인 화면입니다.
  * - 상단: CoreDXI 로고(좌) + 무료 회원가입 버튼(우)
  * - 중앙: 소셜 로그인 버튼 5개, OR 구분선, 이메일 입력, Continue 버튼
+ * - 하단: 관리자 전용 이메일·비밀번호 로그인(adminLogin Server Action)
  * - Continue 버튼은 유효한 이메일이 입력되기 전까지 비활성화됩니다.
  *
  * ── 변경 이력 ──────────────────────────────────────────────────────
+ * v0.2  2026-05-14  관리자 로그인 섹션 추가
+ *       - 이메일+비밀번호 폼, 성공 시 /admin/users 이동, 실패 시 Toast
  * v0.1  2026-05-14  최초 생성
  *       - Loom 스타일 로그인 UI 구현
  *       - SOCIAL_PROVIDERS 배열로 소셜 버튼 관리
@@ -25,9 +28,13 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
+import { adminLogin } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 /* =====================================================
@@ -70,6 +77,27 @@ const LOGIN_CONTENT = {
 
   /** [홍보팀] 이미 계정이 있다는 안내 문구입니다. */
   noAccountText: "Don't have an account?",
+
+  /** [홍보팀] 관리자 로그인 구역 위 작은 구분 라벨입니다. */
+  adminSectionLabel: "관리자 전용 로그인",
+
+  /** [홍보팀] 관리자 이메일 입력 라벨입니다. */
+  adminEmailLabel: "관리자 이메일",
+
+  /** [홍보팀] 관리자 이메일 입력창 플레이스홀더입니다. */
+  adminEmailPlaceholder: "admin@coredxi.com",
+
+  /** [홍보팀] 관리자 비밀번호 입력 라벨입니다. */
+  adminPasswordLabel: "비밀번호",
+
+  /** [홍보팀] 관리자 비밀번호 입력창 플레이스홀더입니다. */
+  adminPasswordPlaceholder: "비밀번호를 입력하세요",
+
+  /** [홍보팀] 관리자 로그인 버튼 텍스트입니다. */
+  adminSubmitText: "관리자 로그인",
+
+  /** [홍보팀] 로그인 처리 중 버튼에 표시되는 텍스트입니다. */
+  adminSubmittingText: "로그인 중…",
 } as const;
 
 /* =====================================================
@@ -177,11 +205,23 @@ const SOCIAL_PROVIDERS = [
  * /login 경로에서 렌더링되는 전체 로그인 페이지입니다.
  */
 export default function LoginPage() {
+  const router = useRouter();
+
   /* 이메일 입력 상태 */
   const [email, setEmail] = useState("");
 
+  /* 관리자 로그인 폼 상태 */
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [isAdminPending, setIsAdminPending] = useState(false);
+
   /* 이메일 유효성 검사: '@'와 '.'가 포함되어야 Continue 버튼 활성화 */
   const isValidEmail = email.includes("@") && email.includes(".");
+
+  const isAdminEmailValid =
+    adminEmail.includes("@") && adminEmail.includes(".");
+  const isAdminFormValid =
+    isAdminEmailValid && adminPassword.trim().length > 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -306,6 +346,85 @@ export default function LoginPage() {
             >
               {LOGIN_CONTENT.continueText}
             </Button>
+          </div>
+
+          {/* ─── 관리자 전용 로그인 ───────────────────────────── */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-3">
+              <Separator className="flex-1" />
+              <span className="text-xs font-medium text-muted-foreground">
+                {/* [홍보팀] 관리자 구역 제목: LOGIN_CONTENT.adminSectionLabel */}
+                {LOGIN_CONTENT.adminSectionLabel}
+              </span>
+              <Separator className="flex-1" />
+            </div>
+
+            <form
+              className="space-y-3"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!isAdminFormValid || isAdminPending) return;
+
+                setIsAdminPending(true);
+                try {
+                  const result = await adminLogin(adminEmail, adminPassword);
+                  if (result.success) {
+                    toast.success("관리자로 로그인되었습니다.");
+                    router.push("/admin/users");
+                    router.refresh();
+                  } else {
+                    toast.error(result.message);
+                  }
+                } finally {
+                  setIsAdminPending(false);
+                }
+              }}
+            >
+              <div className="space-y-1.5">
+                {/* [홍보팀] 관리자 이메일 라벨: LOGIN_CONTENT.adminEmailLabel */}
+                <Label htmlFor="admin-email" className="text-sm font-medium">
+                  {LOGIN_CONTENT.adminEmailLabel}
+                </Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder={LOGIN_CONTENT.adminEmailPlaceholder}
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  disabled={isAdminPending}
+                  className="rounded-xl border-border bg-white focus-visible:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                {/* [홍보팀] 비밀번호 라벨: LOGIN_CONTENT.adminPasswordLabel */}
+                <Label htmlFor="admin-password" className="text-sm font-medium">
+                  {LOGIN_CONTENT.adminPasswordLabel}
+                </Label>
+                <Input
+                  id="admin-password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder={LOGIN_CONTENT.adminPasswordPlaceholder}
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  disabled={isAdminPending}
+                  className="rounded-xl border-border bg-white focus-visible:ring-primary"
+                />
+              </div>
+
+              {/* [홍보팀] 버튼 문구: LOGIN_CONTENT.adminSubmitText / adminSubmittingText */}
+              <Button
+                type="submit"
+                disabled={!isAdminFormValid || isAdminPending}
+                className="w-full rounded-xl bg-primary font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {isAdminPending
+                  ? LOGIN_CONTENT.adminSubmittingText
+                  : LOGIN_CONTENT.adminSubmitText}
+              </Button>
+            </form>
           </div>
 
           {/* 계정 없음 안내 링크 */}

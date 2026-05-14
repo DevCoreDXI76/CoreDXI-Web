@@ -7,6 +7,8 @@
 // v0.2  2026-05-14  관리자 권한 시스템 추가
 //       - Role enum 추가 (SUPER_ADMIN, EDITOR, VIEWER)
 //       - User 모델에 role 필드 추가 (기본값: VIEWER)
+// v0.4  2026-05-14  관리자 이메일+비밀번호 로그인용 필드 추가
+//       - User.password (선택): bcrypt 해시, 소셜만 사용자는 null
 // v0.3  2026-05-14  Supabase(PostgreSQL)로 전환
 //       - provider: sqlite → postgresql
 //       - url + directUrl 이중 연결 설정 (pgbouncer 대응)
@@ -55,6 +57,9 @@ model User {
   // 관리자 권한 등급 (기본값: VIEWER)
   // 최초 SUPER_ADMIN은 npx prisma studio에서 직접 설정하세요.
   role Role @default(VIEWER)
+
+  // 이메일+비밀번호 로그인(관리자) 전용 bcrypt 해시. OAuth 사용자만 있으면 null.
+  password String?
 
   // 연결된 소셜 계정 목록 (Google, Slack 등)
   accounts Account[]
