@@ -1,0 +1,97 @@
+// prisma/schema.prisma — CoreDXI 데이터베이스 스키마
+//
+// NextAuth.js Prisma Adapter와 호환되는 스키마입니다.
+// User, Account, Session, VerificationToken 4개 모델로 구성됩니다.
+//
+// ── 변경 이력 ──────────────────────────────────────────────────────
+// v0.1  2026-05-14  최초 생성
+//       - SQLite 데이터베이스 설정
+//       - NextAuth Prisma Adapter 호환 4개 모델 추가
+// ────────────────────────────────────────────────────────────────────
+
+generator client {
+  // Prisma 6.x: "prisma-client" (이전 버전과 다릅니다)
+  provider = "prisma-client"
+  // 생성된 클라이언트 코드 저장 위치
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  // SQLite: 로컬 파일 기반 데이터베이스 (개발 환경에 적합)
+  // 프로덕션 배포 시 PostgreSQL 등으로 교체를 권장합니다.
+  provider = "sqlite"
+}
+
+// =====================================================
+// User 모델 — 사용자 계정 정보
+// 이메일, 이름, 프로필 이미지를 저장합니다.
+// =====================================================
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+
+  // 연결된 소셜 계정 목록 (Google, Slack 등)
+  accounts Account[]
+  // 현재 활성 세션 목록
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// =====================================================
+// Account 모델 — 소셜 로그인 연동 계정
+// Google, Slack 등 OAuth 제공자 정보를 저장합니다.
+// =====================================================
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  // OAuth 제공자 식별자 (예: "google", "slack")
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  // User 테이블과의 관계: 사용자 삭제 시 계정도 삭제
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 같은 제공자에 중복 계정 방지
+  @@unique([provider, providerAccountId])
+}
+
+// =====================================================
+// Session 모델 — 로그인 세션 관리
+// 사용자가 로그인하면 세션이 생성되고, 로그아웃하면 삭제됩니다.
+// =====================================================
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  // 세션 만료 시각
+  expires      DateTime
+
+  // User 테이블과의 관계: 사용자 삭제 시 세션도 삭제
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =====================================================
+// VerificationToken 모델 — 이메일 인증 토큰
+// 이메일 로그인(매직 링크) 시 사용되는 임시 토큰입니다.
+// =====================================================
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  // 토큰 만료 시각 (일반적으로 24시간)
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
