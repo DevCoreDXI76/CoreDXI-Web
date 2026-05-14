@@ -24,11 +24,9 @@ generator client {
 
 datasource db {
   // Supabase(PostgreSQL) — 프로덕션 및 개발 공통 DB
-  // DATABASE_URL: pgbouncer 커넥션 풀링 URL (런타임 쿼리용, 포트 6543)
-  // DIRECT_URL  : 직접 연결 URL (마이그레이션 전용, 포트 5432)
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // Prisma 7.x: url/directUrl은 schema.prisma가 아닌 prisma.config.ts에서 관리합니다.
+  // 런타임 연결은 src/lib/prisma.ts의 PrismaClient 생성자에 datasourceUrl로 전달합니다.
+  provider = "postgresql"
 }
 
 // =====================================================

@@ -18,7 +18,13 @@ import { PrismaClient } from "@/generated/prisma";
 // globalThis를 사용해 개발 환경에서 HMR로 인한 중복 연결 방지
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+// Prisma 7.x: schema.prisma에 url이 없으므로 datasourceUrl로 직접 연결 URL 전달
+// DATABASE_URL: Supabase pgbouncer 커넥션 풀링 URL (런타임 쿼리용)
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    datasourceUrl: process.env.DATABASE_URL,
+  });
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
