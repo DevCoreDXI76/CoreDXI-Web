@@ -23,13 +23,23 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+function ensureSslMode(url: string): string {
+  const u = new URL(url);
+  if (!u.searchParams.has("sslmode")) {
+    u.searchParams.set("sslmode", "no-verify");
+  }
+  return u.toString();
+}
+
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) {
     throw new Error(
       "DATABASE_URL 환경 변수가 없습니다. Vercel 프로젝트 Settings → Environment Variables에 추가해 주세요."
     );
   }
+
+  const connectionString = ensureSslMode(raw);
 
   const pool = new Pool({
     connectionString,
