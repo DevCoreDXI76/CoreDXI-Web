@@ -16,6 +16,9 @@
  * ────────────────────────────────────────────────────────────────────
  */
 
+// 관리자 페이지는 실시간 데이터가 필요하므로 정적 생성을 비활성화합니다.
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import {
@@ -27,9 +30,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { RoleSelect } from "./RoleSelect";
-import { Role } from "@/generated/prisma";
+import { Role } from "@/generated/prisma/client";
 
 // 권한별 Badge 스타일 정의
 function RoleBadge({ role }: { role: Role }) {
@@ -73,9 +75,13 @@ export default async function AdminUsersPage() {
           </p>
         </div>
         {/* 새 관리자 등록 버튼 */}
-        <Button asChild className="text-white" style={{ backgroundColor: "#1E4E8C" }}>
-          <Link href="/admin/register">+ 새 관리자 등록</Link>
-        </Button>
+        <Link
+          href="/admin/register"
+          className="inline-flex items-center justify-center rounded-lg px-3 h-8 text-sm font-medium text-white transition-colors hover:opacity-90"
+          style={{ backgroundColor: "#1E4E8C" }}
+        >
+          + 새 관리자 등록
+        </Link>
       </div>
 
       {/* 관리자 목록 테이블 */}

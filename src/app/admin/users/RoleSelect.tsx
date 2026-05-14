@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateUserRole } from "../actions";
-import { Role } from "@/generated/prisma";
+import { Role } from "@/generated/prisma/client";
 
 interface RoleSelectProps {
   userId: string;
@@ -42,7 +42,8 @@ const ROLE_OPTIONS: { value: Role; label: string }[] = [
 export function RoleSelect({ userId, currentRole }: RoleSelectProps) {
   const [isPending, startTransition] = useTransition();
 
-  function handleChange(newRole: string) {
+  function handleChange(newRole: string | null) {
+    if (!newRole) return;
     startTransition(async () => {
       const result = await updateUserRole(userId, newRole as Role);
 

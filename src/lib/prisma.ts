@@ -1,30 +1,33 @@
 /**
  * src/lib/prisma.ts — Prisma 클라이언트 싱글턴
  *
- * Next.js 개발 서버는 파일 변경 시 모듈을 재로드(HMR)합니다.
- * 매번 새 PrismaClient를 생성하면 DB 연결이 과도하게 늘어나므로,
- * globalThis에 인스턴스를 캐싱하여 하나만 유지합니다.
+ * Prisma 7.x는 드라이버 어댑터(@prisma/adapter-pg)가 필수입니다.
+ * Next.js HMR 환경에서 DB 연결 중복을 막기 위해 globalThis에 캐싱합니다.
  *
- * 프로덕션 환경(NODE_ENV=production)에서는 globalThis 캐싱을 건너뜁니다.
+ * DATABASE_URL: Supabase pgbouncer 커넥션 풀링 URL (런타임 쿼리용, 포트 6543)
  *
  * ── 변경 이력 ──────────────────────────────────────────────────────
+ * v0.2  2026-05-14  Prisma 7.x + @prisma/adapter-pg 방식으로 전환
  * v0.1  2026-05-14  최초 생성
- *       - Prisma 7.x (@/generated/prisma) 싱글턴 패턴
  * ────────────────────────────────────────────────────────────────────
  */
 
-import { PrismaClient } from "@/generated/prisma";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+// Prisma 7.x: index.ts가 없으므로 client.ts를 직접 임포트합니다.
+import { PrismaClient } from "@/generated/prisma/client";
 
 // globalThis를 사용해 개발 환경에서 HMR로 인한 중복 연결 방지
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-// Prisma 7.x: schema.prisma에 url이 없으므로 datasourceUrl로 직접 연결 URL 전달
-// DATABASE_URL: Supabase pgbouncer 커넥션 풀링 URL (런타임 쿼리용)
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    datasourceUrl: process.env.DATABASE_URL,
-  });
+function createPrismaClient() {
+  // pg Pool: Supabase pgbouncer를 통한 커넥션 풀링
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

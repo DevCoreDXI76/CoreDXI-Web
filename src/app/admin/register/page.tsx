@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createAdmin } from "../actions";
-import { Role } from "@/generated/prisma";
+import { Role } from "@/generated/prisma/client";
 
 // =====================================================
 // [홍보팀] 이 페이지에 표시되는 모든 텍스트를 여기서 수정하세요.
