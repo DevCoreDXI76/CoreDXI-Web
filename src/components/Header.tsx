@@ -56,11 +56,17 @@ const NAV_ITEMS = [
 ] satisfies NavItem[];
 
 /**
- * [홍보팀] 오른쪽 버튼 2개의 텍스트와 링크입니다.
+ * [홍보팀] 오른쪽 버튼 3개의 텍스트와 링크입니다.
+ * - login: 로그인 페이지로 이동하는 텍스트 버튼
  * - primary: 진한 파란색 배경 버튼 (주요 행동 유도)
  * - outline: 테두리만 있는 버튼 (보조 행동 유도)
  */
 const HEADER_BUTTONS = {
+  /** [홍보팀] 로그인 버튼 텍스트와 이동 링크입니다. */
+  login: {
+    label: "로그인",
+    href: "/login",
+  },
   primary: {
     label: "도입 문의",
     href: "/contact",
@@ -177,8 +183,16 @@ export function Header() {
           {/* ─── 우측: 버튼 2개 (lg 이상) + 햄버거 (lg 미만) ─── */}
           <div className="flex items-center gap-3">
 
-            {/* 버튼 2개 — 데스크탑 전용 */}
+            {/* 버튼 3개 — 데스크탑 전용 */}
             <div className="hidden lg:flex items-center gap-2">
+              {/* [홍보팀] 로그인 버튼: 텍스트 스타일, /login 페이지로 이동 */}
+              <Link
+                href={HEADER_BUTTONS.login.href}
+                className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                {HEADER_BUTTONS.login.label}
+              </Link>
+
               {/* outline 버튼: 상담 신청 */}
               <Link
                 href={HEADER_BUTTONS.outline.href}
@@ -244,8 +258,16 @@ export function Header() {
             </Link>
           ))}
 
-          {/* 모바일 버튼 2개 */}
+          {/* 모바일 버튼 3개 */}
           <div className="pt-3 pb-2 flex flex-col gap-2 border-t border-border/30 mt-2">
+            {/* [홍보팀] 모바일 로그인 버튼 */}
+            <Link
+              href={HEADER_BUTTONS.login.href}
+              className="flex items-center justify-center px-4 py-3 text-base font-medium text-foreground/80 rounded-xl hover:bg-muted/50 transition-colors"
+              onClick={closeMenu}
+            >
+              {HEADER_BUTTONS.login.label}
+            </Link>
             <Link
               href={HEADER_BUTTONS.outline.href}
               className="flex items-center justify-center px-4 py-3 text-base font-semibold text-primary border border-primary/40 rounded-xl hover:bg-primary/5 transition-colors"
