@@ -1,0 +1,268 @@
+/**
+ * Header.tsx — 사이트 공통 헤더 (내비게이션)
+ *
+ * Loom.com 스타일의 반응형 헤더입니다.
+ * - 데스크탑: 로고(좌) + 메뉴(중) + 버튼(우) 3단 레이아웃
+ * - 모바일: 로고(좌) + 햄버거 버튼(우), 클릭 시 전체 메뉴 펼침
+ * - 스크롤 시 배경이 반투명 흰색 + 블러 효과로 전환
+ *
+ * ── 변경 이력 ──────────────────────────────────────────────────────
+ * v0.2  2026-05-14  최초 생성
+ *       - Loom 스타일 3단 레이아웃 구현 (로고 / 네비 / 버튼)
+ *       - NAV_ITEMS 배열로 메뉴 관리 (홍보팀 수정 용이)
+ *       - HEADER_BUTTONS 객체로 버튼 텍스트/링크 관리
+ *       - isScrolled state: 스크롤 시 backdrop-blur 헤더 전환
+ *       - isMenuOpen state: 모바일 햄버거 메뉴 토글
+ *       - 기하학적 이중 'C' SVG 로고 + "CoreDXI" 텍스트
+ *       - aria-label, aria-expanded, role="navigation" 접근성 적용
+ * ────────────────────────────────────────────────────────────────────
+ *
+ * [홍보팀 수정 안내]
+ * ─────────────────────────────────────────────────────────────────
+ * ✏️  메뉴 항목 수정: 아래 NAV_ITEMS 배열의 label(이름)과 href(링크)를 바꾸세요.
+ * 🔗  버튼 수정: 아래 HEADER_BUTTONS 객체의 텍스트와 링크를 바꾸세요.
+ * ─────────────────────────────────────────────────────────────────
+ */
+
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+/* =====================================================
+   타입 정의
+   ===================================================== */
+interface NavItem {
+  label: string;
+  href: string;
+}
+
+/* =====================================================
+   [홍보팀] 콘텐츠 수정 구역 — 여기만 수정하면 됩니다!
+   ===================================================== */
+
+/**
+ * [홍보팀] 상단 네비게이션 메뉴 항목입니다.
+ * - label: 화면에 표시될 메뉴 이름
+ * - href: 클릭 시 이동할 페이지 경로
+ * 순서를 바꾸면 메뉴 순서도 바뀝니다.
+ */
+const NAV_ITEMS = [
+  { label: "Home",     href: "/" },
+  { label: "회사소개",  href: "/about" },
+  { label: "솔루션",   href: "/solutions" },
+  { label: "성공사례", href: "/cases" },
+  { label: "문의하기", href: "/contact" },
+] satisfies NavItem[];
+
+/**
+ * [홍보팀] 오른쪽 버튼 2개의 텍스트와 링크입니다.
+ * - primary: 진한 파란색 배경 버튼 (주요 행동 유도)
+ * - outline: 테두리만 있는 버튼 (보조 행동 유도)
+ */
+const HEADER_BUTTONS = {
+  primary: {
+    label: "도입 문의",
+    href: "/contact",
+  },
+  outline: {
+    label: "상담 신청",
+    href: "/consult",
+  },
+} as const;
+
+/* =====================================================
+   이 아래는 개발 코드입니다. 수정 시 개발팀에 문의하세요.
+   ===================================================== */
+
+/**
+ * Header 컴포넌트
+ * 모든 페이지 상단에 고정되는 공통 헤더입니다.
+ */
+export function Header() {
+  /* 스크롤 여부 감지: 스크롤하면 헤더에 배경/블러 적용 */
+  const [isScrolled, setIsScrolled] = useState(false);
+  /* 모바일 메뉴 열림/닫힘 상태 */
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 8);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  /* 모바일 메뉴가 열려있을 때 body 스크롤 방지 */
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMenuOpen]);
+
+  const closeMenu = () => setIsMenuOpen(false);
+
+  return (
+    <header
+      className={[
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        isScrolled
+          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-border/50"
+          : "bg-transparent",
+      ].join(" ")}
+    >
+      {/* 내부 컨테이너: 최대 너비 제한 + 좌우 패딩 */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <nav
+          className="flex h-16 items-center justify-between"
+          role="navigation"
+          aria-label="메인 네비게이션"
+        >
+
+          {/* ─── 좌측: 로고 ───────────────────────────────── */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 shrink-0 group"
+            aria-label="CoreDXI 홈으로 이동"
+          >
+            {/* 기하학적 'C' 로고 SVG */}
+            <svg
+              width="34"
+              height="34"
+              viewBox="0 0 34 34"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              {/* 외부 원호 (C 형태) */}
+              <path
+                d="M28.5 10.5C26.2 6.8 22.1 4.5 17 4.5C9.5 4.5 3.5 10.5 3.5 17C3.5 23.5 9.5 29.5 17 29.5C22.1 29.5 26.2 27.2 28.5 23.5"
+                stroke="#1E4E8C"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                fill="none"
+              />
+              {/* 내부 원호 (이중 C 구조로 고급스러운 느낌) */}
+              <path
+                d="M24.5 12.5C23 10 20.2 8.5 17 8.5C11.7 8.5 7.5 12.5 7.5 17C7.5 21.5 11.7 25.5 17 25.5C20.2 25.5 23 24 24.5 21.5"
+                stroke="#1E4E8C"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeOpacity="0.5"
+                fill="none"
+              />
+            </svg>
+
+            {/* 회사명 텍스트 */}
+            <span className="text-xl font-bold text-primary tracking-tight group-hover:opacity-80 transition-opacity">
+              CoreDXI
+            </span>
+          </Link>
+
+          {/* ─── 중앙: 데스크탑 네비게이션 (lg 이상에서만 표시) ─── */}
+          <ul className="hidden lg:flex items-center gap-1" role="list">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="relative px-4 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 group"
+                >
+                  {item.label}
+                  {/* 호버 시 하단 밑줄 슬라이드 효과 */}
+                  <span className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* ─── 우측: 버튼 2개 (lg 이상) + 햄버거 (lg 미만) ─── */}
+          <div className="flex items-center gap-3">
+
+            {/* 버튼 2개 — 데스크탑 전용 */}
+            <div className="hidden lg:flex items-center gap-2">
+              {/* outline 버튼: 상담 신청 */}
+              <Link
+                href={HEADER_BUTTONS.outline.href}
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-primary border border-primary/40 rounded-xl transition-all duration-150 hover:bg-primary/5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                {HEADER_BUTTONS.outline.label}
+              </Link>
+
+              {/* primary 버튼: 도입 문의 */}
+              <Link
+                href={HEADER_BUTTONS.primary.href}
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-xl shadow-sm shadow-primary/20 transition-all duration-150 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
+              >
+                {HEADER_BUTTONS.primary.label}
+              </Link>
+            </div>
+
+            {/* 햄버거 버튼 — 모바일 전용 */}
+            <button
+              type="button"
+              className="lg:hidden inline-flex items-center justify-center p-2 rounded-lg text-foreground/70 hover:text-foreground hover:bg-primary/5 transition-colors"
+              aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+            >
+              {isMenuOpen ? (
+                /* X 아이콘 (닫기) */
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              ) : (
+                /* 햄버거 아이콘 (열기) */
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      {/* ─── 모바일 메뉴 드롭다운 ──────────────────────────── */}
+      <div
+        id="mobile-menu"
+        className={[
+          "lg:hidden overflow-hidden transition-all duration-300 ease-in-out",
+          "bg-white/98 backdrop-blur-md border-t border-border/30",
+          isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0",
+        ].join(" ")}
+        aria-hidden={!isMenuOpen}
+      >
+        <div className="mx-auto max-w-7xl px-4 py-4 space-y-1">
+          {/* 모바일 네비게이션 링크 */}
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center px-4 py-3 text-base font-medium text-foreground/80 rounded-xl hover:text-foreground hover:bg-primary/5 transition-colors"
+              onClick={closeMenu}
+            >
+              {item.label}
+            </Link>
+          ))}
+
+          {/* 모바일 버튼 2개 */}
+          <div className="pt-3 pb-2 flex flex-col gap-2 border-t border-border/30 mt-2">
+            <Link
+              href={HEADER_BUTTONS.outline.href}
+              className="flex items-center justify-center px-4 py-3 text-base font-semibold text-primary border border-primary/40 rounded-xl hover:bg-primary/5 transition-colors"
+              onClick={closeMenu}
+            >
+              {HEADER_BUTTONS.outline.label}
+            </Link>
+            <Link
+              href={HEADER_BUTTONS.primary.href}
+              className="flex items-center justify-center px-4 py-3 text-base font-semibold text-white bg-primary rounded-xl hover:bg-primary/90 transition-colors"
+              onClick={closeMenu}
+            >
+              {HEADER_BUTTONS.primary.label}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
