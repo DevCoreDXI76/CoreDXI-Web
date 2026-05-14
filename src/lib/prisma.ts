@@ -1,45 +1,31 @@
 /**
  * src/lib/prisma.ts — Prisma 클라이언트 싱글턴
  *
- * Prisma 7.x는 드라이버 어댑터(@prisma/adapter-pg)가 필수입니다.
- * Next.js HMR 환경에서 DB 연결 중복을 막기 위해 globalThis에 캐싱합니다.
- * Vercel 등 서버리스에서는 동일 인스턴스에서 Pool을 재사용하고, 연결 수를 제한합니다.
- *
- * DATABASE_URL: Supabase pgbouncer 커넥션 풀링 URL (런타임 쿼리용, 포트 6543)
- *
- * ── 변경 이력 ──────────────────────────────────────────────────────
- * v0.3  2026-05-14  서버리스용 Pool 옵션, 프로덕션 global 캐시
- * v0.2  2026-05-14  Prisma 7.x + @prisma/adapter-pg 방식으로 전환
- * v0.1  2026-05-14  최초 생성
- * ────────────────────────────────────────────────────────────────────
+ * Prisma 7.x + @prisma/adapter-pg 패턴.
+ * Supabase pgbouncer(자체 서명 인증서)에서 TLS 연결을 위해
+ * Node.js 레벨 + pg 드라이버 레벨 양쪽에서 인증서 검증을 비활성화합니다.
  */
+
+// Supabase pgbouncer 자체 서명 인증서 허용 (Node.js 전역)
+if (process.env.NODE_ENV === "production") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
 
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-// Prisma 7.x: index.ts가 없으므로 client.ts를 직접 임포트합니다.
 import { PrismaClient } from "@/generated/prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function ensureSslMode(url: string): string {
-  const u = new URL(url);
-  if (!u.searchParams.has("sslmode")) {
-    u.searchParams.set("sslmode", "no-verify");
-  }
-  return u.toString();
-}
-
 function createPrismaClient() {
-  const raw = process.env.DATABASE_URL;
-  if (!raw) {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
     throw new Error(
       "DATABASE_URL 환경 변수가 없습니다. Vercel 프로젝트 Settings → Environment Variables에 추가해 주세요."
     );
   }
-
-  const connectionString = ensureSslMode(raw);
 
   const pool = new Pool({
     connectionString,
