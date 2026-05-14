@@ -7,6 +7,9 @@
 // v0.2  2026-05-14  관리자 권한 시스템 추가
 //       - Role enum 추가 (SUPER_ADMIN, EDITOR, VIEWER)
 //       - User 모델에 role 필드 추가 (기본값: VIEWER)
+// v0.3  2026-05-14  Supabase(PostgreSQL)로 전환
+//       - provider: sqlite → postgresql
+//       - url + directUrl 이중 연결 설정 (pgbouncer 대응)
 // v0.1  2026-05-14  최초 생성
 //       - SQLite 데이터베이스 설정
 //       - NextAuth Prisma Adapter 호환 4개 모델 추가
@@ -20,9 +23,12 @@ generator client {
 }
 
 datasource db {
-  // SQLite: 로컬 파일 기반 데이터베이스 (개발 환경에 적합)
-  // 프로덕션 배포 시 PostgreSQL 등으로 교체를 권장합니다.
-  provider = "sqlite"
+  // Supabase(PostgreSQL) — 프로덕션 및 개발 공통 DB
+  // DATABASE_URL: pgbouncer 커넥션 풀링 URL (런타임 쿼리용, 포트 6543)
+  // DIRECT_URL  : 직접 연결 URL (마이그레이션 전용, 포트 5432)
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // =====================================================

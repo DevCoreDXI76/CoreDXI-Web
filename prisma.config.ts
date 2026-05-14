@@ -9,6 +9,9 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
+    // 런타임 쿼리용 URL (pgbouncer 커넥션 풀링, 포트 6543)
     url: process.env["DATABASE_URL"],
+    // 마이그레이션 전용 URL (직접 연결, 포트 5432)
+    directUrl: process.env["DIRECT_URL"],
   },
 });
