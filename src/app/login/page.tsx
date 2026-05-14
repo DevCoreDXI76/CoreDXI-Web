@@ -8,6 +8,7 @@
  * - Continue 버튼은 유효한 이메일이 입력되기 전까지 비활성화됩니다.
  *
  * ── 변경 이력 ──────────────────────────────────────────────────────
+ * v0.3  2026-05-14  최초 온보딩(/setup) 안내 링크 추가
  * v0.2  2026-05-14  관리자 로그인 섹션 추가
  *       - 이메일+비밀번호 폼, 성공 시 /admin/users 이동, 실패 시 Toast
  * v0.1  2026-05-14  최초 생성
@@ -98,6 +99,9 @@ const LOGIN_CONTENT = {
 
   /** [홍보팀] 로그인 처리 중 버튼에 표시되는 텍스트입니다. */
   adminSubmittingText: "로그인 중…",
+
+  /** 최초 온보딩(/setup) 링크 텍스트 */
+  initialSetupLinkText: "최초 관리자 계정이 없나요? 시스템 설정",
 } as const;
 
 /* =====================================================
@@ -425,6 +429,15 @@ export default function LoginPage() {
                   : LOGIN_CONTENT.adminSubmitText}
               </Button>
             </form>
+
+            <p className="text-center text-xs text-muted-foreground">
+              <Link
+                href="/setup"
+                className="font-medium text-primary hover:underline hover:underline-offset-4"
+              >
+                {LOGIN_CONTENT.initialSetupLinkText}
+              </Link>
+            </p>
           </div>
 
           {/* 계정 없음 안내 링크 */}

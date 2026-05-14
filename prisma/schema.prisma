@@ -55,7 +55,7 @@ model User {
   image         String?
 
   // 관리자 권한 등급 (기본값: VIEWER)
-  // 최초 SUPER_ADMIN은 npx prisma studio에서 직접 설정하세요.
+  // 최초 SUPER_ADMIN: /setup 온보딩 또는 Prisma Studio에서 설정
   role Role @default(VIEWER)
 
   // 이메일+비밀번호 로그인(관리자) 전용 bcrypt 해시. OAuth 사용자만 있으면 null.
