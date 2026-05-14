@@ -18,6 +18,8 @@ CoreDXI는 복잡한 기업 협업을 단순화하고, AI를 통해 비즈니스
 
 | 버전 | 내용 |
 |------|------|
+| v0.4 | 관리자 등록 & 권한 관리 시스템 추가 (Role enum, /admin 페이지, 미들웨어) |
+| v0.3 | 사용자 로그인 UI(/login), Prisma+SQLite 데이터베이스 초기 세팅 |
 | v0.2 | Loom 스타일 반응형 헤더(Header.tsx) 추가, 히어로 섹션 고도화(대형 타이포그래피, 버튼 2개, 이미지 플레이스홀더) |
 | v0.1 | 프로젝트 초기 세팅 (Next.js 15, Tailwind v4, shadcn/ui), 히어로 섹션 초기 버전, 브랜드 컬러 세팅 |
 
@@ -72,19 +74,36 @@ npm run lint    # 코드 품질 검사
 CoreDXI-Web/
 ├── src/
 │   ├── app/
-│   │   ├── globals.css      # 전역 스타일 및 브랜드 컬러 설정 (#1E4E8C)
-│   │   ├── layout.tsx       # 공통 레이아웃 (HTML, 폰트, 메타데이터)
-│   │   └── page.tsx         # 메인 홈페이지 (/ 경로) — Header + Hero 조합
+│   │   ├── admin/                  # ★ 관리자 대시보드 (/admin/*)
+│   │   │   ├── layout.tsx          # 사이드바 레이아웃 (로열 블루 사이드바)
+│   │   │   ├── page.tsx            # /admin → /admin/users 리다이렉트
+│   │   │   ├── actions.ts          # Server Actions: createAdmin, updateUserRole
+│   │   │   ├── AdminNav.tsx        # 사이드바 네비게이션 (클라이언트)
+│   │   │   ├── register/page.tsx   # 관리자 등록 폼
+│   │   │   └── users/
+│   │   │       ├── page.tsx        # 관리자 목록 + 권한 변경
+│   │   │       └── RoleSelect.tsx  # 권한 드롭다운 (클라이언트)
+│   │   ├── login/
+│   │   │   └── page.tsx            # 로그인 페이지 (/login)
+│   │   ├── globals.css             # 전역 스타일 및 브랜드 컬러 설정 (#1E4E8C)
+│   │   ├── layout.tsx              # 공통 레이아웃 (HTML, 폰트, 메타데이터)
+│   │   └── page.tsx                # 메인 홈페이지 (/) — Header + Hero 조합
 │   ├── components/
-│   │   ├── Header.tsx       # 반응형 헤더 (로고, 네비게이션, 버튼, 햄버거 메뉴)
-│   │   ├── Hero.tsx         # 히어로 섹션 (첫 화면, 대형 타이포그래피, 이미지 플레이스홀더)
-│   │   └── ui/              # shadcn/ui 자동 생성 컴포넌트
-│   └── lib/
-│       └── utils.ts         # 공통 유틸리티 함수
-├── public/                  # 정적 파일 (이미지 파일을 여기에 넣습니다)
-├── .cursorrules             # AI 코딩 규칙 (Cursor IDE 전용)
-├── CONTENT_GUIDE.md         # 홍보팀용 콘텐츠 수정 가이드
-└── README.md                # 이 파일
+│   │   ├── Header.tsx              # 반응형 헤더 (로고, 네비게이션, 버튼, 햄버거 메뉴)
+│   │   ├── Hero.tsx                # 히어로 섹션 (첫 화면, 대형 타이포그래피)
+│   │   └── ui/                     # shadcn/ui 자동 생성 컴포넌트
+│   ├── lib/
+│   │   ├── prisma.ts               # ★ Prisma 클라이언트 싱글턴
+│   │   └── utils.ts                # 공통 유틸리티 함수
+│   ├── generated/prisma/           # Prisma 자동 생성 타입 (직접 수정 금지)
+│   └── middleware.ts               # ★ /admin/* 접근 보호 미들웨어
+├── prisma/
+│   ├── schema.prisma               # ★ 데이터베이스 스키마 (User, Role 등)
+│   └── migrations/                 # DB 마이그레이션 이력
+├── public/                         # 정적 파일 (이미지 파일을 여기에 넣습니다)
+├── .cursorrules                    # AI 코딩 규칙 (Cursor IDE 전용)
+├── CONTENT_GUIDE.md                # 홍보팀용 콘텐츠 수정 가이드
+└── README.md                       # 이 파일
 ```
 
 ---
@@ -101,6 +120,33 @@ CoreDXI-Web/
 | 브라우저 탭 제목 | src/app/layout.tsx | metadata.title |
 
 자세한 설명은 **CONTENT_GUIDE.md** 를 참고하세요.
+
+---
+
+## 최초 SUPER_ADMIN 계정 만들기
+
+서비스를 처음 시작할 때, 아직 로그인 기능이 없으므로 **Prisma Studio**를 통해 직접 최초 SUPER_ADMIN 계정을 설정합니다.
+
+### 방법 1 — Prisma Studio 사용 (권장)
+
+```bash
+# 터미널에서 실행
+npx prisma studio
+```
+
+1. 브라우저에서 `http://localhost:5555` 가 자동으로 열립니다.
+2. **User** 모델 테이블을 클릭합니다.
+3. 원하는 계정의 `role` 컬럼을 `SUPER_ADMIN`으로 변경합니다.
+4. 저장(Save) 버튼을 클릭합니다.
+
+### 방법 2 — 관리자 등록 페이지 사용
+
+next-auth 로그인 연동 전 개발 환경에서는 `/admin/register`에 직접 접근하여 계정을 등록할 수 있습니다.
+
+1. 개발 서버 실행 후 `http://127.0.0.1:8080/admin/register` 접속
+2. 이름, 이메일 입력 후 **SUPER_ADMIN** 권한으로 등록
+
+> **[주의]** 프로덕션 환경에서는 반드시 로그인 인증을 완성한 후 관리자 페이지에 접근하도록 설정하세요.
 
 ---
 

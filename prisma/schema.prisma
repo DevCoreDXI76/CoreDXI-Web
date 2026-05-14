@@ -4,6 +4,9 @@
 // User, Account, Session, VerificationToken 4개 모델로 구성됩니다.
 //
 // ── 변경 이력 ──────────────────────────────────────────────────────
+// v0.2  2026-05-14  관리자 권한 시스템 추가
+//       - Role enum 추가 (SUPER_ADMIN, EDITOR, VIEWER)
+//       - User 모델에 role 필드 추가 (기본값: VIEWER)
 // v0.1  2026-05-14  최초 생성
 //       - SQLite 데이터베이스 설정
 //       - NextAuth Prisma Adapter 호환 4개 모델 추가
@@ -23,8 +26,20 @@ datasource db {
 }
 
 // =====================================================
+// Role Enum — 관리자 권한 등급
+// SUPER_ADMIN: 모든 기능 + 관리자 등록/삭제 가능
+// EDITOR     : 콘텐츠 수정 가능
+// VIEWER     : 조회 전용 (기본값)
+// =====================================================
+enum Role {
+  SUPER_ADMIN
+  EDITOR
+  VIEWER
+}
+
+// =====================================================
 // User 모델 — 사용자 계정 정보
-// 이메일, 이름, 프로필 이미지를 저장합니다.
+// 이메일, 이름, 프로필 이미지, 권한 등급을 저장합니다.
 // =====================================================
 model User {
   id            String    @id @default(cuid())
@@ -32,6 +47,10 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+
+  // 관리자 권한 등급 (기본값: VIEWER)
+  // 최초 SUPER_ADMIN은 npx prisma studio에서 직접 설정하세요.
+  role Role @default(VIEWER)
 
   // 연결된 소셜 계정 목록 (Google, Slack 등)
   accounts Account[]
