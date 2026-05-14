@@ -36,6 +36,7 @@ function createPrismaClient() {
     max: process.env.VERCEL ? 1 : 10,
     idleTimeoutMillis: process.env.VERCEL ? 20_000 : 30_000,
     connectionTimeoutMillis: 15_000,
+    ssl: { rejectUnauthorized: false },
   });
 
   const adapter = new PrismaPg(pool);
