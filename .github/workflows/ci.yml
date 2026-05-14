@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # prisma generate / prisma.config.ts — CI에서는 DB에 접속하지 않음
+      DIRECT_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
