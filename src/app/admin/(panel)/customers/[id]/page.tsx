@@ -2,7 +2,9 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { CustomerDeleteButton } from "../customer-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { formatSignupMethods, getSignupMethodLabels } from "../signup-method";
 
@@ -11,6 +13,9 @@ type PageProps = {
 };
 
 export default async function AdminCustomerDetailPage({ params }: PageProps) {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+
   const { id } = await params;
 
   const user = await prisma.user.findUnique({
@@ -43,9 +48,27 @@ export default async function AdminCustomerDetailPage({ params }: PageProps) {
         ← 사용자 목록
       </Link>
 
-      <div className="mt-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">사용자 상세</h1>
-        <p className="mt-1 text-sm text-gray-500">{user.email}</p>
+      <div className="mt-6 mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">사용자 상세</h1>
+          <p className="mt-1 text-sm text-gray-500">{user.email}</p>
+        </div>
+        {isSuperAdmin ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/admin/customers/${user.id}/edit`}
+              className="inline-flex h-9 items-center justify-center rounded-xl bg-[#1E4E8C] px-4 text-sm font-semibold text-white hover:bg-[#1E4E8C]/90"
+            >
+              이름 수정
+            </Link>
+            <CustomerDeleteButton
+              id={user.id}
+              label={user.name ?? user.email}
+              redirectToList
+              className="inline-flex h-9 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50"
+            />
+          </div>
+        ) : null}
       </div>
 
       <section className="max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">

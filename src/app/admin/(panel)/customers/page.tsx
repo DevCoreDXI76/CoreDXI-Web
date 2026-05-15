@@ -1,5 +1,7 @@
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
   Table,
@@ -11,9 +13,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CustomerTableRow } from "./CustomerTableRow";
+import { CustomerActionsCell } from "./CustomerActionsCell";
+import { CustomerDeleteButton } from "./customer-delete-button";
 import { getSignupMethodLabels } from "./signup-method";
 
 export default async function AdminCustomersPage() {
+  const session = await auth();
+  const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -44,13 +50,16 @@ export default async function AdminCustomersPage() {
               <TableHead>이메일</TableHead>
               <TableHead>가입 방식</TableHead>
               <TableHead className="text-right">등록일</TableHead>
+              {isSuperAdmin ? (
+                <TableHead className="w-36 text-right">작업</TableHead>
+              ) : null}
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={isSuperAdmin ? 6 : 5}
                   className="py-12 text-center text-gray-400"
                 >
                   등록된 사용자가 없습니다.
@@ -87,6 +96,23 @@ export default async function AdminCustomersPage() {
                   <TableCell className="text-right text-sm text-gray-500">
                     {user.createdAt.toLocaleDateString("ko-KR")}
                   </TableCell>
+                  {isSuperAdmin ? (
+                    <CustomerActionsCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/customers/${user.id}/edit`}
+                          className="text-sm font-medium text-[#1E4E8C] hover:underline"
+                        >
+                          수정
+                        </Link>
+                        <CustomerDeleteButton
+                          id={user.id}
+                          label={user.name ?? user.email}
+                          redirectToList
+                        />
+                      </div>
+                    </CustomerActionsCell>
+                  ) : null}
                 </CustomerTableRow>
               ))
             )}
