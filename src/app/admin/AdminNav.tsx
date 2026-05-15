@@ -18,7 +18,7 @@ import { usePathname } from "next/navigation";
 // [홍보팀/개발팀] 사이드바 메뉴 항목을 여기서 수정하세요.
 const NAV_ITEMS = [
   { label: "관리자 목록", href: "/admin/users" },
-  { label: "관리자 등록", href: "/admin/register" },
+  { label: "사용자 목록", href: "/admin/customers" },
 ] as const;
 
 export function AdminNav() {
@@ -28,7 +28,8 @@ export function AdminNav() {
     <nav aria-label="관리자 메뉴">
       <ul className="space-y-1">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <li key={item.href}>
               <Link
