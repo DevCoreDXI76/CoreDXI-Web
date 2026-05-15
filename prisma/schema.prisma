@@ -106,3 +106,16 @@ model Portfolio {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+// =====================================================
+// OtpCode — 회원가입 이메일 6자리 인증 (5분 유효)
+// =====================================================
+model OtpCode {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}

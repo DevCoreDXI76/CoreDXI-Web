@@ -82,6 +82,10 @@ function SignupPageContent() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
+  const [sendPending, setSendPending] = useState(false);
+  const [verifyPending, setVerifyPending] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [emailOtpVerified, setEmailOtpVerified] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const isEmailValid = email.includes("@") && email.includes(".");
@@ -97,7 +101,66 @@ function SignupPageContent() {
       setEmail(fromQuery);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (step === 3 && !emailOtpVerified) {
+      setStep(2);
+    }
+  }, [step, emailOtpVerified]);
+
   const canComplete = name.trim().length > 0 && password.length >= 8;
+
+  async function handleSendOtp() {
+    if (!isEmailValid || sendPending) return;
+    setSendPending(true);
+    setOtpError(null);
+    try {
+      const normalized = email.trim().toLowerCase();
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalized }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.message ?? "인증 메일 발송에 실패했습니다.");
+        return;
+      }
+      setEmail(normalized);
+      setOtp(["", "", "", "", "", ""]);
+      setEmailOtpVerified(false);
+      setStep(2);
+      toast.success("인증 코드를 이메일로 보냈습니다.");
+    } catch {
+      toast.error("인증 메일 발송 중 오류가 발생했습니다.");
+    } finally {
+      setSendPending(false);
+    }
+  }
+
+  async function handleVerifyOtp() {
+    if (!isOtpComplete || verifyPending) return;
+    setVerifyPending(true);
+    setOtpError(null);
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), code: otp.join("") }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setOtpError(data.message ?? "인증 코드가 올바르지 않습니다.");
+        return;
+      }
+      setEmailOtpVerified(true);
+      setStep(3);
+    } catch {
+      setOtpError("인증 확인 중 오류가 발생했습니다.");
+    } finally {
+      setVerifyPending(false);
+    }
+  }
 
   function handleOtpChange(index: number, value: string) {
     const digit = value.replace(/\D/g, "").slice(-1);
@@ -219,11 +282,11 @@ function SignupPageContent() {
 
                 <Button
                   type="button"
-                  disabled={!isEmailValid}
+                  disabled={!isEmailValid || sendPending}
                   className="w-full rounded-lg bg-primary font-semibold"
-                  onClick={() => setStep(2)}
+                  onClick={() => void handleSendOtp()}
                 >
-                  {SIGNUP_CONTENT.continueText}
+                  {sendPending ? "발송 중…" : SIGNUP_CONTENT.continueText}
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">
@@ -263,32 +326,37 @@ function SignupPageContent() {
                   ))}
                 </div>
 
+                {otpError ? (
+                  <p className="text-center text-sm text-red-600" role="alert">
+                    {otpError}
+                  </p>
+                ) : null}
+
                 <Button
                   type="button"
-                  disabled={!isOtpComplete}
+                  disabled={!isOtpComplete || verifyPending}
                   className="w-full rounded-lg bg-primary font-semibold"
-                  onClick={() => setStep(3)}
+                  onClick={() => void handleVerifyOtp()}
                 >
-                  {SIGNUP_CONTENT.confirmOtp}
+                  {verifyPending ? "확인 중…" : SIGNUP_CONTENT.confirmOtp}
                 </Button>
 
                 <p className="text-center text-sm text-gray-500">
                   {SIGNUP_CONTENT.resendText}{" "}
                   <button
                     type="button"
-                    className="font-medium text-primary hover:underline"
-                    onClick={() =>
-                      toast.info("인증 메일을 다시 보냈습니다. (Mock)")
-                    }
+                    disabled={sendPending}
+                    className="font-medium text-primary hover:underline disabled:opacity-50"
+                    onClick={() => void handleSendOtp()}
                   >
-                    {SIGNUP_CONTENT.resendLink}
+                    {sendPending ? "발송 중…" : SIGNUP_CONTENT.resendLink}
                   </button>
                 </p>
               </div>
             </>
           )}
 
-          {step === 3 && (
+          {step === 3 && emailOtpVerified && (
             <>
               {/* [홍보팀] Step 3 이름·비밀번호 라벨은 SIGNUP_CONTENT.step3Title 등에서 수정하세요. */}
               <h1 className="text-center text-xl font-bold text-gray-900">
