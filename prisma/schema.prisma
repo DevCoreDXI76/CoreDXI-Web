@@ -91,3 +91,18 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// =====================================================
+// Portfolio — 홍보팀 성공사례(포트폴리오) CMS
+// =====================================================
+model Portfolio {
+  id           String   @id @default(cuid())
+  title        String
+  clientName   String
+  thumbnailUrl String
+  videoUrl     String?
+  content      String   @db.Text
+  metrics      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AdminNav } from "./AdminNav";
+import { AdminSidebar } from "./AdminSidebar";
 
 export default function AdminPanelLayout({
   children,
@@ -7,9 +7,9 @@ export default function AdminPanelLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <aside
-        className="flex w-60 shrink-0 flex-col"
+        className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col"
         style={{ backgroundColor: "#1E4E8C" }}
       >
         <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-5">
@@ -38,15 +38,15 @@ export default function AdminPanelLayout({
             />
           </svg>
           <Link
-            href="/admin/users"
+            href="/admin/dashboard"
             className="text-base font-bold tracking-tight text-white"
           >
             CoreDXI Admin
           </Link>
         </div>
 
-        <div className="flex-1 px-3 py-4">
-          <AdminNav />
+        <div className="flex-1 overflow-y-auto px-3 py-4">
+          <AdminSidebar />
         </div>
 
         <div className="border-t border-white/10 px-5 py-4">
@@ -59,7 +59,7 @@ export default function AdminPanelLayout({
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto bg-gray-50">{children}</main>
+      <main className="ml-60 min-h-screen p-8 lg:p-10">{children}</main>
     </div>
   );
 }
