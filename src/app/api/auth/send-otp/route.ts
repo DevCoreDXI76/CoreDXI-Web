@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     const resend = new Resend(apiKey);
     const { error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "noreply@coredxi.com",
       to: email,
       subject: "[CoreDXI] 회원가입 인증 코드입니다.",
       html: `인증 코드 6자리: <strong>${code}</strong><br/>이 코드는 5분간 유효합니다.`,
