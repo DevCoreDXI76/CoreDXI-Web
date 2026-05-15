@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/components/AuthProvider";
 
 /* 구글 폰트: Geist (모던하고 가독성 높은 산세리프 폰트) */
 const geistSans = Geist({
@@ -47,8 +48,10 @@ export default function RootLayout({
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
     <html lang="ko">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
-        <Toaster richColors position="top-center" />
+        <AuthProvider>
+          {children}
+          <Toaster richColors position="top-center" />
+        </AuthProvider>
       </body>
     </html>
   );

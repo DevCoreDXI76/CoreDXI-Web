@@ -28,6 +28,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { signOut, useSession } from "next-auth/react";
 
 /* =====================================================
    타입 정의
@@ -86,6 +87,9 @@ const HEADER_BUTTONS = {
  * 모든 페이지 상단에 고정되는 공통 헤더입니다.
  */
 export function Header() {
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === "authenticated" && !!session?.user;
+
   /* 스크롤 여부 감지: 스크롤하면 헤더에 배경/블러 적용 */
   const [isScrolled, setIsScrolled] = useState(false);
   /* 모바일 메뉴 열림/닫힘 상태 */
@@ -183,31 +187,75 @@ export function Header() {
           {/* ─── 우측: 버튼 2개 (lg 이상) + 햄버거 (lg 미만) ─── */}
           <div className="flex items-center gap-3">
 
-            {/* 버튼 3개 — 데스크탑 전용 */}
+            {/* [홍보팀] 로그인 여부에 따라 오른쪽 버튼 구역이 바뀝니다. 비로그인: 로그인·상담·문의 / 로그인: 프로필·로그아웃 + 문의·상담 */}
             <div className="hidden lg:flex items-center gap-2">
-              {/* [홍보팀] 로그인 버튼: 텍스트 스타일, /login 페이지로 이동 */}
-              <Link
-                href={HEADER_BUTTONS.login.href}
-                className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                {HEADER_BUTTONS.login.label}
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white/80 py-1 pl-1 pr-2 shadow-sm">
+                    {session.user?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={session.user.image}
+                        alt=""
+                        className="h-8 w-8 rounded-full object-cover"
+                        width={32}
+                        height={32}
+                      />
+                    ) : (
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {(session.user?.name ?? session.user?.email ?? "?")
+                          .slice(0, 1)
+                          .toUpperCase()}
+                      </span>
+                    )}
+                    <span className="max-w-[140px] truncate text-sm font-medium text-foreground">
+                      {session.user?.name ?? session.user?.email ?? "사용자"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void signOut({ callbackUrl: "/" })}
+                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    로그아웃
+                  </button>
+                  <Link
+                    href={HEADER_BUTTONS.outline.href}
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-primary border border-primary/40 rounded-xl transition-all duration-150 hover:bg-primary/5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    {HEADER_BUTTONS.outline.label}
+                  </Link>
+                  <Link
+                    href={HEADER_BUTTONS.primary.href}
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-xl shadow-sm shadow-primary/20 transition-all duration-150 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
+                  >
+                    {HEADER_BUTTONS.primary.label}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href={HEADER_BUTTONS.login.href}
+                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    {HEADER_BUTTONS.login.label}
+                  </Link>
 
-              {/* outline 버튼: 상담 신청 */}
-              <Link
-                href={HEADER_BUTTONS.outline.href}
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-primary border border-primary/40 rounded-xl transition-all duration-150 hover:bg-primary/5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                {HEADER_BUTTONS.outline.label}
-              </Link>
+                  <Link
+                    href={HEADER_BUTTONS.outline.href}
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-primary border border-primary/40 rounded-xl transition-all duration-150 hover:bg-primary/5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    {HEADER_BUTTONS.outline.label}
+                  </Link>
 
-              {/* primary 버튼: 도입 문의 */}
-              <Link
-                href={HEADER_BUTTONS.primary.href}
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-xl shadow-sm shadow-primary/20 transition-all duration-150 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
-              >
-                {HEADER_BUTTONS.primary.label}
-              </Link>
+                  <Link
+                    href={HEADER_BUTTONS.primary.href}
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-xl shadow-sm shadow-primary/20 transition-all duration-150 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
+                  >
+                    {HEADER_BUTTONS.primary.label}
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* 햄버거 버튼 — 모바일 전용 */}
@@ -258,30 +306,81 @@ export function Header() {
             </Link>
           ))}
 
-          {/* 모바일 버튼 3개 */}
+          {/* 모바일 버튼 — 로그인 상태에 따라 분기 */}
           <div className="pt-3 pb-2 flex flex-col gap-2 border-t border-border/30 mt-2">
-            {/* [홍보팀] 모바일 로그인 버튼 */}
-            <Link
-              href={HEADER_BUTTONS.login.href}
-              className="flex items-center justify-center px-4 py-3 text-base font-medium text-foreground/80 rounded-xl hover:bg-muted/50 transition-colors"
-              onClick={closeMenu}
-            >
-              {HEADER_BUTTONS.login.label}
-            </Link>
-            <Link
-              href={HEADER_BUTTONS.outline.href}
-              className="flex items-center justify-center px-4 py-3 text-base font-semibold text-primary border border-primary/40 rounded-xl hover:bg-primary/5 transition-colors"
-              onClick={closeMenu}
-            >
-              {HEADER_BUTTONS.outline.label}
-            </Link>
-            <Link
-              href={HEADER_BUTTONS.primary.href}
-              className="flex items-center justify-center px-4 py-3 text-base font-semibold text-white bg-primary rounded-xl hover:bg-primary/90 transition-colors"
-              onClick={closeMenu}
-            >
-              {HEADER_BUTTONS.primary.label}
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <div className="flex items-center gap-3 px-4 py-2">
+                  {session.user?.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={session.user.image}
+                      alt=""
+                      className="h-10 w-10 shrink-0 rounded-full object-cover"
+                      width={40}
+                      height={40}
+                    />
+                  ) : (
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                      {(session.user?.name ?? session.user?.email ?? "?")
+                        .slice(0, 1)
+                        .toUpperCase()}
+                    </span>
+                  )}
+                  <span className="truncate text-base font-medium text-foreground">
+                    {session.user?.name ?? session.user?.email}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="flex items-center justify-center px-4 py-3 text-base font-medium text-foreground/80 rounded-xl hover:bg-muted/50 transition-colors"
+                  onClick={() => {
+                    closeMenu();
+                    void signOut({ callbackUrl: "/" });
+                  }}
+                >
+                  로그아웃
+                </button>
+                <Link
+                  href={HEADER_BUTTONS.outline.href}
+                  className="flex items-center justify-center px-4 py-3 text-base font-semibold text-primary border border-primary/40 rounded-xl hover:bg-primary/5 transition-colors"
+                  onClick={closeMenu}
+                >
+                  {HEADER_BUTTONS.outline.label}
+                </Link>
+                <Link
+                  href={HEADER_BUTTONS.primary.href}
+                  className="flex items-center justify-center px-4 py-3 text-base font-semibold text-white bg-primary rounded-xl hover:bg-primary/90 transition-colors"
+                  onClick={closeMenu}
+                >
+                  {HEADER_BUTTONS.primary.label}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href={HEADER_BUTTONS.login.href}
+                  className="flex items-center justify-center px-4 py-3 text-base font-medium text-foreground/80 rounded-xl hover:bg-muted/50 transition-colors"
+                  onClick={closeMenu}
+                >
+                  {HEADER_BUTTONS.login.label}
+                </Link>
+                <Link
+                  href={HEADER_BUTTONS.outline.href}
+                  className="flex items-center justify-center px-4 py-3 text-base font-semibold text-primary border border-primary/40 rounded-xl hover:bg-primary/5 transition-colors"
+                  onClick={closeMenu}
+                >
+                  {HEADER_BUTTONS.outline.label}
+                </Link>
+                <Link
+                  href={HEADER_BUTTONS.primary.href}
+                  className="flex items-center justify-center px-4 py-3 text-base font-semibold text-white bg-primary rounded-xl hover:bg-primary/90 transition-colors"
+                  onClick={closeMenu}
+                >
+                  {HEADER_BUTTONS.primary.label}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

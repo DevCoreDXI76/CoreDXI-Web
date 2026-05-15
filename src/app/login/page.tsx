@@ -4,7 +4,7 @@
  * Loom.com 스타일의 깔끔한 로그인 화면입니다.
  * - 상단: CoreDXI 로고(좌) + 무료 회원가입 버튼(우)
  * - 중앙: 소셜 로그인 버튼 5개, OR 구분선, 이메일 입력, Continue 버튼
- * - 하단: 관리자 전용 이메일·비밀번호 로그인(adminLogin Server Action)
+ * - 하단: 관리자 전용 이메일·비밀번호 로그인(NextAuth Credentials)
  * - Continue 버튼은 유효한 이메일이 입력되기 전까지 비활성화됩니다.
  *
  * ── 변경 이력 ──────────────────────────────────────────────────────
@@ -30,9 +30,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { signIn } from "next-auth/react";
 import { toast } from "sonner";
-import { adminLogin } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -211,6 +211,15 @@ const SOCIAL_PROVIDERS = [
 export default function LoginPage() {
   const router = useRouter();
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") === "Forbidden") {
+      toast.error("관리자 전용 영역입니다. 관리자 계정으로 로그인해 주세요.");
+      window.history.replaceState({}, "", "/login");
+    }
+  }, []);
+
   /* 이메일 입력 상태 */
   const [email, setEmail] = useState("");
 
@@ -284,8 +293,12 @@ export default function LoginPage() {
                 key={provider.id}
                 type="button"
                 onClick={() => {
-                  /* 추후 next-auth signIn(provider.id) 연동 예정 */
-                  console.log(`${provider.id} 로그인 시도`);
+                  /* [홍보팀] Google만 실제 로그인 연동됨. 문구는 SOCIAL_PROVIDERS의 label로 바꿀 수 있습니다. */
+                  if (provider.id === "google") {
+                    void signIn("google", { callbackUrl: "/" });
+                  } else {
+                    toast.info("준비 중입니다");
+                  }
                 }}
                 className="flex w-full items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 text-sm font-medium text-foreground transition-all hover:bg-muted/50 hover:border-border/80 focus-visible:outline-2 focus-visible:outline-primary active:bg-muted"
                 aria-label={provider.label}
@@ -371,13 +384,20 @@ export default function LoginPage() {
 
                 setIsAdminPending(true);
                 try {
-                  const result = await adminLogin(adminEmail, adminPassword);
-                  if (result.success) {
+                  const result = await signIn("credentials", {
+                    email: adminEmail,
+                    password: adminPassword,
+                    redirect: false,
+                    callbackUrl: "/admin/users",
+                  });
+                  if (result?.error) {
+                    toast.error(
+                      "이메일 또는 비밀번호가 올바르지 않거나 관리자 권한이 없습니다."
+                    );
+                  } else {
                     toast.success("관리자로 로그인되었습니다.");
                     router.push("/admin/users");
                     router.refresh();
-                  } else {
-                    toast.error(result.message);
                   }
                 } finally {
                   setIsAdminPending(false);
