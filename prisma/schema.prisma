@@ -1,42 +1,24 @@
 // prisma/schema.prisma — CoreDXI 데이터베이스 스키마
 //
-// NextAuth.js Prisma Adapter와 호환되는 스키마입니다.
-// User, Account, Session, VerificationToken 4개 모델로 구성됩니다.
+// Admin: 관리자 계정 (이메일+비밀번호, 역할)
+// User: 일반 고객 (OAuth + 이메일 가입) — NextAuth PrismaAdapter 대상
 //
 // ── 변경 이력 ──────────────────────────────────────────────────────
-// v0.2  2026-05-14  관리자 권한 시스템 추가
-//       - Role enum 추가 (SUPER_ADMIN, EDITOR, VIEWER)
-//       - User 모델에 role 필드 추가 (기본값: VIEWER)
+// v0.5  2026-05-15  Admin / User 모델 분리
 // v0.4  2026-05-14  관리자 이메일+비밀번호 로그인용 필드 추가
-//       - User.password (선택): bcrypt 해시, 소셜만 사용자는 null
 // v0.3  2026-05-14  Supabase(PostgreSQL)로 전환
-//       - provider: sqlite → postgresql
-//       - url + directUrl 이중 연결 설정 (pgbouncer 대응)
 // v0.1  2026-05-14  최초 생성
-//       - SQLite 데이터베이스 설정
-//       - NextAuth Prisma Adapter 호환 4개 모델 추가
 // ────────────────────────────────────────────────────────────────────
 
 generator client {
-  // Prisma 6.x: "prisma-client" (이전 버전과 다릅니다)
   provider = "prisma-client"
-  // 생성된 클라이언트 코드 저장 위치
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  // Supabase(PostgreSQL) — 프로덕션 및 개발 공통 DB
-  // Prisma 7.x: url/directUrl은 schema.prisma가 아닌 prisma.config.ts에서 관리합니다.
-  // 런타임 연결은 src/lib/prisma.ts의 PrismaClient 생성자에 datasourceUrl로 전달합니다.
   provider = "postgresql"
 }
 
-// =====================================================
-// Role Enum — 관리자 권한 등급
-// SUPER_ADMIN: 모든 기능 + 관리자 등록/삭제 가능
-// EDITOR     : 콘텐츠 수정 가능
-// VIEWER     : 조회 전용 (기본값)
-// =====================================================
 enum Role {
   SUPER_ADMIN
   EDITOR
@@ -44,8 +26,20 @@ enum Role {
 }
 
 // =====================================================
-// User 모델 — 사용자 계정 정보
-// 이메일, 이름, 프로필 이미지, 권한 등급을 저장합니다.
+// Admin — 관리자 전용 (OAuth 없음)
+// =====================================================
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(VIEWER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// =====================================================
+// User — 일반 고객 (NextAuth PrismaAdapter)
 // =====================================================
 model User {
   id            String    @id @default(cuid())
@@ -53,32 +47,19 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  password      String?
 
-  // 관리자 권한 등급 (기본값: VIEWER)
-  // 최초 SUPER_ADMIN: /setup 온보딩 또는 Prisma Studio에서 설정
-  role Role @default(VIEWER)
-
-  // 이메일+비밀번호 로그인(관리자) 전용 bcrypt 해시. OAuth 사용자만 있으면 null.
-  password String?
-
-  // 연결된 소셜 계정 목록 (Google, Slack 등)
   accounts Account[]
-  // 현재 활성 세션 목록
   sessions Session[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// =====================================================
-// Account 모델 — 소셜 로그인 연동 계정
-// Google, Slack 등 OAuth 제공자 정보를 저장합니다.
-// =====================================================
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
-  // OAuth 제공자 식별자 (예: "google", "slack")
   provider          String
   providerAccountId String
   refresh_token     String?
@@ -89,36 +70,23 @@ model Account {
   id_token          String?
   session_state     String?
 
-  // User 테이블과의 관계: 사용자 삭제 시 계정도 삭제
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // 같은 제공자에 중복 계정 방지
   @@unique([provider, providerAccountId])
 }
 
-// =====================================================
-// Session 모델 — 로그인 세션 관리
-// 사용자가 로그인하면 세션이 생성되고, 로그아웃하면 삭제됩니다.
-// =====================================================
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
   userId       String
-  // 세션 만료 시각
   expires      DateTime
 
-  // User 테이블과의 관계: 사용자 삭제 시 세션도 삭제
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// =====================================================
-// VerificationToken 모델 — 이메일 인증 토큰
-// 이메일 로그인(매직 링크) 시 사용되는 임시 토큰입니다.
-// =====================================================
 model VerificationToken {
   identifier String
   token      String   @unique
-  // 토큰 만료 시각 (일반적으로 24시간)
   expires    DateTime
 
   @@unique([identifier, token])

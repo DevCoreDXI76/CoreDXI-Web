@@ -1,5 +1,5 @@
 /**
- * 최초 1회 관리자 온보딩 — 비밀번호 설정 Server Actions
+ * 최초 1회 관리자 온보딩 — Admin 테이블에 SUPER_ADMIN 생성
  */
 
 "use server";
@@ -9,16 +9,12 @@ import { prisma } from "@/lib/prisma";
 import { Role } from "@/generated/prisma/client";
 
 const BCRYPT_ROUNDS = 10;
-/** PostgreSQL advisory lock — 동시에 두 온보딩 요청이 성공하지 않도록 함 */
 const SETUP_LOCK_KEY = 872_014_001;
 
 export type InitialSetupResult =
   | { success: true }
   | { success: false; message: string };
 
-/**
- * .env에 SETUP_SECRET이 있으면 폼에서 동일 값을 넘겨야 합니다 (프로덕션 권장).
- */
 function verifySetupSecret(secretFromForm: string | undefined): boolean {
   const expected = process.env.SETUP_SECRET?.trim();
   if (!expected) return true;
@@ -67,46 +63,29 @@ export async function completeInitialSetup(data: {
         SETUP_LOCK_KEY
       );
 
-      const withPassword = await tx.user.count({
-        where: { password: { not: null } },
-      });
-      if (withPassword > 0) {
+      const adminCount = await tx.admin.count();
+      if (adminCount > 0) {
         return { ok: false as const, message: "이미 초기 설정이 완료되었습니다." };
       }
 
-      const existing = await tx.user.findUnique({ where: { email } });
-
-      if (existing?.password) {
+      const existingUser = await tx.user.findUnique({ where: { email } });
+      if (existingUser) {
         return {
           ok: false as const,
-          message: "이미 초기 설정이 완료되었습니다.",
+          message: "이미 일반 회원으로 등록된 이메일입니다. 다른 이메일을 사용해 주세요.",
         };
       }
 
       const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-      if (existing) {
-        if (existing.role === Role.VIEWER) {
-          return {
-            ok: false as const,
-            message:
-              "이 이메일은 VIEWER 권한입니다. 관리자 등록에서 EDITOR 이상으로 변경한 뒤 다시 시도하세요.",
-          };
-        }
-        await tx.user.update({
-          where: { id: existing.id },
-          data: { name: name || existing.name, password: hashed },
-        });
-      } else {
-        await tx.user.create({
-          data: {
-            name,
-            email,
-            role: Role.SUPER_ADMIN,
-            password: hashed,
-          },
-        });
-      }
+      await tx.admin.create({
+        data: {
+          name,
+          email,
+          role: Role.SUPER_ADMIN,
+          password: hashed,
+        },
+      });
 
       return { ok: true as const };
     });

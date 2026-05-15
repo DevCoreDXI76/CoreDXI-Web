@@ -12,7 +12,36 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     ...authConfig.providers,
     Credentials({
-      id: "credentials",
+      id: "user-credentials",
+      name: "고객 로그인",
+      credentials: {
+        email: { label: "이메일", type: "email" },
+        password: { label: "비밀번호", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email;
+        const password = credentials?.password;
+        if (!email || !password || typeof email !== "string") return null;
+
+        const user = await prisma.user.findUnique({
+          where: { email: email.trim() },
+        });
+        if (!user?.password) return null;
+
+        const valid = await bcrypt.compare(String(password), user.password);
+        if (!valid) return null;
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          accountType: "user" as const,
+        };
+      },
+    }),
+    Credentials({
+      id: "admin-credentials",
       name: "관리자 로그인",
       credentials: {
         email: { label: "이메일", type: "email" },
@@ -21,27 +50,24 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const email = credentials?.email;
         const password = credentials?.password;
-        if (!email || !password || typeof email !== "string") {
-          return null;
-        }
+        if (!email || !password || typeof email !== "string") return null;
 
-        const user = await prisma.user.findUnique({
+        const admin = await prisma.admin.findUnique({
           where: { email: email.trim() },
         });
+        if (!admin) return null;
 
-        if (!user?.password) return null;
-
-        const valid = await bcrypt.compare(String(password), user.password);
+        const valid = await bcrypt.compare(String(password), admin.password);
         if (!valid) return null;
 
-        if (user.role === "VIEWER") return null;
+        if (admin.role === "VIEWER") return null;
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          role: user.role,
+          id: admin.id,
+          email: admin.email,
+          name: admin.name,
+          accountType: "admin" as const,
+          role: admin.role,
         };
       },
     }),
@@ -50,14 +76,16 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
-        if ("role" in user && user.role) {
+        const accountType =
+          "accountType" in user && user.accountType
+            ? user.accountType
+            : "user";
+        token.accountType = accountType;
+
+        if (accountType === "admin" && "role" in user && user.role) {
           token.role = user.role as Role;
         } else {
-          const row = await prisma.user.findUnique({
-            where: { id: user.id },
-            select: { role: true },
-          });
-          token.role = row?.role ?? "VIEWER";
+          token.role = undefined;
         }
       }
       return token;
@@ -65,7 +93,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as Role;
+        session.user.accountType = token.accountType as "user" | "admin";
+        session.user.role = token.role as Role | undefined;
       }
       return session;
     },

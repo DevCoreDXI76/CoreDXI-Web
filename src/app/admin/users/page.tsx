@@ -53,7 +53,7 @@ function RoleBadge({ role }: { role: Role }) {
 
 export default async function AdminUsersPage() {
   // 관리자 목록 조회 (생성일 오래된 순)
-  const users = await prisma.user.findMany({
+  const users = await prisma.admin.findMany({
     orderBy: { createdAt: "asc" },
     select: {
       id: true,

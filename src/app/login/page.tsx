@@ -384,7 +384,7 @@ export default function LoginPage() {
 
                 setIsAdminPending(true);
                 try {
-                  const result = await signIn("credentials", {
+                  const result = await signIn("admin-credentials", {
                     email: adminEmail,
                     password: adminPassword,
                     redirect: false,

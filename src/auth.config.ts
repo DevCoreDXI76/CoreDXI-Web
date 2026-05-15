@@ -4,7 +4,6 @@ import type { Role } from "@/generated/prisma/client";
 
 /**
  * Edge·미들웨어에서도 읽을 수 있는 NextAuth 공통 설정입니다.
- * (DB/비밀번호 검증은 src/auth.ts의 Credentials만 추가합니다.)
  */
 export default {
   trustHost: true,
@@ -25,6 +24,10 @@ export default {
     jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
+        token.accountType =
+          "accountType" in user && user.accountType
+            ? user.accountType
+            : "user";
         if ("role" in user && user.role) {
           token.role = user.role as Role;
         }
@@ -34,7 +37,10 @@ export default {
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as Role;
+        session.user.accountType = token.accountType as "user" | "admin";
+        if (token.role) {
+          session.user.role = token.role as Role;
+        }
       }
       return session;
     },
