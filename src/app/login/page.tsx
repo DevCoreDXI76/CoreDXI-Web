@@ -67,6 +67,31 @@ const LOGIN_CONTENT = {
   /** [홍보팀] Continue 버튼의 텍스트입니다. */
   continueText: "Continue",
 
+  /** [홍보팀] 비밀번호 단계 제목입니다. */
+  passwordStepTitle: "계속하려면 로그인하세요",
+
+  /** [홍보팀] 고객 비밀번호 입력 라벨입니다. */
+  userPasswordLabel: "비밀번호",
+
+  /** [홍보팀] 고객 비밀번호 입력창 플레이스홀더입니다. */
+  userPasswordPlaceholder: "비밀번호 입력",
+
+  /** [홍보팀] 고객 로그인 버튼 텍스트입니다. */
+  loginSubmitText: "로그인",
+
+  /** [홍보팀] 고객 로그인 처리 중 버튼 텍스트입니다. */
+  loginSubmittingText: "로그인 중…",
+
+  /** [홍보팀] 이메일 수정(연필) 버튼 접근성 라벨입니다. */
+  editEmailAriaLabel: "이메일 수정",
+
+  /** [홍보팀] 비밀번호 표시 토글 접근성 라벨입니다. */
+  showPasswordAriaLabel: "비밀번호 표시",
+  hidePasswordAriaLabel: "비밀번호 숨기기",
+
+  /** [홍보팀] 비밀번호 단계 하단 계정 만들기 링크 텍스트입니다. */
+  createAccountLinkText: "계정 만들기",
+
   /** [홍보팀] 우측 상단 회원가입 버튼의 텍스트입니다. */
   signUpText: "Sign up for free",
 
@@ -166,6 +191,62 @@ function SsoIcon({ className }: { className?: string }) {
   );
 }
 
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  );
+}
+
+function EyeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+      <line x1="2" x2="22" y1="2" y2="22" />
+    </svg>
+  );
+}
+
 /* =====================================================
    [홍보팀] 소셜 로그인 버튼 목록
    - label: 버튼에 표시되는 텍스트를 수정하세요.
@@ -214,14 +295,24 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+    const nextCallback = params.get("callbackUrl");
+    if (nextCallback?.startsWith("/")) {
+      setCallbackUrl(nextCallback);
+    }
     if (params.get("error") === "Forbidden") {
       toast.error("관리자 전용 영역입니다. 관리자 계정으로 로그인해 주세요.");
       window.history.replaceState({}, "", "/login");
     }
   }, []);
 
-  /* 이메일 입력 상태 */
+  /* 고객 로그인 2단계 */
+  const [loginStep, setLoginStep] = useState<"email" | "password">("email");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isEmailChecking, setIsEmailChecking] = useState(false);
+  const [isUserPending, setIsUserPending] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("/");
 
   /* 관리자 로그인 폼 상태 */
   const [adminEmail, setAdminEmail] = useState("");
@@ -230,11 +321,80 @@ export default function LoginPage() {
 
   /* 이메일 유효성 검사: '@'와 '.'가 포함되어야 Continue 버튼 활성화 */
   const isValidEmail = email.includes("@") && email.includes(".");
+  const isUserFormValid = password.trim().length > 0;
 
   const isAdminEmailValid =
     adminEmail.includes("@") && adminEmail.includes(".");
   const isAdminFormValid =
     isAdminEmailValid && adminPassword.trim().length > 0;
+
+  function goToSignup(trimmed: string) {
+    router.push(`/signup?email=${encodeURIComponent(trimmed)}`);
+  }
+
+  function backToEmailStep() {
+    setLoginStep("email");
+    setPassword("");
+    setShowPassword(false);
+  }
+
+  async function handleEmailContinue() {
+    const trimmed = email.trim();
+    if (!trimmed.includes("@") || !trimmed.includes(".") || isEmailChecking) {
+      return;
+    }
+
+    setIsEmailChecking(true);
+    try {
+      const res = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message ?? "이메일 확인에 실패했습니다.");
+        return;
+      }
+
+      if (data.exists && data.hasPassword) {
+        setLoginStep("password");
+        return;
+      }
+
+      goToSignup(trimmed);
+    } catch {
+      toast.error("이메일 확인 중 오류가 발생했습니다.");
+    } finally {
+      setIsEmailChecking(false);
+    }
+  }
+
+  async function handleUserLogin() {
+    const trimmed = email.trim();
+    if (!isUserFormValid || isUserPending) return;
+
+    setIsUserPending(true);
+    try {
+      const result = await signIn("user-credentials", {
+        email: trimmed,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error("이메일 또는 비밀번호가 올바르지 않습니다.");
+        return;
+      }
+
+      toast.success("로그인되었습니다.");
+      router.push(callbackUrl);
+      router.refresh();
+    } finally {
+      setIsUserPending(false);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -277,9 +437,13 @@ export default function LoginPage() {
           {/* 페이지 제목 */}
           {/* [홍보팀] 큰 제목 텍스트: LOGIN_CONTENT.title 수정 */}
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {LOGIN_CONTENT.title}
+            {loginStep === "email"
+              ? LOGIN_CONTENT.title
+              : LOGIN_CONTENT.passwordStepTitle}
           </h1>
 
+          {loginStep === "email" && (
+            <>
           {/* ─── 소셜 로그인 버튼 5개 ──────────────────────── */}
           <div className="space-y-2.5">
 
@@ -352,20 +516,104 @@ export default function LoginPage() {
              */}
             <Button
               type="button"
-              disabled={!isValidEmail}
+              disabled={!isValidEmail || isEmailChecking}
               className="w-full rounded-xl bg-primary font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-              onClick={() => {
-                const trimmed = email.trim();
-                if (trimmed.includes("@") && trimmed.includes(".")) {
-                  router.push(
-                    `/signup?email=${encodeURIComponent(trimmed)}`
-                  );
-                }
-              }}
+              onClick={() => void handleEmailContinue()}
             >
-              {LOGIN_CONTENT.continueText}
+              {isEmailChecking
+                ? LOGIN_CONTENT.loginSubmittingText
+                : LOGIN_CONTENT.continueText}
             </Button>
           </div>
+            </>
+          )}
+
+          {loginStep === "password" && (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="login-email-readonly" className="text-sm font-medium">
+                  {LOGIN_CONTENT.emailLabel}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="login-email-readonly"
+                    type="email"
+                    value={email}
+                    readOnly
+                    className="rounded-xl border-border bg-muted/30 pr-10 focus-visible:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={backToEmailStep}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={LOGIN_CONTENT.editEmailAriaLabel}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="user-password" className="text-sm font-medium">
+                  {LOGIN_CONTENT.userPasswordLabel}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="user-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={LOGIN_CONTENT.userPasswordPlaceholder}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isUserPending}
+                    className="rounded-xl border-border bg-white pr-10 focus-visible:ring-primary"
+                    autoComplete="current-password"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && isUserFormValid) {
+                        void handleUserLogin();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={
+                      showPassword
+                        ? LOGIN_CONTENT.hidePasswordAriaLabel
+                        : LOGIN_CONTENT.showPasswordAriaLabel
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOffIcon className="h-4 w-4" />
+                    ) : (
+                      <EyeIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                disabled={!isUserFormValid || isUserPending}
+                className="w-full rounded-xl bg-primary font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                onClick={() => void handleUserLogin()}
+              >
+                {isUserPending
+                  ? LOGIN_CONTENT.loginSubmittingText
+                  : LOGIN_CONTENT.loginSubmitText}
+              </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                <Link
+                  href={`${LOGIN_CONTENT.signUpHref}?email=${encodeURIComponent(email.trim())}`}
+                  className="font-medium text-primary hover:underline hover:underline-offset-4"
+                >
+                  {LOGIN_CONTENT.createAccountLinkText}
+                </Link>
+              </p>
+            </div>
+          )}
 
           {/* ─── 관리자 전용 로그인 ───────────────────────────── */}
           <div className="space-y-4 pt-2">
