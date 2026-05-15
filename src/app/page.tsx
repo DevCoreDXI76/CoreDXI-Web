@@ -19,6 +19,7 @@
 
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
+import { CasesPreview } from "@/components/CasesPreview";
 
 /**
  * 홈페이지 컴포넌트
@@ -33,6 +34,8 @@ export default function HomePage() {
       <main>
         {/* 첫 화면: 메인 소개 히어로 섹션 */}
         <Hero />
+
+        <CasesPreview />
 
         {/*
          * [홍보팀] 아래에 새 섹션을 추가할 때는 개발팀에 문의하세요.

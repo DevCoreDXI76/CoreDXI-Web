@@ -1,0 +1,97 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Header } from "@/components/Header";
+import { getPortfolioById } from "@/lib/portfolio";
+import { getVideoEmbedUrl } from "@/lib/video-embed";
+
+export const dynamic = "force-dynamic";
+
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const item = await getPortfolioById(id);
+  if (!item) return { title: "성공사례 — CoreDXI" };
+
+  return {
+    title: `${item.title} — CoreDXI 성공사례`,
+    description: `${item.clientName} · ${item.metrics}`,
+  };
+}
+
+export default async function CaseDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const item = await getPortfolioById(id);
+  if (!item) notFound();
+
+  const embedUrl = item.videoUrl ? getVideoEmbedUrl(item.videoUrl) : null;
+
+  return (
+    <>
+      <Header />
+      <main className="min-h-screen bg-gray-50 pt-24 pb-16">
+        <article className="mx-auto max-w-3xl px-6">
+          <Link
+            href="/cases"
+            className="mb-6 inline-flex text-sm font-medium text-[#1E4E8C] hover:underline"
+          >
+            ← 목록으로
+          </Link>
+
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div className="relative aspect-[16/9] bg-gray-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={item.thumbnailUrl}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="space-y-6 p-6 md:p-8">
+              <div>
+                <span className="inline-flex rounded-full bg-[#1E4E8C]/10 px-3 py-1 text-sm font-medium text-[#1E4E8C]">
+                  {item.metrics}
+                </span>
+                <h1 className="mt-3 text-2xl font-bold text-gray-900 md:text-3xl">
+                  {item.title}
+                </h1>
+                <p className="mt-1 text-gray-500">{item.clientName}</p>
+              </div>
+
+              {embedUrl ? (
+                <div className="aspect-video overflow-hidden rounded-lg bg-black">
+                  <iframe
+                    src={embedUrl}
+                    title={`${item.title} 동영상`}
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : item.videoUrl ? (
+                <a
+                  href={item.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex text-sm font-medium text-[#1E4E8C] hover:underline"
+                >
+                  동영상 보기 →
+                </a>
+              ) : null}
+
+              <div className="whitespace-pre-wrap leading-relaxed text-gray-700">
+                {item.content}
+              </div>
+            </div>
+          </div>
+        </article>
+      </main>
+    </>
+  );
+}

@@ -42,6 +42,12 @@ function normalize(data: PortfolioFormData) {
   };
 }
 
+function revalidatePublicPortfolio(id?: string) {
+  revalidatePath("/cases");
+  revalidatePath("/");
+  if (id) revalidatePath(`/cases/${id}`);
+}
+
 export async function createPortfolio(
   data: PortfolioFormData
 ): Promise<{ success: boolean; message: string; id?: string }> {
@@ -53,6 +59,7 @@ export async function createPortfolio(
       data: normalize(data),
     });
     revalidatePath("/admin/portfolio");
+    revalidatePublicPortfolio(created.id);
     return { success: true, message: "성공사례가 등록되었습니다.", id: created.id };
   } catch (e) {
     console.error("[createPortfolio]", e);
@@ -74,6 +81,7 @@ export async function updatePortfolio(
     });
     revalidatePath("/admin/portfolio");
     revalidatePath(`/admin/portfolio/${id}/edit`);
+    revalidatePublicPortfolio(id);
     return { success: true, message: "성공사례가 수정되었습니다." };
   } catch (e) {
     console.error("[updatePortfolio]", e);
@@ -87,6 +95,7 @@ export async function deletePortfolio(
   try {
     await prisma.portfolio.delete({ where: { id } });
     revalidatePath("/admin/portfolio");
+    revalidatePublicPortfolio(id);
     return { success: true, message: "성공사례가 삭제되었습니다." };
   } catch (e) {
     console.error("[deletePortfolio]", e);
