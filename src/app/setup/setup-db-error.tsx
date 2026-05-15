@@ -16,10 +16,10 @@ export function SetupDbError({ message }: { message: string }) {
           설정한 뒤 재배포해 주세요.
         </p>
         <Link
-          href="/login"
+          href="/admin/login"
           className="mt-6 inline-block text-sm font-medium text-primary hover:underline"
         >
-          로그인 화면으로
+          관리자 로그인 화면으로
         </Link>
       </div>
     </div>

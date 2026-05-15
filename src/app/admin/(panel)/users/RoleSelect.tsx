@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateUserRole } from "../actions";
+import { updateUserRole } from "@/app/admin/actions";
 import { Role } from "@/generated/prisma/client";
 
 interface RoleSelectProps {

@@ -9,8 +9,12 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
+  if (req.nextUrl.pathname === "/admin/login") {
+    return NextResponse.next();
+  }
+
   if (!req.auth) {
-    const login = new URL("/login", req.url);
+    const login = new URL("/admin/login", req.url);
     login.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(login);
   }
@@ -20,7 +24,7 @@ export default auth((req) => {
     accountType !== "admin" ||
     (role !== "SUPER_ADMIN" && role !== "EDITOR")
   ) {
-    const login = new URL("/login", req.url);
+    const login = new URL("/admin/login", req.url);
     login.searchParams.set("error", "Forbidden");
     return NextResponse.redirect(login);
   }

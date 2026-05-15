@@ -36,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createAdmin } from "../actions";
+import { createAdmin } from "@/app/admin/actions";
 import { Role } from "@/generated/prisma/client";
 
 // =====================================================

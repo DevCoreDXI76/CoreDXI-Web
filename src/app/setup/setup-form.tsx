@@ -49,7 +49,7 @@ export function InitialSetupForm({ setupSecretRequired }: Props) {
       });
       if (result.success) {
         toast.success("최초 관리자 계정이 등록되었습니다. 로그인해 주세요.");
-        router.push("/login?setup=complete");
+        router.push("/admin/login?setup=complete");
         router.refresh();
       } else {
         toast.error(result.message);
@@ -96,10 +96,10 @@ export function InitialSetupForm({ setupSecretRequired }: Props) {
           </span>
         </Link>
         <Link
-          href="/login"
+          href="/admin/login"
           className="text-sm font-medium text-primary hover:underline"
         >
-          로그인
+          관리자 로그인
         </Link>
       </header>
 

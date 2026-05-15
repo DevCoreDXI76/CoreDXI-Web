@@ -28,7 +28,7 @@ export default async function SetupPage() {
   }
 
   if (!available) {
-    redirect("/login");
+    redirect("/admin/login");
   }
 
   const setupSecretRequired = Boolean(process.env.SETUP_SECRET?.trim());

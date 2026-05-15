@@ -104,29 +104,8 @@ const LOGIN_CONTENT = {
   /** [홍보팀] 이미 계정이 있다는 안내 문구입니다. */
   noAccountText: "Don't have an account?",
 
-  /** [홍보팀] 관리자 로그인 구역 위 작은 구분 라벨입니다. */
-  adminSectionLabel: "관리자 전용 로그인",
-
-  /** [홍보팀] 관리자 이메일 입력 라벨입니다. */
-  adminEmailLabel: "관리자 이메일",
-
-  /** [홍보팀] 관리자 이메일 입력창 플레이스홀더입니다. */
-  adminEmailPlaceholder: "admin@coredxi.com",
-
-  /** [홍보팀] 관리자 비밀번호 입력 라벨입니다. */
-  adminPasswordLabel: "비밀번호",
-
-  /** [홍보팀] 관리자 비밀번호 입력창 플레이스홀더입니다. */
-  adminPasswordPlaceholder: "비밀번호를 입력하세요",
-
-  /** [홍보팀] 관리자 로그인 버튼 텍스트입니다. */
-  adminSubmitText: "관리자 로그인",
-
-  /** [홍보팀] 로그인 처리 중 버튼에 표시되는 텍스트입니다. */
-  adminSubmittingText: "로그인 중…",
-
-  /** 최초 온보딩(/setup) 링크 텍스트 */
-  initialSetupLinkText: "최초 관리자 계정이 없나요? 시스템 설정",
+  /** [홍보팀] 관리자 로그인 페이지 링크 텍스트입니다. */
+  adminLoginLinkText: "관리자 로그인",
 } as const;
 
 /* =====================================================
@@ -299,10 +278,6 @@ export default function LoginPage() {
     if (nextCallback?.startsWith("/")) {
       setCallbackUrl(nextCallback);
     }
-    if (params.get("error") === "Forbidden") {
-      toast.error("관리자 전용 영역입니다. 관리자 계정으로 로그인해 주세요.");
-      window.history.replaceState({}, "", "/login");
-    }
   }, []);
 
   /* 고객 로그인 2단계 */
@@ -314,19 +289,9 @@ export default function LoginPage() {
   const [isUserPending, setIsUserPending] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/");
 
-  /* 관리자 로그인 폼 상태 */
-  const [adminEmail, setAdminEmail] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
-  const [isAdminPending, setIsAdminPending] = useState(false);
-
   /* 이메일 유효성 검사: '@'와 '.'가 포함되어야 Continue 버튼 활성화 */
   const isValidEmail = email.includes("@") && email.includes(".");
   const isUserFormValid = password.trim().length > 0;
-
-  const isAdminEmailValid =
-    adminEmail.includes("@") && adminEmail.includes(".");
-  const isAdminFormValid =
-    isAdminEmailValid && adminPassword.trim().length > 0;
 
   function goToSignup(trimmed: string) {
     router.push(`/signup?email=${encodeURIComponent(trimmed)}`);
@@ -615,100 +580,6 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* ─── 관리자 전용 로그인 ───────────────────────────── */}
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center gap-3">
-              <Separator className="flex-1" />
-              <span className="text-xs font-medium text-muted-foreground">
-                {/* [홍보팀] 관리자 구역 제목: LOGIN_CONTENT.adminSectionLabel */}
-                {LOGIN_CONTENT.adminSectionLabel}
-              </span>
-              <Separator className="flex-1" />
-            </div>
-
-            <form
-              className="space-y-3"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!isAdminFormValid || isAdminPending) return;
-
-                setIsAdminPending(true);
-                try {
-                  const result = await signIn("admin-credentials", {
-                    email: adminEmail,
-                    password: adminPassword,
-                    redirect: false,
-                    callbackUrl: "/admin/users",
-                  });
-                  if (result?.error) {
-                    toast.error(
-                      "이메일 또는 비밀번호가 올바르지 않거나 관리자 권한이 없습니다."
-                    );
-                  } else {
-                    toast.success("관리자로 로그인되었습니다.");
-                    router.push("/admin/users");
-                    router.refresh();
-                  }
-                } finally {
-                  setIsAdminPending(false);
-                }
-              }}
-            >
-              <div className="space-y-1.5">
-                {/* [홍보팀] 관리자 이메일 라벨: LOGIN_CONTENT.adminEmailLabel */}
-                <Label htmlFor="admin-email" className="text-sm font-medium">
-                  {LOGIN_CONTENT.adminEmailLabel}
-                </Label>
-                <Input
-                  id="admin-email"
-                  type="email"
-                  autoComplete="username"
-                  placeholder={LOGIN_CONTENT.adminEmailPlaceholder}
-                  value={adminEmail}
-                  onChange={(e) => setAdminEmail(e.target.value)}
-                  disabled={isAdminPending}
-                  className="rounded-xl border-border bg-white focus-visible:ring-primary"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                {/* [홍보팀] 비밀번호 라벨: LOGIN_CONTENT.adminPasswordLabel */}
-                <Label htmlFor="admin-password" className="text-sm font-medium">
-                  {LOGIN_CONTENT.adminPasswordLabel}
-                </Label>
-                <Input
-                  id="admin-password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder={LOGIN_CONTENT.adminPasswordPlaceholder}
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  disabled={isAdminPending}
-                  className="rounded-xl border-border bg-white focus-visible:ring-primary"
-                />
-              </div>
-
-              {/* [홍보팀] 버튼 문구: LOGIN_CONTENT.adminSubmitText / adminSubmittingText */}
-              <Button
-                type="submit"
-                disabled={!isAdminFormValid || isAdminPending}
-                className="w-full rounded-xl bg-primary font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {isAdminPending
-                  ? LOGIN_CONTENT.adminSubmittingText
-                  : LOGIN_CONTENT.adminSubmitText}
-              </Button>
-            </form>
-
-            <p className="text-center text-xs text-muted-foreground">
-              <Link
-                href="/setup"
-                className="font-medium text-primary hover:underline hover:underline-offset-4"
-              >
-                {LOGIN_CONTENT.initialSetupLinkText}
-              </Link>
-            </p>
-          </div>
 
           {/* 계정 없음 안내 링크 */}
           {/* [홍보팀] 하단 회원가입 안내 문구: LOGIN_CONTENT.noAccountText 수정 */}
@@ -721,6 +592,16 @@ export default function LoginPage() {
               {LOGIN_CONTENT.signUpText}
             </Link>
           </p>
+
+          <p className="text-center text-xs text-muted-foreground">
+            <Link
+              href="/admin/login"
+              className="font-medium text-primary hover:underline hover:underline-offset-4"
+            >
+              {LOGIN_CONTENT.adminLoginLinkText}
+            </Link>
+          </p>
+
         </div>
       </main>
     </div>
