@@ -5,8 +5,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,16 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupPageContent />
+    </Suspense>
+  );
+}
+
+function SignupPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -77,6 +86,17 @@ export default function SignupPage() {
 
   const isEmailValid = email.includes("@") && email.includes(".");
   const isOtpComplete = otp.join("").length === 6;
+
+  useEffect(() => {
+    const fromQuery = searchParams.get("email")?.trim();
+    if (
+      fromQuery &&
+      fromQuery.includes("@") &&
+      fromQuery.includes(".")
+    ) {
+      setEmail(fromQuery);
+    }
+  }, [searchParams]);
   const canComplete = name.trim().length > 0 && password.length >= 8;
 
   function handleOtpChange(index: number, value: string) {

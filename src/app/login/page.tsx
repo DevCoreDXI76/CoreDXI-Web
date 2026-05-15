@@ -351,13 +351,15 @@ export default function LoginPage() {
              * [홍보팀] 버튼 텍스트: LOGIN_CONTENT.continueText 수정
              */}
             <Button
-              type="submit"
+              type="button"
               disabled={!isValidEmail}
               className="w-full rounded-xl bg-primary font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
               onClick={() => {
-                if (isValidEmail) {
-                  /* 추후 이메일 로그인(매직 링크) 또는 비밀번호 입력 단계 연동 예정 */
-                  console.log(`이메일 로그인 시도: ${email}`);
+                const trimmed = email.trim();
+                if (trimmed.includes("@") && trimmed.includes(".")) {
+                  router.push(
+                    `/signup?email=${encodeURIComponent(trimmed)}`
+                  );
                 }
               }}
             >
