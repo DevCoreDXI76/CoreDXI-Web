@@ -3,9 +3,10 @@
 import { forwardRef, useCallback, useImperativeHandle, useMemo } from "react";
 import type { PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
-import "@blocknote/shadcn/style.css";
-import { BlockNoteView } from "@blocknote/shadcn";
+import { BlockNoteView } from "@blocknote/mantine";
+import "@blocknote/mantine/style.css";
 import { useCreateBlockNote } from "@blocknote/react";
+import { MantineProvider } from "@mantine/core";
 import type { BlogPostContent } from "@/types/blocknote";
 import type { NotionEditorHandle, NotionEditorProps } from "./notion-editor-types";
 
@@ -16,7 +17,7 @@ function normalizeInitialBlocks(
   return raw as PartialBlock[];
 }
 
-/** BlockNote 훅·뷰 — 브라우저 마운트 후에만 사용 (NotionEditor에서 감쌈). */
+/** BlockNote 훅·뷰 — Mantine UI (Next.js 공식 권장, shadcn Radix 충돌 회피). */
 export const NotionEditorInner = forwardRef<
   NotionEditorHandle,
   NotionEditorProps
@@ -61,12 +62,14 @@ export const NotionEditorInner = forwardRef<
   }, [editor, onChangeDocument]);
 
   return (
-    <BlockNoteView
-      editor={editor}
-      theme="light"
-      editable={editable}
-      onChange={handleChange}
-      className="[&_.bn-editor]:min-h-[50vh]"
-    />
+    <MantineProvider withCssVariables={false} getRootElement={() => undefined}>
+      <BlockNoteView
+        editor={editor}
+        theme="light"
+        editable={editable}
+        onChange={handleChange}
+        className="[&_.bn-editor]:min-h-[50vh]"
+      />
+    </MantineProvider>
   );
 });

@@ -2,7 +2,6 @@
 /* 브랜드 컬러, 배경, 타이포그래피 등 사이트 전체에 적용되는 기본 스타일을 정의합니다. */
 
 @import "tailwindcss";
-@source "../node_modules/@blocknote/shadcn";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
