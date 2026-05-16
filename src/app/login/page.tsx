@@ -1,172 +1,110 @@
 /**
- * login/page.tsx — 로그인 페이지 (/login 경로)
+ * [OAuth 환경변수 — .env.local]
+ * GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+ * KAKAO_CLIENT_ID, KAKAO_CLIENT_SECRET
+ * NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+ * AUTH_SECRET, AUTH_URL (또는 NEXTAUTH_URL)
  *
- * Loom.com 스타일의 깔끔한 로그인 화면입니다.
- * - 상단: CoreDXI 로고(좌) + 무료 회원가입 버튼(우)
- * - 중앙: 소셜 로그인 버튼 5개, OR 구분선, 이메일 입력, Continue 버튼
- * - 하단: 관리자 전용 이메일·비밀번호 로그인(NextAuth Credentials)
- * - Continue 버튼은 유효한 이메일이 입력되기 전까지 비활성화됩니다.
- *
- * ── 변경 이력 ──────────────────────────────────────────────────────
- * v0.3  2026-05-14  최초 온보딩(/setup) 안내 링크 추가
- * v0.2  2026-05-14  관리자 로그인 섹션 추가
- *       - 이메일+비밀번호 폼, 성공 시 /admin/users 이동, 실패 시 Toast
- * v0.1  2026-05-14  최초 생성
- *       - Loom 스타일 로그인 UI 구현
- *       - SOCIAL_PROVIDERS 배열로 소셜 버튼 관리
- *       - LOGIN_CONTENT 객체로 텍스트 중앙 관리
- *       - 이메일 유효성 검사 기반 Continue 버튼 활성화
- * ────────────────────────────────────────────────────────────────────
- *
- * [홍보팀 수정 안내]
- * ─────────────────────────────────────────────────────────────────
- * ✏️  텍스트 수정: 아래 LOGIN_CONTENT 객체의 값을 수정하세요.
- * 🔘  소셜 버튼 텍스트: SOCIAL_PROVIDERS 배열의 label 값을 수정하세요.
- * 🔗  회원가입 버튼 링크: LOGIN_CONTENT.signUpHref 값을 수정하세요.
- * ─────────────────────────────────────────────────────────────────
+ * 콜백: {AUTH_URL}/api/auth/callback/google|kakao|naver
  */
 
 "use client";
 
 import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
-/* =====================================================
-   타입 정의
-   ===================================================== */
-interface SocialProvider {
-  id: string;
-  label: string;
-  icon: React.FC<{ className?: string }>;
+type MemberType = "individual" | "business";
+
+const NOT_READY_MESSAGE =
+  "현재 준비 중인 로그인 방식입니다. 구글, 카카오, 네이버를 이용해 주세요.";
+
+function KakaoIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M12 3C6.48 3 2 6.58 2 10.9c0 2.78 1.86 5.22 4.64 6.6-.2.74-.72 2.69-.82 3.1-.13.52.19.51.4.37.17-.12 2.71-1.84 3.8-2.55.55.08 1.12.12 1.71.12 5.52 0 10-3.58 10-7.9S17.52 3 12 3z" />
+    </svg>
+  );
 }
 
-/* =====================================================
-   [홍보팀] 콘텐츠 수정 구역 — 여기만 수정하면 됩니다!
-   ===================================================== */
+function NaverIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M16.273 12.845L7.376 0H0v24h7.727V11.156L16.624 24H24V0h-7.727v12.845z" />
+    </svg>
+  );
+}
 
-/**
- * [홍보팀] 로그인 페이지의 텍스트를 수정하는 곳입니다.
- */
-const LOGIN_CONTENT = {
-  /** [홍보팀] 페이지 중앙의 큰 제목입니다. */
-  title: "Log in to CoreDXI",
-
-  /** [홍보팀] 이메일 입력창의 라벨(설명)입니다. */
-  emailLabel: "Work email",
-
-  /** [홍보팀] 이메일 입력창 안에 흐릿하게 표시되는 예시 텍스트입니다. */
-  emailPlaceholder: "name@company.com",
-
-  /** [홍보팀] Continue 버튼의 텍스트입니다. */
-  continueText: "Continue",
-
-  /** [홍보팀] 비밀번호 단계 제목입니다. */
-  passwordStepTitle: "계속하려면 로그인하세요",
-
-  /** [홍보팀] 고객 비밀번호 입력 라벨입니다. */
-  userPasswordLabel: "비밀번호",
-
-  /** [홍보팀] 고객 비밀번호 입력창 플레이스홀더입니다. */
-  userPasswordPlaceholder: "비밀번호 입력",
-
-  /** [홍보팀] 고객 로그인 버튼 텍스트입니다. */
-  loginSubmitText: "로그인",
-
-  /** [홍보팀] 고객 로그인 처리 중 버튼 텍스트입니다. */
-  loginSubmittingText: "로그인 중…",
-
-  /** [홍보팀] 이메일 수정(연필) 버튼 접근성 라벨입니다. */
-  editEmailAriaLabel: "이메일 수정",
-
-  /** [홍보팀] 비밀번호 표시 토글 접근성 라벨입니다. */
-  showPasswordAriaLabel: "비밀번호 표시",
-  hidePasswordAriaLabel: "비밀번호 숨기기",
-
-  /** [홍보팀] 비밀번호 단계 하단 계정 만들기 링크 텍스트입니다. */
-  createAccountLinkText: "계정 만들기",
-
-  /** [홍보팀] 우측 상단 회원가입 버튼의 텍스트입니다. */
-  signUpText: "Sign up for free",
-
-  /**
-   * [홍보팀] 회원가입 버튼 클릭 시 이동할 링크입니다.
-   * 예) "/signup" → 내부 회원가입 페이지
-   */
-  signUpHref: "/signup",
-
-  /** [홍보팀] 이미 계정이 있다는 안내 문구입니다. */
-  noAccountText: "Don't have an account?",
-
-  /** [홍보팀] 관리자 로그인 페이지 링크 텍스트입니다. */
-  adminLoginLinkText: "관리자 로그인",
-} as const;
-
-/* =====================================================
-   소셜 로그인 아이콘 SVG 컴포넌트
-   아이콘 모양을 변경하려면 개발팀에 문의하세요.
-   ===================================================== */
-
-/** Google 컬러 'G' 아이콘 */
 function GoogleIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+        fill="#4285F4"
+      />
+      <path
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+        fill="#34A853"
+      />
+      <path
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+        fill="#EA4335"
+      />
     </svg>
   );
 }
 
-/** Slack '#' 로고 아이콘 */
-function SlackIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52z" fill="#E01E5A" />
-      <path d="M6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z" fill="#E01E5A" />
-      <path d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834z" fill="#36C5F0" />
-      <path d="M8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z" fill="#36C5F0" />
-      <path d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834z" fill="#2EB67D" />
-      <path d="M17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z" fill="#2EB67D" />
-      <path d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52z" fill="#ECB22E" />
-      <path d="M15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" fill="#ECB22E" />
-    </svg>
-  );
-}
-
-/** Apple 로고 아이콘 */
 function AppleIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" aria-hidden="true">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
     </svg>
   );
 }
 
-/** Microsoft Outlook 로고 아이콘 */
-function OutlookIcon({ className }: { className?: string }) {
+function FacebookIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M7.88 12.04q0 .45-.11.87-.1.41-.33.74-.22.33-.58.52-.37.2-.87.2t-.85-.2q-.35-.21-.57-.55-.22-.33-.33-.75-.1-.42-.1-.86t.1-.87q.1-.43.34-.76.22-.34.59-.54.36-.2.87-.2t.86.2q.35.21.57.55.22.34.31.77.1.43.1.88zM24 12v9.38q0 .46-.33.8-.33.32-.8.32H7.13q-.46 0-.8-.33-.32-.33-.32-.8V18H1q-.41 0-.7-.3-.3-.29-.3-.7V7q0-.41.3-.7Q.58 6 1 6h6V2.55q0-.44.3-.75.3-.3.75-.3h12.9q.44 0 .75.3.3.3.3.75V9h.2q.4 0 .7.3.28.3.28.7v2zM7.97 9H1.5v6h6.47V9zM10.86 4.55v5.48l1.76-1.68 1.5 1.5 2.04-2.06-1.5-1.5 1.77-1.7-5.57-.04zm0 5.5v4.97l5.56.04-1.76-1.68 1.5-1.5-2.04-2.06-1.5 1.5-1.76-1.27zm9.14-5.5H14.6l5 4.78V4.55zm0 15h-9.14v-9.64l-4.03 3.85V19.5h13.17v-5z" fill="#0078D4" />
-    </svg>
-  );
-}
-
-/** SSO 키 아이콘 */
-function SsoIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="7.5" cy="15.5" r="5.5" />
-      <path d="m21 2-9.6 9.6" />
-      <path d="m15.5 7.5 3 3L22 7l-3-3" />
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
     </svg>
   );
 }
@@ -227,50 +165,19 @@ function EyeOffIcon({ className }: { className?: string }) {
   );
 }
 
-/* =====================================================
-   [홍보팀] 소셜 로그인 버튼 목록
-   - label: 버튼에 표시되는 텍스트를 수정하세요.
-   - 버튼 순서를 바꾸려면 줄 순서를 이동하세요.
-   - 버튼 추가/삭제는 개발팀에 문의하세요.
-   ===================================================== */
-const SOCIAL_PROVIDERS = [
-  {
-    id: "google",
-    label: "Continue with Google",
-    icon: GoogleIcon,
-  },
-  {
-    id: "slack",
-    label: "Continue with Slack",
-    icon: SlackIcon,
-  },
-  {
-    id: "apple",
-    label: "Continue with Apple",
-    icon: AppleIcon,
-  },
-  {
-    id: "outlook",
-    label: "Continue with Outlook",
-    icon: OutlookIcon,
-  },
-  {
-    id: "sso",
-    label: "Continue with SSO",
-    icon: SsoIcon,
-  },
-] satisfies SocialProvider[];
-
-/* =====================================================
-   이 아래는 개발 코드입니다. 수정 시 개발팀에 문의하세요.
-   ===================================================== */
-
-/**
- * LoginPage 컴포넌트
- * /login 경로에서 렌더링되는 전체 로그인 페이지입니다.
- */
 export default function LoginPage() {
   const router = useRouter();
+
+  const [memberType, setMemberType] = useState<MemberType>("individual");
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("/");
+
+  const [loginStep, setLoginStep] = useState<"email" | "password">("email");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isEmailChecking, setIsEmailChecking] = useState(false);
+  const [isUserPending, setIsUserPending] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -281,16 +188,6 @@ export default function LoginPage() {
     }
   }, []);
 
-  /* 고객 로그인 2단계 */
-  const [loginStep, setLoginStep] = useState<"email" | "password">("email");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isEmailChecking, setIsEmailChecking] = useState(false);
-  const [isUserPending, setIsUserPending] = useState(false);
-  const [callbackUrl, setCallbackUrl] = useState("/");
-
-  /* 이메일 유효성 검사: '@'와 '.'가 포함되어야 Continue 버튼 활성화 */
   const isValidEmail = email.includes("@") && email.includes(".");
   const isUserFormValid = password.trim().length > 0;
 
@@ -362,241 +259,246 @@ export default function LoginPage() {
     }
   }
 
+  function handleNotReady() {
+    alert(NOT_READY_MESSAGE);
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-
-      {/* ─── 상단 미니 헤더 ─────────────────────────────────── */}
-      <header className="flex items-center justify-between border-b border-border/40 px-6 py-4">
-
+    <div className="flex min-h-screen flex-col items-center bg-white px-4 py-10">
+      <div className="flex w-full max-w-md flex-col items-center gap-8">
         <Logo
-          size={30}
+          size={36}
           showWordmark
-          wordmarkClassName="text-lg font-bold text-primary tracking-tight"
+          href="/"
+          wordmarkClassName="text-xl font-bold tracking-tight text-foreground"
         />
 
-        {/* 회원가입 버튼 */}
-        {/* [홍보팀] 회원가입 버튼 텍스트: LOGIN_CONTENT.signUpText 수정 */}
-        {/* [홍보팀] 회원가입 버튼 링크: LOGIN_CONTENT.signUpHref 수정 */}
-        <Link
-          href={LOGIN_CONTENT.signUpHref}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-primary"
-        >
-          {LOGIN_CONTENT.signUpText}
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-          </svg>
-        </Link>
-      </header>
+        <div className="text-center">
+          <p className="text-2xl font-bold leading-snug text-foreground sm:text-3xl">
+            CoreDXI와 함께
+          </p>
+          <p className="text-2xl font-bold leading-snug text-foreground sm:text-3xl">
+            비즈니스 혁신을 시작해 보세요!
+          </p>
+        </div>
 
-      {/* ─── 메인 콘텐츠: 로그인 폼 ─────────────────────────── */}
-      <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-sm space-y-6">
-
-          {/* 페이지 제목 */}
-          {/* [홍보팀] 큰 제목 텍스트: LOGIN_CONTENT.title 수정 */}
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {loginStep === "email"
-              ? LOGIN_CONTENT.title
-              : LOGIN_CONTENT.passwordStepTitle}
-          </h1>
-
-          {loginStep === "email" && (
-            <>
-          {/* ─── 소셜 로그인 버튼 5개 ──────────────────────── */}
-          <div className="space-y-2.5">
-
-            {/* [홍보팀] Google 로그인 버튼 — 텍스트: SOCIAL_PROVIDERS[0].label 수정 */}
-            {/* [홍보팀] Slack 로그인 버튼 — 텍스트: SOCIAL_PROVIDERS[1].label 수정 */}
-            {/* [홍보팀] Apple 로그인 버튼 — 텍스트: SOCIAL_PROVIDERS[2].label 수정 */}
-            {/* [홍보팀] Microsoft Outlook 로그인 버튼 — 텍스트: SOCIAL_PROVIDERS[3].label 수정 */}
-            {/* [홍보팀] SSO(기업 계정) 로그인 버튼 — 텍스트: SOCIAL_PROVIDERS[4].label 수정 */}
-            {SOCIAL_PROVIDERS.map((provider) => (
-              <button
-                key={provider.id}
-                type="button"
-                onClick={() => {
-                  /* [홍보팀] Google만 실제 로그인 연동됨. 문구는 SOCIAL_PROVIDERS의 label로 바꿀 수 있습니다. */
-                  if (provider.id === "google") {
-                    void signIn("google", { callbackUrl: "/" });
-                  } else {
-                    toast.info("준비 중입니다");
-                  }
-                }}
-                className="flex w-full items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 text-sm font-medium text-foreground transition-all hover:bg-muted/50 hover:border-border/80 focus-visible:outline-2 focus-visible:outline-primary active:bg-muted"
-                aria-label={provider.label}
-              >
-                <provider.icon className="h-5 w-5 shrink-0" />
-                <span className="flex-1 text-center">{provider.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* ─── OR 구분선 ─────────────────────────────────── */}
-          <div className="flex items-center gap-3">
-            <Separator className="flex-1" />
-            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              OR
-            </span>
-            <Separator className="flex-1" />
-          </div>
-
-          {/* ─── 이메일 입력 폼 ────────────────────────────── */}
-          <div className="space-y-3">
-
-            {/* 이메일 라벨 + 입력창 */}
-            <div className="space-y-1.5">
-              {/* [홍보팀] 이메일 입력창 라벨: LOGIN_CONTENT.emailLabel 수정 */}
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-foreground"
-              >
-                {LOGIN_CONTENT.emailLabel}
-              </label>
-
-              {/* [홍보팀] 이메일 입력창 플레이스홀더: LOGIN_CONTENT.emailPlaceholder 수정 */}
-              <Input
-                id="email"
-                type="email"
-                placeholder={LOGIN_CONTENT.emailPlaceholder}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded-xl border-border bg-white focus-visible:ring-primary"
-                autoComplete="email"
-                autoFocus
-              />
-            </div>
-
-            {/*
-             * Continue 버튼
-             * - 이메일 미입력 또는 형식 불일치: 회색(disabled)으로 비활성화
-             * - 유효한 이메일 입력 시: 브랜드 컬러로 활성화
-             * [홍보팀] 버튼 텍스트: LOGIN_CONTENT.continueText 수정
-             */}
-            <Button
+        <div className="w-full rounded-xl border border-gray-200 bg-white p-8 shadow-sm sm:p-10">
+          <div className="mb-6 flex border-b border-gray-200">
+            <button
               type="button"
-              disabled={!isValidEmail || isEmailChecking}
-              className="w-full rounded-xl bg-primary font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-              onClick={() => void handleEmailContinue()}
+              onClick={() => setMemberType("individual")}
+              className={`flex flex-1 items-center justify-center pb-3 text-sm transition-colors ${
+                memberType === "individual"
+                  ? "border-b-2 border-black font-bold text-black"
+                  : "font-medium text-gray-500"
+              }`}
             >
-              {isEmailChecking
-                ? LOGIN_CONTENT.loginSubmittingText
-                : LOGIN_CONTENT.continueText}
-            </Button>
+              개인 회원
+            </button>
+            <button
+              type="button"
+              onClick={() => setMemberType("business")}
+              className={`flex flex-1 items-center justify-center gap-1.5 pb-3 text-sm transition-colors ${
+                memberType === "business"
+                  ? "border-b-2 border-black font-bold text-black"
+                  : "font-medium text-gray-500"
+              }`}
+            >
+              기업·사업자 회원
+              <span className="rounded bg-teal-500 px-1.5 py-0.5 text-[10px] font-semibold lowercase text-white">
+                biz
+              </span>
+            </button>
           </div>
-            </>
-          )}
 
-          {loginStep === "password" && (
-            <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="login-email-readonly" className="text-sm font-medium">
-                  {LOGIN_CONTENT.emailLabel}
-                </Label>
-                <div className="relative">
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => void signIn("kakao", { callbackUrl })}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] text-sm font-semibold text-black transition-opacity hover:opacity-90"
+            >
+              <KakaoIcon className="h-5 w-5 shrink-0" />
+              카카오로 시작하기
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void signIn("naver", { callbackUrl })}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#03C75A] text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              <NaverIcon className="h-4 w-4 shrink-0" />
+              네이버로 시작하기
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push("/signup")}
+              className="flex h-12 w-full items-center justify-center rounded-md border border-gray-300 bg-white text-sm font-semibold text-black transition-colors hover:bg-gray-50"
+            >
+              이메일로 시작하기
+            </button>
+          </div>
+
+          <div className="mt-6 flex justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => void signIn("google", { callbackUrl })}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white transition-colors hover:bg-gray-50"
+              aria-label="Google로 로그인"
+            >
+              <GoogleIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNotReady}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-white transition-opacity hover:opacity-90"
+              aria-label="Apple로 로그인"
+            >
+              <AppleIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNotReady}
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white transition-opacity hover:opacity-90"
+              aria-label="Facebook으로 로그인"
+            >
+              <FacebookIcon className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <p className="text-center text-sm text-gray-500">
+          이미 CoreDXI 회원이신가요?{" "}
+          <button
+            type="button"
+            onClick={() => setShowEmailLogin((v) => !v)}
+            className="font-medium text-gray-700 underline underline-offset-2 hover:text-black"
+          >
+            로그인
+          </button>
+        </p>
+
+        {showEmailLogin && (
+          <div className="w-full max-w-md space-y-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            {loginStep === "email" ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="login-email" className="text-sm font-medium">
+                    이메일
+                  </Label>
                   <Input
-                    id="login-email-readonly"
+                    id="login-email"
                     type="email"
+                    placeholder="name@company.com"
                     value={email}
-                    readOnly
-                    className="rounded-xl border-border bg-muted/30 pr-10 focus-visible:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={backToEmailStep}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label={LOGIN_CONTENT.editEmailAriaLabel}
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="user-password" className="text-sm font-medium">
-                  {LOGIN_CONTENT.userPasswordLabel}
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="user-password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder={LOGIN_CONTENT.userPasswordPlaceholder}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isUserPending}
-                    className="rounded-xl border-border bg-white pr-10 focus-visible:ring-primary"
-                    autoComplete="current-password"
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="rounded-md border-gray-300"
+                    autoComplete="email"
                     autoFocus
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && isUserFormValid) {
-                        void handleUserLogin();
+                      if (e.key === "Enter" && isValidEmail) {
+                        void handleEmailContinue();
                       }
                     }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label={
-                      showPassword
-                        ? LOGIN_CONTENT.hidePasswordAriaLabel
-                        : LOGIN_CONTENT.showPasswordAriaLabel
-                    }
-                  >
-                    {showPassword ? (
-                      <EyeOffIcon className="h-4 w-4" />
-                    ) : (
-                      <EyeIcon className="h-4 w-4" />
-                    )}
-                  </button>
                 </div>
-              </div>
-
-              <Button
-                type="button"
-                disabled={!isUserFormValid || isUserPending}
-                className="w-full rounded-xl bg-primary font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
-                onClick={() => void handleUserLogin()}
-              >
-                {isUserPending
-                  ? LOGIN_CONTENT.loginSubmittingText
-                  : LOGIN_CONTENT.loginSubmitText}
-              </Button>
-
-              <p className="text-center text-sm text-muted-foreground">
-                <Link
-                  href={`${LOGIN_CONTENT.signUpHref}?email=${encodeURIComponent(email.trim())}`}
-                  className="font-medium text-primary hover:underline hover:underline-offset-4"
+                <Button
+                  type="button"
+                  disabled={!isValidEmail || isEmailChecking}
+                  className="w-full rounded-md bg-primary font-semibold text-white hover:bg-primary/90 disabled:opacity-40"
+                  onClick={() => void handleEmailContinue()}
                 >
-                  {LOGIN_CONTENT.createAccountLinkText}
-                </Link>
-              </p>
-            </div>
-          )}
+                  {isEmailChecking ? "확인 중…" : "Continue"}
+                </Button>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="login-email-readonly"
+                    className="text-sm font-medium"
+                  >
+                    이메일
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="login-email-readonly"
+                      type="email"
+                      value={email}
+                      readOnly
+                      className="rounded-md border-gray-300 bg-gray-50 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={backToEmailStep}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
+                      aria-label="이메일 수정"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
 
+                <div className="space-y-1.5">
+                  <Label htmlFor="user-password" className="text-sm font-medium">
+                    비밀번호
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="user-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="비밀번호 입력"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isUserPending}
+                      className="rounded-md border-gray-300 pr-10"
+                      autoComplete="current-password"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && isUserFormValid) {
+                          void handleUserLogin();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900"
+                      aria-label={
+                        showPassword ? "비밀번호 숨기기" : "비밀번호 표시"
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="h-4 w-4" />
+                      ) : (
+                        <EyeIcon className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-          {/* 계정 없음 안내 링크 */}
-          {/* [홍보팀] 하단 회원가입 안내 문구: LOGIN_CONTENT.noAccountText 수정 */}
-          <p className="text-center text-sm text-muted-foreground">
-            {LOGIN_CONTENT.noAccountText}{" "}
-            <Link
-              href={LOGIN_CONTENT.signUpHref}
-              className="font-medium text-primary hover:underline hover:underline-offset-4"
-            >
-              {LOGIN_CONTENT.signUpText}
-            </Link>
-          </p>
+                <Button
+                  type="button"
+                  disabled={!isUserFormValid || isUserPending}
+                  className="w-full rounded-md bg-primary font-semibold text-white hover:bg-primary/90 disabled:opacity-40"
+                  onClick={() => void handleUserLogin()}
+                >
+                  {isUserPending ? "로그인 중…" : "로그인"}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
-          <p className="text-center text-xs text-muted-foreground">
-            <Link
-              href="/admin/login"
-              className="font-medium text-primary hover:underline hover:underline-offset-4"
-            >
-              {LOGIN_CONTENT.adminLoginLinkText}
-            </Link>
-          </p>
-
-        </div>
-      </main>
-    </div>
+        <p className="text-center text-xs text-muted-foreground">
+          <Link
+            href="/admin/login"
+            className="font-medium hover:underline hover:underline-offset-4"
+          >
+            관리자 로그인
+          </Link>
+        </p>
+      </div>
+          </div>
   );
 }

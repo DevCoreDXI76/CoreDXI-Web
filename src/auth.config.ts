@@ -1,5 +1,16 @@
+/**
+ * [OAuth 환경변수 — .env.local]
+ * GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+ * KAKAO_CLIENT_ID, KAKAO_CLIENT_SECRET
+ * NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+ * AUTH_SECRET, AUTH_URL (또는 NEXTAUTH_URL)
+ *
+ * 콜백: {AUTH_URL}/api/auth/callback/google|kakao|naver
+ */
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
+import Kakao from "next-auth/providers/kakao";
+import Naver from "next-auth/providers/naver";
 import type { Role } from "@/generated/prisma/client";
 
 /**
@@ -18,6 +29,14 @@ export default {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
+    Kakao({
+      clientId: process.env.KAKAO_CLIENT_ID ?? "",
+      clientSecret: process.env.KAKAO_CLIENT_SECRET ?? "",
+    }),
+    Naver({
+      clientId: process.env.NAVER_CLIENT_ID ?? "",
+      clientSecret: process.env.NAVER_CLIENT_SECRET ?? "",
     }),
   ],
   callbacks: {
