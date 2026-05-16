@@ -14,7 +14,7 @@ import Kakao from "next-auth/providers/kakao";
 import Naver from "next-auth/providers/naver";
 import type { Role } from "@/generated/prisma/client";
 import {
-  authSecret,
+  resolveAuthSecretForNextAuth,
   googleClientId,
   googleClientSecret,
   kakaoClientId,
@@ -60,9 +60,11 @@ if (naverClientId && naverClientSecret) {
   );
 }
 
+const secret = resolveAuthSecretForNextAuth();
+
 export default {
   trustHost: true,
-  ...(authSecret ? { secret: authSecret } : {}),
+  ...(secret ? { secret } : {}),
   pages: {
     signIn: "/login",
     /** /api/auth/error 500 방지 — 에러를 로그인 페이지로 보냄 */

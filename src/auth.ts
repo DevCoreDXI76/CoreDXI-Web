@@ -3,13 +3,19 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import authConfig from "./auth.config";
-import { authSecret, authUrl, normalizeSiteUrl } from "@/lib/auth-env";
+import {
+  authUrl,
+  normalizeSiteUrl,
+  resolveAuthSecretForNextAuth,
+} from "@/lib/auth-env";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/generated/prisma/client";
 
+const secret = resolveAuthSecretForNextAuth();
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
-  ...(authSecret ? { secret: authSecret } : {}),
+  ...(secret ? { secret } : {}),
   adapter: PrismaAdapter(prisma),
   providers: [
     ...authConfig.providers,

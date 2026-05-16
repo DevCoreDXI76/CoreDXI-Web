@@ -190,12 +190,41 @@ export default function LoginPage() {
     const error = params.get("error");
     if (error === "Configuration") {
       setAuthError(
-        "로그인 설정 오류입니다. AUTH_SECRET과 AUTH_URL이 Vercel에 올바르게 설정되었는지 확인해 주세요."
+        "로그인 설정 오류입니다. Vercel Production에 AUTH_SECRET과 AUTH_URL(https://www.coredxi.com)이 설정되어 있는지 확인해 주세요."
       );
     } else if (error) {
       setAuthError("로그인에 실패했습니다. 다시 시도해 주세요.");
     }
+
+    void fetch("/api/auth/health")
+      .then((res) => res.json())
+      .then(
+        (data: {
+          ok?: boolean;
+          hasAuthSecret?: boolean;
+          hasAuthUrl?: boolean;
+          authUrl?: string | null;
+        }) => {
+          if (data.ok) return;
+          if (!data.hasAuthSecret) {
+            setAuthError(
+              "서버에 AUTH_SECRET이 없습니다. Vercel → Settings → Environment Variables → Production에 AUTH_SECRET을 추가한 뒤 Redeploy 하세요."
+            );
+          } else if (!data.hasAuthUrl) {
+            setAuthError(
+              "서버에 AUTH_URL이 없습니다. Vercel Production에 AUTH_URL=https://www.coredxi.com 을 설정하세요."
+            );
+          }
+        }
+      )
+      .catch(() => {
+        /* ignore */
+      });
   }, []);
+
+  function handleOAuthSignIn(provider: "google" | "kakao" | "naver") {
+    void signIn(provider, { callbackUrl: "/", redirect: true });
+  }
 
   const isValidEmail = email.includes("@") && email.includes(".");
   const isUserFormValid = password.trim().length > 0;
@@ -292,12 +321,29 @@ export default function LoginPage() {
         </div>
 
         {authError && (
-          <p
-            role="alert"
-            className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700"
-          >
-            {authError}
-          </p>
+          <div className="w-full space-y-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+            <p role="alert">{authError}</p>
+            <p>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/api/auth/reset";
+                }}
+                className="font-medium underline underline-offset-2"
+              >
+                로그인 쿠키 초기화
+              </button>
+              {" · "}
+              <a
+                href="/api/auth/health"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline underline-offset-2"
+              >
+                서버 설정 확인
+              </a>
+            </p>
+          </div>
         )}
 
         <div className="w-full rounded-xl border border-gray-200 bg-white p-8 shadow-sm sm:p-10">
@@ -332,9 +378,7 @@ export default function LoginPage() {
           <div className="space-y-3">
             <button
               type="button"
-              onClick={() =>
-                void signIn("kakao", { callbackUrl })
-              }
+              onClick={() => handleOAuthSignIn("kakao")}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] text-sm font-semibold text-black transition-opacity hover:opacity-90"
             >
               <KakaoIcon className="h-5 w-5 shrink-0" />
@@ -343,9 +387,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() =>
-                void signIn("naver", { callbackUrl })
-              }
+              onClick={() => handleOAuthSignIn("naver")}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#03C75A] text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               <NaverIcon className="h-4 w-4 shrink-0" />
@@ -364,9 +406,7 @@ export default function LoginPage() {
           <div className="mt-6 flex justify-center gap-3">
             <button
               type="button"
-              onClick={() =>
-                void signIn("google", { callbackUrl })
-              }
+              onClick={() => handleOAuthSignIn("google")}
               className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white transition-colors hover:bg-gray-50"
               aria-label="Google로 로그인"
             >

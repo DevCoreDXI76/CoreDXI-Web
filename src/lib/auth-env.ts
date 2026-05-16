@@ -89,6 +89,18 @@ if (resolvedAuthSecret) {
 export const authUrl = resolvedAuthUrl;
 export const authSecret = resolvedAuthSecret;
 
+/** 개발 전용 — production에서는 반드시 Vercel AUTH_SECRET 사용 */
+export const devFallbackSecret =
+  "local-dev-only-auth-secret-32chars-min";
+
+export function resolveAuthSecretForNextAuth(): string | undefined {
+  if (authSecret) return authSecret;
+  if (process.env.NODE_ENV === "development") {
+    return devFallbackSecret;
+  }
+  return undefined;
+}
+
 export const googleClientId = readEnv("GOOGLE_CLIENT_ID", "AUTH_GOOGLE_ID");
 export const googleClientSecret = readEnv(
   "GOOGLE_CLIENT_SECRET",
