@@ -6,8 +6,12 @@ import authConfig from "./auth.config";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/generated/prisma/client";
 
+const authSecret =
+  process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
+  ...(authSecret ? { secret: authSecret } : {}),
   adapter: PrismaAdapter(prisma),
   providers: [
     ...authConfig.providers,
@@ -73,6 +77,31 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (!account?.provider || account.provider === "user-credentials" || account.provider === "admin-credentials") {
+        return true;
+      }
+
+      if (!user.email) {
+        if (
+          account.provider === "kakao" &&
+          profile &&
+          typeof profile === "object" &&
+          "kakao_account" in profile
+        ) {
+          const kakaoAccount = profile.kakao_account as { email?: string };
+          if (kakaoAccount.email) {
+            user.email = kakaoAccount.email;
+          }
+        }
+
+        if (!user.email && account.providerAccountId) {
+          user.email = `${account.provider}_${account.providerAccountId}@oauth.coredxi.com`;
+        }
+      }
+
+      return true;
+    },
     async redirect({ url, baseUrl }) {
       const explicit = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
 

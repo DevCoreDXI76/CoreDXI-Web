@@ -17,11 +17,11 @@ import type { Role } from "@/generated/prisma/client";
  * Edge·미들웨어에서도 읽을 수 있는 NextAuth 공통 설정입니다.
  */
 const authSecret =
-  process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
+  process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
 export default {
   trustHost: true,
-  secret: authSecret,
+  ...(authSecret ? { secret: authSecret } : {}),
   pages: {
     signIn: "/login",
   },
