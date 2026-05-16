@@ -9,13 +9,7 @@
 
 "use client";
 
-import {
-  forwardRef,
-  useCallback,
-  useImperativeHandle,
-  useMemo,
-} from "react";
-import { useTheme } from "next-themes";
+import { forwardRef, useCallback, useImperativeHandle, useMemo } from "react";
 import type { PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/shadcn/style.css";
@@ -54,9 +48,6 @@ export const NotionEditor = forwardRef<NotionEditorHandle, NotionEditorProps>(
     },
     ref
   ) {
-    const { resolvedTheme } = useTheme();
-    const theme = resolvedTheme === "dark" ? "dark" : "light";
-
     const initialBlocks = useMemo(
       () => normalizeInitialBlocks(initialContent ?? undefined),
       [initialContent]
@@ -90,7 +81,7 @@ export const NotionEditor = forwardRef<NotionEditorHandle, NotionEditorProps>(
     return (
       <BlockNoteView
         editor={editor}
-        theme={theme}
+        theme="light"
         editable={editable}
         onChange={handleChange}
         className="[&_.bn-editor]:min-h-[50vh]"

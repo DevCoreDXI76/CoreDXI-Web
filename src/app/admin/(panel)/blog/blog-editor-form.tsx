@@ -1,8 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { BlogPostStatus } from "@/generated/prisma/client";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -17,12 +18,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  NotionEditor,
-  type NotionEditorHandle,
-} from "@/components/editor/NotionEditor";
+import type { NotionEditorHandle } from "@/components/editor/NotionEditor";
 import type { BlogPostContent } from "@/types/blocknote";
 import { saveBlogPost } from "./actions";
+
+const NotionEditorClient = dynamic(
+  () =>
+    import("@/components/editor/NotionEditor").then((m) => ({
+      default: m.NotionEditor,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="rounded-lg border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-500">
+        에디터를 불러오는 중입니다…
+      </div>
+    ),
+  }
+);
 
 /** [홍보팀] 블로그 카테고리 옵션 — 필요 시 값·라벨만 추가하면 됩니다. */
 const BLOG_CATEGORIES = [
@@ -63,10 +76,14 @@ async function uploadBlogImage(file: File, prefix: string): Promise<string> {
 
 export function BlogEditorForm({ mode, initial }: Props) {
   const router = useRouter();
-  const editorRef = useRef<NotionEditorHandle>(null);
-  const uploadPrefixRef = useRef(
-    initial?.id ?? (typeof crypto !== "undefined" ? crypto.randomUUID() : "new")
+  const reactId = useId();
+  /** SSR/클라이언트에서 동일한 임시 업로드 경로·에디터 storageKey용 (hydration 안전) */
+  const draftKey = useMemo(
+    () => reactId.replace(/:/g, "").replace(/^-+|-+$/g, "") || "draft",
+    [reactId]
   );
+
+  const editorRef = useRef<NotionEditorHandle>(null);
 
   const [postId, setPostId] = useState<string | undefined>(initial?.id);
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -88,11 +105,11 @@ export function BlogEditorForm({ mode, initial }: Props) {
   }, [initial?.category]);
 
   const storageKey = useMemo(
-    () => postId ?? `new-${uploadPrefixRef.current}`,
-    [postId]
+    () => postId ?? `new-${draftKey}`,
+    [postId, draftKey]
   );
 
-  const uploadPrefix = postId ?? uploadPrefixRef.current;
+  const uploadPrefix = postId ?? draftKey;
 
   const uploadFile = useMemo(
     () => (file: File) => uploadBlogImage(file, uploadPrefix),
@@ -120,7 +137,6 @@ export function BlogEditorForm({ mode, initial }: Props) {
 
       if (!postId && result.id) {
         setPostId(result.id);
-        uploadPrefixRef.current = result.id;
       }
 
       toast.success(result.message);
@@ -207,7 +223,7 @@ export function BlogEditorForm({ mode, initial }: Props) {
           />
         </div>
 
-        <NotionEditor
+        <NotionEditorClient
           ref={editorRef}
           storageKey={storageKey}
           initialContent={initial?.content ?? null}
