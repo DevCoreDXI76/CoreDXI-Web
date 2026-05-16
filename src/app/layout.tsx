@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   title: "CoreDXI — 비즈니스의 중심을 AI로 깨우다",
   description:
     "복잡한 협업은 심플하게, 변화는 단단하게. B2B 회의 예약 및 AX 전환 솔루션을 제공하는 당신의 AI 코어 파트너, CoreDXI.",
+  icons: {
+    apple: [{ url: "/brand/logo-icon.png", type: "image/png" }],
+  },
 };
 
 /**

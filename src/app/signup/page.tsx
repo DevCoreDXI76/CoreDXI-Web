@@ -5,6 +5,7 @@
 "use client";
 
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
@@ -221,27 +222,12 @@ function SignupPageContent() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-violet-100/80 via-indigo-50 to-sky-100/80">
       <header className="px-6 py-5">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5"
-          aria-label="CoreDXI 홈"
-        >
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 34 34"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M28.5 10.5C26.2 6.8 22.1 4.5 17 4.5C9.5 4.5 3.5 10.5 3.5 17C3.5 23.5 9.5 29.5 17 29.5C22.1 29.5 26.2 27.2 28.5 23.5"
-              stroke="#1E4E8C"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="text-lg font-bold text-primary">CoreDXI</span>
-        </Link>
+        <Logo
+          size={30}
+          showWordmark
+          ariaLabel="CoreDXI 홈"
+          wordmarkClassName="text-lg font-bold text-primary"
+        />
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 pb-12">

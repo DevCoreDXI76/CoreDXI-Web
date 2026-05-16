@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { AdminSidebar } from "./AdminSidebar";
 
 export default function AdminPanelLayout({
@@ -12,37 +13,15 @@ export default function AdminPanelLayout({
         className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col"
         style={{ backgroundColor: "#1E4E8C" }}
       >
-        <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-5">
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 32 32"
-            fill="none"
-            aria-hidden="true"
-          >
-            <circle
-              cx="16"
-              cy="16"
-              r="13"
-              stroke="white"
-              strokeWidth="3"
-              fill="none"
-            />
-            <circle
-              cx="16"
-              cy="16"
-              r="7"
-              stroke="white"
-              strokeWidth="2.5"
-              fill="none"
-            />
-          </svg>
-          <Link
+        <div className="border-b border-white/10 px-5 py-5">
+          <Logo
+            size={28}
+            showWordmark
+            wordmark="CoreDXI Admin"
             href="/admin/dashboard"
-            className="text-base font-bold tracking-tight text-white"
-          >
-            CoreDXI Admin
-          </Link>
+            variant="onDark"
+            ariaLabel="CoreDXI 관리자 대시보드"
+          />
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-4">

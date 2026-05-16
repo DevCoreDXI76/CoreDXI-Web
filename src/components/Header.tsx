@@ -13,7 +13,7 @@
  *       - HEADER_BUTTONS 객체로 버튼 텍스트/링크 관리
  *       - isScrolled state: 스크롤 시 backdrop-blur 헤더 전환
  *       - isMenuOpen state: 모바일 햄버거 메뉴 토글
- *       - 기하학적 이중 'C' SVG 로고 + "CoreDXI" 텍스트
+ *       - 브랜드 로고 이미지 + "CoreDXI" 텍스트 (Logo 컴포넌트)
  *       - aria-label, aria-expanded, role="navigation" 접근성 적용
  * ────────────────────────────────────────────────────────────────────
  *
@@ -29,6 +29,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { Logo } from "@/components/Logo";
 
 /** 로그아웃 후 이동 URL — Vercel 기본 도메인으로 붙는 것을 막고 공식 도메인으로 통일 */
 function publicLogoutUrl(): string {
@@ -143,44 +144,7 @@ export function Header() {
         >
 
           {/* ─── 좌측: 로고 ───────────────────────────────── */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 shrink-0 group"
-            aria-label="CoreDXI 홈으로 이동"
-          >
-            {/* 기하학적 'C' 로고 SVG */}
-            <svg
-              width="34"
-              height="34"
-              viewBox="0 0 34 34"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              {/* 외부 원호 (C 형태) */}
-              <path
-                d="M28.5 10.5C26.2 6.8 22.1 4.5 17 4.5C9.5 4.5 3.5 10.5 3.5 17C3.5 23.5 9.5 29.5 17 29.5C22.1 29.5 26.2 27.2 28.5 23.5"
-                stroke="#1E4E8C"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                fill="none"
-              />
-              {/* 내부 원호 (이중 C 구조로 고급스러운 느낌) */}
-              <path
-                d="M24.5 12.5C23 10 20.2 8.5 17 8.5C11.7 8.5 7.5 12.5 7.5 17C7.5 21.5 11.7 25.5 17 25.5C20.2 25.5 23 24 24.5 21.5"
-                stroke="#1E4E8C"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeOpacity="0.5"
-                fill="none"
-              />
-            </svg>
-
-            {/* 회사명 텍스트 */}
-            <span className="text-xl font-bold text-primary tracking-tight group-hover:opacity-80 transition-opacity">
-              CoreDXI
-            </span>
-          </Link>
+          <Logo size={34} showWordmark priority />
 
           {/* ─── 중앙: 데스크탑 네비게이션 (lg 이상에서만 표시) ─── */}
           <ul className="hidden lg:flex items-center gap-1" role="list">

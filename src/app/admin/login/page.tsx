@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
@@ -52,31 +53,12 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="flex items-center justify-between border-b border-border/40 px-6 py-4">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5"
-          aria-label="CoreDXI 홈으로 이동"
-        >
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 34 34"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M28.5 10.5C26.2 6.8 22.1 4.5 17 4.5C9.5 4.5 3.5 10.5 3.5 17C3.5 23.5 9.5 29.5 17 29.5C22.1 29.5 26.2 27.2 28.5 23.5"
-              stroke="#1E4E8C"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              fill="none"
-            />
-          </svg>
-          <span className="text-lg font-bold tracking-tight text-primary">
-            CoreDXI Admin
-          </span>
-        </Link>
+        <Logo
+          size={30}
+          showWordmark
+          wordmark="CoreDXI Admin"
+          wordmarkClassName="text-lg font-bold tracking-tight text-primary"
+        />
         <Link
           href="/login"
           className="text-sm font-medium text-primary hover:underline"

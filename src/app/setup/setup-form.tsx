@@ -5,6 +5,7 @@
 "use client";
 
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -62,39 +63,11 @@ export function InitialSetupForm({ setupSecretRequired }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="flex items-center justify-between border-b border-border/40 px-6 py-4">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5"
-          aria-label="CoreDXI 홈으로 이동"
-        >
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 34 34"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M28.5 10.5C26.2 6.8 22.1 4.5 17 4.5C9.5 4.5 3.5 10.5 3.5 17C3.5 23.5 9.5 29.5 17 29.5C22.1 29.5 26.2 27.2 28.5 23.5"
-              stroke="#1E4E8C"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <path
-              d="M24.5 12.5C23 10 20.2 8.5 17 8.5C11.7 8.5 7.5 12.5 7.5 17C7.5 21.5 11.7 25.5 17 25.5C20.2 25.5 23 24 24.5 21.5"
-              stroke="#1E4E8C"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeOpacity="0.5"
-              fill="none"
-            />
-          </svg>
-          <span className="text-lg font-bold text-primary tracking-tight">
-            CoreDXI
-          </span>
-        </Link>
+        <Logo
+          size={30}
+          showWordmark
+          wordmarkClassName="text-lg font-bold text-primary tracking-tight"
+        />
         <Link
           href="/admin/login"
           className="text-sm font-medium text-primary hover:underline"
