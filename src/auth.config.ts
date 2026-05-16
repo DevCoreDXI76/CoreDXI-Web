@@ -16,8 +16,37 @@ import type { Role } from "@/generated/prisma/client";
 /**
  * Edge·미들웨어에서도 읽을 수 있는 NextAuth 공통 설정입니다.
  */
+const authSecret =
+  process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
+
+const oauthProviders = [
+  Google({
+    clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  }),
+  Kakao({
+    clientId: process.env.KAKAO_CLIENT_ID ?? "",
+    clientSecret: process.env.KAKAO_CLIENT_SECRET ?? "",
+    authorization: {
+      params: {
+        scope: "profile_nickname profile_image account_email",
+      },
+    },
+  }),
+];
+
+if (process.env.NAVER_CLIENT_ID && process.env.NAVER_CLIENT_SECRET) {
+  oauthProviders.push(
+    Naver({
+      clientId: process.env.NAVER_CLIENT_ID,
+      clientSecret: process.env.NAVER_CLIENT_SECRET,
+    })
+  );
+}
+
 export default {
   trustHost: true,
+  secret: authSecret,
   pages: {
     signIn: "/login",
   },
@@ -25,20 +54,7 @@ export default {
     strategy: "jwt",
     maxAge: 60 * 60 * 24 * 7,
   },
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-    }),
-    Kakao({
-      clientId: process.env.KAKAO_CLIENT_ID ?? "",
-      clientSecret: process.env.KAKAO_CLIENT_SECRET ?? "",
-    }),
-    Naver({
-      clientId: process.env.NAVER_CLIENT_ID ?? "",
-      clientSecret: process.env.NAVER_CLIENT_SECRET ?? "",
-    }),
-  ],
+  providers: oauthProviders,
   callbacks: {
     jwt({ token, user }) {
       if (user?.id) {
