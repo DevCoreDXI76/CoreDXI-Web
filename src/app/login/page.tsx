@@ -172,6 +172,12 @@ export default function LoginPage() {
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/");
 
+  function oauthCallbackTarget(path: string = callbackUrl) {
+    const safePath = path.startsWith("/") ? path : "/";
+    if (typeof window === "undefined") return safePath;
+    return `${window.location.origin}${safePath}`;
+  }
+
   const [loginStep, setLoginStep] = useState<"email" | "password">("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -314,7 +320,9 @@ export default function LoginPage() {
           <div className="space-y-3">
             <button
               type="button"
-              onClick={() => void signIn("kakao", { callbackUrl })}
+              onClick={() =>
+                void signIn("kakao", { callbackUrl: oauthCallbackTarget() })
+              }
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] text-sm font-semibold text-black transition-opacity hover:opacity-90"
             >
               <KakaoIcon className="h-5 w-5 shrink-0" />
@@ -323,7 +331,9 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => void signIn("naver", { callbackUrl })}
+              onClick={() =>
+                void signIn("naver", { callbackUrl: oauthCallbackTarget() })
+              }
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#03C75A] text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               <NaverIcon className="h-4 w-4 shrink-0" />
@@ -342,7 +352,9 @@ export default function LoginPage() {
           <div className="mt-6 flex justify-center gap-3">
             <button
               type="button"
-              onClick={() => void signIn("google", { callbackUrl })}
+              onClick={() =>
+                void signIn("google", { callbackUrl: oauthCallbackTarget() })
+              }
               className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white transition-colors hover:bg-gray-50"
               aria-label="Google로 로그인"
             >

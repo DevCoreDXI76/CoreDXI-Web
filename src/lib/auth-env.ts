@@ -1,22 +1,41 @@
 /**
- * Vercel 등에서 빈 문자열("")로 저장된 env는 미설정과 동일하게 처리합니다.
- * AUTH_SECRET="" 이 있으면 NEXTAUTH_SECRET 폴백이 막혀 Configuration 오류가 납니다.
+ * Auth.js / NextAuth 환경변수 정규화
  *
- * AUTH_URL에 https:// 없이 "www.coredxi.com"만 넣으면 Auth.js가 Invalid URL을 냅니다.
+ * - 빈 문자열("") → 미설정 처리
+ * - Vercel 값에 따옴표가 포함된 경우 제거
+ * - AUTH_URL / NEXTAUTH_URL / AUTH_SECRET / NEXTAUTH_SECRET 을 항상 동일 값으로 통일
+ * - 프로덕션(Vercel)에서 URL 미설정 시 https://www.coredxi.com 사용
  */
+const PRODUCTION_SITE_URL = "https://www.coredxi.com";
+
+function stripQuotes(value: string): string {
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
 export function readEnv(...keys: string[]): string | undefined {
   for (const key of keys) {
-    const value = process.env[key]?.trim();
+    const raw = process.env[key];
+    if (!raw) continue;
+    const value = stripQuotes(raw);
     if (value) return value;
   }
   return undefined;
 }
 
-/** "www.example.com" → "https://www.example.com" (origin만 반환) */
+/** "www.example.com" → "https://www.example.com" */
 export function normalizeSiteUrl(raw: string | undefined): string | undefined {
-  if (!raw?.trim()) return undefined;
+  if (!raw) return undefined;
 
-  const trimmed = raw.trim().replace(/\/$/, "");
+  const trimmed = stripQuotes(raw).replace(/\/$/, "");
+  if (!trimmed) return undefined;
+
   try {
     const href = /^https?:\/\//i.test(trimmed)
       ? trimmed
@@ -27,12 +46,44 @@ export function normalizeSiteUrl(raw: string | undefined): string | undefined {
   }
 }
 
-export const authSecret = readEnv("AUTH_SECRET", "NEXTAUTH_SECRET");
+function resolveAuthUrl(): string | undefined {
+  const fromEnv = normalizeSiteUrl(
+    readEnv("AUTH_URL", "NEXTAUTH_URL")
+  );
+  if (fromEnv) return fromEnv;
 
-/** Auth.js가 사용하는 공개 URL (AUTH_URL / NEXTAUTH_URL 정규화) */
-export const authUrl = normalizeSiteUrl(
-  readEnv("AUTH_URL", "NEXTAUTH_URL")
-);
+  const vercelHost = readEnv("VERCEL_URL");
+  if (vercelHost) {
+    const fromVercel = normalizeSiteUrl(vercelHost);
+    if (fromVercel) return fromVercel;
+  }
+
+  if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") {
+    return PRODUCTION_SITE_URL;
+  }
+
+  return undefined;
+}
+
+function resolveAuthSecret(): string | undefined {
+  return readEnv("AUTH_SECRET", "NEXTAUTH_SECRET");
+}
+
+const resolvedAuthUrl = resolveAuthUrl();
+const resolvedAuthSecret = resolveAuthSecret();
+
+if (resolvedAuthUrl) {
+  process.env.AUTH_URL = resolvedAuthUrl;
+  process.env.NEXTAUTH_URL = resolvedAuthUrl;
+}
+
+if (resolvedAuthSecret) {
+  process.env.AUTH_SECRET = resolvedAuthSecret;
+  process.env.NEXTAUTH_SECRET = resolvedAuthSecret;
+}
+
+export const authUrl = resolvedAuthUrl;
+export const authSecret = resolvedAuthSecret;
 
 export const googleClientId = readEnv("GOOGLE_CLIENT_ID", "AUTH_GOOGLE_ID");
 export const googleClientSecret = readEnv(

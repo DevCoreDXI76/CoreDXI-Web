@@ -15,7 +15,6 @@ import Naver from "next-auth/providers/naver";
 import type { Role } from "@/generated/prisma/client";
 import {
   authSecret,
-  authUrl,
   googleClientId,
   googleClientSecret,
   kakaoClientId,
@@ -23,12 +22,6 @@ import {
   naverClientId,
   naverClientSecret,
 } from "@/lib/auth-env";
-
-// Vercel에 https:// 없이 저장된 AUTH_URL이 있으면 Auth.js new URL()이 실패합니다.
-if (authUrl) {
-  process.env.AUTH_URL = authUrl;
-  process.env.NEXTAUTH_URL = authUrl;
-}
 
 /**
  * Edge·미들웨어에서도 읽을 수 있는 NextAuth 공통 설정입니다.
