@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * [홍보팀/개발팀] 블로그 글 저장 — BlockNote JSON(`content`) + 임시저장(DRAFT) / 발행(PUBLISHED).
+ * [홍보팀/개발팀] 블로그 글 저장 — Tiptap JSON(`content`) + 임시저장(DRAFT) / 발행(PUBLISHED).
  * slug는 제목 기반으로 자동 생성되며 충돌 시 `-1`, `-2` 접미사가 붙습니다.
  */
 

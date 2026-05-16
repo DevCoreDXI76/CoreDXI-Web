@@ -17,7 +17,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { NotionEditor } from "@/components/editor/NotionEditor";
-import type { BlogPostContent } from "@/types/blocknote";
+import {
+  EMPTY_BLOG_DOC,
+  normalizeBlogContent,
+  type BlogPostContent,
+} from "@/types/blocknote";
 import { saveBlogPost } from "./actions";
 
 /** [홍보팀] 블로그 카테고리 옵션 — 필요 시 값·라벨만 추가하면 됩니다. */
@@ -34,7 +38,7 @@ export type BlogEditorInitial = {
   title: string;
   category: string;
   excerpt: string;
-  content: BlogPostContent;
+  content: BlogPostContent | unknown;
   status: "DRAFT" | "PUBLISHED";
 };
 
@@ -71,8 +75,8 @@ export function BlogEditorForm({ mode, initial }: Props) {
     initial?.category ?? BLOG_CATEGORIES[0]
   );
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
-  const [documentJson, setDocumentJson] = useState<BlogPostContent>(
-    initial?.content ?? []
+  const [documentJson, setDocumentJson] = useState<BlogPostContent>(() =>
+    normalizeBlogContent(initial?.content)
   );
   const [pending, setPending] = useState(false);
 
@@ -204,7 +208,7 @@ export function BlogEditorForm({ mode, initial }: Props) {
 
         <NotionEditor
           storageKey={storageKey}
-          initialContent={initial?.content ?? null}
+          initialContent={initial?.content ?? EMPTY_BLOG_DOC}
           onChangeDocument={setDocumentJson}
           uploadFile={uploadFile}
           editable

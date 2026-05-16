@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { BlogPostReader } from "@/components/editor/BlogPostReader";
 import { prisma } from "@/lib/prisma";
-import type { BlogPostContent } from "@/types/blocknote";
+import { normalizeBlogContent } from "@/types/blocknote";
 
 export const dynamic = "force-dynamic";
 
@@ -33,8 +33,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   });
   if (!post) notFound();
 
-  const content = post.content as unknown as BlogPostContent;
-  const blocks: BlogPostContent = Array.isArray(content) ? content : [];
+  const blocks = normalizeBlogContent(post.content);
 
   return (
     <>

@@ -1,6 +1,5 @@
 /**
- * [홍보팀] 노션형 블로그 에디터 (BlockNote + shadcn)
- * - `/` 슬래시 메뉴, 이미지 붙여넣기·드래그 → Supabase `blog-images` 업로드
+ * [홍보팀] 블로그 본문 에디터 (Tiptap)
  */
 
 "use client";

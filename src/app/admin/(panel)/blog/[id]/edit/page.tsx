@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import type { BlogPostContent } from "@/types/blocknote";
 import { BlogEditorFormLoader } from "../../blog-editor-form-loader";
 
 export const dynamic = "force-dynamic";
@@ -12,8 +11,6 @@ export default async function AdminBlogEditPage({ params }: PageProps) {
   const post = await prisma.blogPost.findUnique({ where: { id } });
   if (!post) notFound();
 
-  const content = post.content as unknown as BlogPostContent;
-
   return (
     <div className="px-0 py-2">
       <BlogEditorFormLoader
@@ -23,7 +20,7 @@ export default async function AdminBlogEditPage({ params }: PageProps) {
           title: post.title,
           category: post.category,
           excerpt: post.excerpt ?? "",
-          content: Array.isArray(content) ? content : [],
+          content: post.content,
           status: post.status,
         }}
       />
