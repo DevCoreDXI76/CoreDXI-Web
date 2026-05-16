@@ -80,6 +80,10 @@ if (resolvedAuthUrl) {
 if (resolvedAuthSecret) {
   process.env.AUTH_SECRET = resolvedAuthSecret;
   process.env.NEXTAUTH_SECRET = resolvedAuthSecret;
+} else if (process.env.VERCEL === "1" || process.env.NODE_ENV === "production") {
+  console.error(
+    "[auth] AUTH_SECRET(또는 NEXTAUTH_SECRET)이 없습니다. Vercel Production 환경변수를 설정하세요."
+  );
 }
 
 export const authUrl = resolvedAuthUrl;

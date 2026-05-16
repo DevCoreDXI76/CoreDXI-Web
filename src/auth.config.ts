@@ -65,6 +65,8 @@ export default {
   ...(authSecret ? { secret: authSecret } : {}),
   pages: {
     signIn: "/login",
+    /** /api/auth/error 500 방지 — 에러를 로그인 페이지로 보냄 */
+    error: "/login",
   },
   session: {
     strategy: "jwt",

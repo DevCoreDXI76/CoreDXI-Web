@@ -171,12 +171,7 @@ export default function LoginPage() {
   const [memberType, setMemberType] = useState<MemberType>("individual");
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/");
-
-  function oauthCallbackTarget(path: string = callbackUrl) {
-    const safePath = path.startsWith("/") ? path : "/";
-    if (typeof window === "undefined") return safePath;
-    return `${window.location.origin}${safePath}`;
-  }
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const [loginStep, setLoginStep] = useState<"email" | "password">("email");
   const [email, setEmail] = useState("");
@@ -191,6 +186,14 @@ export default function LoginPage() {
     const nextCallback = params.get("callbackUrl");
     if (nextCallback?.startsWith("/")) {
       setCallbackUrl(nextCallback);
+    }
+    const error = params.get("error");
+    if (error === "Configuration") {
+      setAuthError(
+        "로그인 설정 오류입니다. AUTH_SECRET과 AUTH_URL이 Vercel에 올바르게 설정되었는지 확인해 주세요."
+      );
+    } else if (error) {
+      setAuthError("로그인에 실패했습니다. 다시 시도해 주세요.");
     }
   }, []);
 
@@ -288,6 +291,15 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {authError && (
+          <p
+            role="alert"
+            className="w-full rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700"
+          >
+            {authError}
+          </p>
+        )}
+
         <div className="w-full rounded-xl border border-gray-200 bg-white p-8 shadow-sm sm:p-10">
           <div className="mb-6 flex border-b border-gray-200">
             <button
@@ -321,7 +333,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() =>
-                void signIn("kakao", { callbackUrl: oauthCallbackTarget() })
+                void signIn("kakao", { callbackUrl })
               }
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] text-sm font-semibold text-black transition-opacity hover:opacity-90"
             >
@@ -332,7 +344,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() =>
-                void signIn("naver", { callbackUrl: oauthCallbackTarget() })
+                void signIn("naver", { callbackUrl })
               }
               className="flex h-12 w-full items-center justify-center gap-2 rounded-md bg-[#03C75A] text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
@@ -353,7 +365,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() =>
-                void signIn("google", { callbackUrl: oauthCallbackTarget() })
+                void signIn("google", { callbackUrl })
               }
               className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white transition-colors hover:bg-gray-50"
               aria-label="Google로 로그인"
