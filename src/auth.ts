@@ -3,11 +3,9 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import authConfig from "./auth.config";
+import { authSecret } from "@/lib/auth-env";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/generated/prisma/client";
-
-const authSecret =
-  process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,

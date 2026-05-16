@@ -1,9 +1,10 @@
 /**
- * [OAuth 환경변수 — .env.local]
+ * [OAuth 환경변수 — .env.local / Vercel]
  * GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
  * KAKAO_CLIENT_ID, KAKAO_CLIENT_SECRET
  * NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
- * AUTH_SECRET, AUTH_URL (또는 NEXTAUTH_URL)
+ * AUTH_SECRET (또는 NEXTAUTH_SECRET — 하나만, 동일 값)
+ * AUTH_URL (또는 NEXTAUTH_URL) = https://www.coredxi.com
  *
  * 콜백: {AUTH_URL}/api/auth/callback/google|kakao|naver
  */
@@ -12,12 +13,52 @@ import Google from "next-auth/providers/google";
 import Kakao from "next-auth/providers/kakao";
 import Naver from "next-auth/providers/naver";
 import type { Role } from "@/generated/prisma/client";
+import {
+  authSecret,
+  googleClientId,
+  googleClientSecret,
+  kakaoClientId,
+  kakaoClientSecret,
+  naverClientId,
+  naverClientSecret,
+} from "@/lib/auth-env";
 
 /**
  * Edge·미들웨어에서도 읽을 수 있는 NextAuth 공통 설정입니다.
  */
-const authSecret =
-  process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+const providers: NextAuthConfig["providers"] = [];
+
+if (googleClientId && googleClientSecret) {
+  providers.push(
+    Google({
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+    })
+  );
+}
+
+if (kakaoClientId && kakaoClientSecret) {
+  providers.push(
+    Kakao({
+      clientId: kakaoClientId,
+      clientSecret: kakaoClientSecret,
+      authorization: {
+        params: {
+          scope: "profile_nickname profile_image account_email",
+        },
+      },
+    })
+  );
+}
+
+if (naverClientId && naverClientSecret) {
+  providers.push(
+    Naver({
+      clientId: naverClientId,
+      clientSecret: naverClientSecret,
+    })
+  );
+}
 
 export default {
   trustHost: true,
@@ -29,29 +70,7 @@ export default {
     strategy: "jwt",
     maxAge: 60 * 60 * 24 * 7,
   },
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-    }),
-    Kakao({
-      clientId: process.env.KAKAO_CLIENT_ID ?? "",
-      clientSecret: process.env.KAKAO_CLIENT_SECRET ?? "",
-      authorization: {
-        params: {
-          scope: "profile_nickname profile_image account_email",
-        },
-      },
-    }),
-    ...(process.env.NAVER_CLIENT_ID && process.env.NAVER_CLIENT_SECRET
-      ? [
-          Naver({
-            clientId: process.env.NAVER_CLIENT_ID,
-            clientSecret: process.env.NAVER_CLIENT_SECRET,
-          }),
-        ]
-      : []),
-  ],
+  providers,
   callbacks: {
     jwt({ token, user }) {
       if (user?.id) {
