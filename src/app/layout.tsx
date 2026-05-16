@@ -34,6 +34,12 @@ export const metadata: Metadata = {
   description:
     "복잡한 협업은 심플하게, 변화는 단단하게. B2B 회의 예약 및 AX 전환 솔루션을 제공하는 당신의 AI 코어 파트너, CoreDXI.",
   icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/brand/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
     apple: [{ url: "/brand/logo-icon.png", type: "image/png" }],
   },
 };
