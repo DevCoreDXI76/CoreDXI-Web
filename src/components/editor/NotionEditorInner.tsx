@@ -10,8 +10,8 @@ import {
 import type { PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { useCreateBlockNote } from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css";
+import { BlockNoteView } from "@blocknote/shadcn";
+import "@blocknote/shadcn/style.css";
 import type { BlogPostContent } from "@/types/blocknote";
 import type { NotionEditorHandle, NotionEditorProps } from "./notion-editor-types";
 
@@ -22,7 +22,7 @@ function normalizeInitialBlocks(
   return raw as PartialBlock[];
 }
 
-/** BlockNote — 공식 useCreateBlockNote + Mantine 뷰 (클라이언트 전용). */
+/** BlockNote — shadcn UI + useCreateBlockNote (클라이언트 전용). */
 export const NotionEditorInner = forwardRef<
   NotionEditorHandle,
   NotionEditorProps
@@ -44,15 +44,17 @@ export const NotionEditorInner = forwardRef<
     [initialContent]
   );
 
-  const editor = useCreateBlockNote(
-    {
-      initialContent: initialBlocks,
+  const editorOptions = useMemo(
+    () => ({
+      ...(initialBlocks ? { initialContent: initialBlocks } : {}),
       uploadFile: uploadFileRef.current
-        ? async (file) => uploadFileRef.current!(file)
+        ? async (file: File) => uploadFileRef.current!(file)
         : undefined,
-    },
-    [storageKey, initialBlocks]
+    }),
+    [initialBlocks]
   );
+
+  const editor = useCreateBlockNote(editorOptions, [storageKey, initialBlocks]);
 
   useImperativeHandle(
     ref,
@@ -76,7 +78,7 @@ export const NotionEditorInner = forwardRef<
       theme="light"
       editable={editable}
       onChange={handleChange}
-      className="[&_.bn-editor]:min-h-[50vh]"
+      className="bn-shadcn [&_.bn-editor]:min-h-[50vh]"
     />
   );
 });

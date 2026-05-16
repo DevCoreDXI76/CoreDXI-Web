@@ -49,13 +49,21 @@ export default function AdminPanelLayout({
           <AdminSidebar />
         </div>
 
-        <div className="border-t border-white/10 px-5 py-4">
+        <div className="border-t border-white/10 space-y-2 px-5 py-4">
           <Link
             href="/"
             className="text-xs text-white/60 transition-colors hover:text-white/90"
           >
             ← 홈페이지로 돌아가기
           </Link>
+          {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? (
+            <p
+              className="font-mono text-[10px] text-white/35"
+              title={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
+            >
+              build {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}
+            </p>
+          ) : null}
         </div>
       </aside>
 

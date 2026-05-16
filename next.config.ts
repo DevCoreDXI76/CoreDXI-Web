@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
   transpilePackages: [
     "@blocknote/core",
     "@blocknote/react",
-    "@blocknote/mantine",
+    "@blocknote/shadcn",
   ],
   webpack: (config, { isServer }) => {
     if (!isServer) {
