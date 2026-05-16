@@ -35,12 +35,20 @@ export const metadata: Metadata = {
     "복잡한 협업은 심플하게, 변화는 단단하게. B2B 회의 예약 및 AX 전환 솔루션을 제공하는 당신의 AI 코어 파트너, CoreDXI.",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/brand/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/brand/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      {
+        url: "/brand/favicon-32x32.png?v=2",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: "/brand/favicon-16x16.png?v=2",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      { url: "/favicon.ico?v=2", sizes: "48x48", type: "image/x-icon" },
     ],
-    shortcut: "/favicon.ico",
-    apple: [{ url: "/brand/logo-icon.png", type: "image/png" }],
+    shortcut: "/brand/favicon-32x32.png?v=2",
+    apple: [{ url: "/apple-icon.png?v=2", type: "image/png" }],
   },
 };
 
@@ -56,6 +64,15 @@ export default function RootLayout({
   return (
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
     <html lang="ko">
+      <head>
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/brand/favicon-32x32.png?v=2"
+        />
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           {children}
