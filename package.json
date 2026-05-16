@@ -15,7 +15,6 @@
     "@blocknote/core": "^0.51.0",
     "@blocknote/mantine": "^0.51.0",
     "@blocknote/react": "^0.51.0",
-    "@blocknote/shadcn": "^0.51.0",
     "@mantine/core": "^8.3.18",
     "@mantine/hooks": "^8.3.18",
     "@prisma/adapter-pg": "^7.8.0",
@@ -51,5 +50,21 @@
     "eslint-config-next": "15.5.18",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@tiptap/core": "3.13.0",
+    "@tiptap/pm": "3.13.0",
+    "@tiptap/react": "3.13.0",
+    "@tiptap/extension-bold": "3.13.0",
+    "@tiptap/extension-code": "3.13.0",
+    "@tiptap/extension-horizontal-rule": "3.13.0",
+    "@tiptap/extension-italic": "3.13.0",
+    "@tiptap/extension-paragraph": "3.13.0",
+    "@tiptap/extension-strike": "3.13.0",
+    "@tiptap/extension-text": "3.13.0",
+    "@tiptap/extension-underline": "3.13.0",
+    "@tiptap/extensions": "3.13.0",
+    "@tiptap/extension-bubble-menu": "3.13.0",
+    "@tiptap/extension-floating-menu": "3.13.0"
   }
 }
