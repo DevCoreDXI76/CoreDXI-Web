@@ -3,7 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import authConfig from "./auth.config";
-import { authSecret } from "@/lib/auth-env";
+import { authSecret, authUrl, normalizeSiteUrl } from "@/lib/auth-env";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/generated/prisma/client";
 
@@ -101,33 +101,28 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       return true;
     },
     async redirect({ url, baseUrl }) {
-      const explicit = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+      const site =
+        normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
+        authUrl ??
+        (() => {
+          try {
+            const base = new URL(baseUrl);
+            const isLocal =
+              base.hostname === "localhost" || base.hostname === "127.0.0.1";
+            return isLocal ? base.origin : "https://www.coredxi.com";
+          } catch {
+            return "https://www.coredxi.com";
+          }
+        })();
 
-      let site: string;
-      if (explicit) {
-        site = explicit;
-      } else {
-        try {
-          const base = new URL(baseUrl);
-          const isLocal =
-            base.hostname === "localhost" || base.hostname === "127.0.0.1";
-          site = isLocal
-            ? base.origin.replace(/\/$/, "")
-            : "https://www.coredxi.com";
-        } catch {
-          site = "https://www.coredxi.com";
-        }
-      }
-
-      if (url.startsWith("/")) {
-        return `${site}${url}`;
+      if (!url || url.startsWith("/")) {
+        return `${site}${url?.startsWith("/") ? url : "/"}`;
       }
 
       try {
         const next = new URL(url);
-        const allowedOrigin = new URL(
-          /^https?:\/\//i.test(site) ? site : `https://${site}`
-        ).origin;
+        const allowedOrigin = new URL(site).origin;
+
         if (next.origin === allowedOrigin) {
           return url;
         }
@@ -137,14 +132,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         ) {
           return url;
         }
-        if (next.origin === new URL(baseUrl).origin) {
-          return url;
+        try {
+          if (next.origin === new URL(baseUrl).origin) {
+            return url;
+          }
+        } catch {
+          /* ignore invalid baseUrl */
         }
-        if (next.hostname.endsWith(".vercel.app") && !explicit) {
+        if (next.hostname.endsWith(".vercel.app")) {
           return url;
         }
       } catch {
-        /* invalid url */
+        /* invalid absolute url — fall through to site root */
       }
 
       return `${site}/`;
