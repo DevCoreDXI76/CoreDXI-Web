@@ -66,6 +66,7 @@ const NAV_ITEMS = [
   { label: "회사소개",  href: "/about" },
   { label: "솔루션",   href: "/solutions" },
   { label: "성공사례", href: "/cases" },
+  { label: "블로그",   href: "/blog" },
   { label: "문의하기", href: "/contact" },
 ] satisfies NavItem[];
 
