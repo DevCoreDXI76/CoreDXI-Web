@@ -1,11 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useRef, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { toast } from "sonner";
-import type { BlogPostStatus } from "@/generated/prisma/client";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -18,24 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { NotionEditorHandle } from "@/components/editor/NotionEditor";
+import { NotionEditor } from "@/components/editor/NotionEditor";
 import type { BlogPostContent } from "@/types/blocknote";
 import { saveBlogPost } from "./actions";
-
-const NotionEditorClient = dynamic(
-  () =>
-    import("@/components/editor/NotionEditor").then((m) => ({
-      default: m.NotionEditor,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="rounded-lg border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-500">
-        에디터를 불러오는 중입니다…
-      </div>
-    ),
-  }
-);
 
 /** [홍보팀] 블로그 카테고리 옵션 — 필요 시 값·라벨만 추가하면 됩니다. */
 const BLOG_CATEGORIES = [
@@ -52,7 +35,7 @@ export type BlogEditorInitial = {
   category: string;
   excerpt: string;
   content: BlogPostContent;
-  status: BlogPostStatus;
+  status: "DRAFT" | "PUBLISHED";
 };
 
 type Props = {
@@ -77,13 +60,10 @@ async function uploadBlogImage(file: File, prefix: string): Promise<string> {
 export function BlogEditorForm({ mode, initial }: Props) {
   const router = useRouter();
   const reactId = useId();
-  /** SSR/클라이언트에서 동일한 임시 업로드 경로·에디터 storageKey용 (hydration 안전) */
   const draftKey = useMemo(
     () => reactId.replace(/:/g, "").replace(/^-+|-+$/g, "") || "draft",
     [reactId]
   );
-
-  const editorRef = useRef<NotionEditorHandle>(null);
 
   const [postId, setPostId] = useState<string | undefined>(initial?.id);
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -91,7 +71,7 @@ export function BlogEditorForm({ mode, initial }: Props) {
     initial?.category ?? BLOG_CATEGORIES[0]
   );
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
-  const [, setDocumentJson] = useState<BlogPostContent>(
+  const [documentJson, setDocumentJson] = useState<BlogPostContent>(
     initial?.content ?? []
   );
   const [pending, setPending] = useState(false);
@@ -116,17 +96,16 @@ export function BlogEditorForm({ mode, initial }: Props) {
     [uploadPrefix]
   );
 
-  async function submit(status: BlogPostStatus) {
+  async function submit(status: "DRAFT" | "PUBLISHED") {
     if (pending) return;
     setPending(true);
     try {
-      const content = editorRef.current?.getDocument() ?? [];
       const result = await saveBlogPost({
         id: postId,
         title,
         category,
         excerpt,
-        content,
+        content: documentJson,
         status,
       });
 
@@ -223,11 +202,10 @@ export function BlogEditorForm({ mode, initial }: Props) {
           />
         </div>
 
-        <NotionEditorClient
-          ref={editorRef}
+        <NotionEditor
           storageKey={storageKey}
           initialContent={initial?.content ?? null}
-          onChangeDocument={(json) => setDocumentJson(json)}
+          onChangeDocument={setDocumentJson}
           uploadFile={uploadFile}
           editable
         />

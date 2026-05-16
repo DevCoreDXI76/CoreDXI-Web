@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { BlogPostContent } from "@/types/blocknote";
-import { BlogEditorForm } from "../../blog-editor-form";
+import { BlogEditorFormLoader } from "../../blog-editor-form-loader";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ export default async function AdminBlogEditPage({ params }: PageProps) {
 
   return (
     <div className="px-0 py-2">
-      <BlogEditorForm
+      <BlogEditorFormLoader
         mode="edit"
         initial={{
           id: post.id,

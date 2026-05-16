@@ -1,11 +1,9 @@
-import { BlogEditorForm } from "../blog-editor-form";
-
-export const dynamic = "force-dynamic";
+import { BlogEditorFormLoader } from "../blog-editor-form-loader";
 
 export default function AdminBlogNewPage() {
   return (
     <div className="px-0 py-2">
-      <BlogEditorForm mode="create" />
+      <BlogEditorFormLoader mode="create" />
     </div>
   );
 }

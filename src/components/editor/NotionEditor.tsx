@@ -1,91 +1,37 @@
 /**
  * [홍보팀] 노션형 블로그 에디터 (BlockNote + shadcn)
- *
- * - `/` 슬래시 메뉴로 단락·제목·체크리스트·이미지·동영상 블록 등을 추가할 수 있습니다.
- * - 이미지는 블록에 삽입·드래그앤드롭·붙여넣기 시 서버 업로드(Supabase `blog-images`)로 연동됩니다.
- * - 관리자 화면: 편집 가능. 공개 글 `/blog/[slug]`에서는 읽기 전용(`editable={false}`)으로 같은 JSON을 렌더링합니다.
- * - 「임시저장」은 DB에 초안(DRAFT)으로 저장, 「발행하기」는 공개 목록에 올리는 상태(PUBLISHED)입니다.
+ * - `/` 슬래시 메뉴, 이미지 붙여넣기·드래그 → Supabase `blog-images` 업로드
+ * - 임시저장(DRAFT) vs 발행(PUBLISHED) 차이는 폼 상단 버튼 참고
  */
 
 "use client";
 
-import { forwardRef, useCallback, useImperativeHandle, useMemo } from "react";
-import type { PartialBlock } from "@blocknote/core";
-import "@blocknote/core/fonts/inter.css";
-import "@blocknote/shadcn/style.css";
-import { BlockNoteView } from "@blocknote/shadcn";
-import { useCreateBlockNote } from "@blocknote/react";
-import type { BlogPostContent } from "@/types/blocknote";
+import { forwardRef, useEffect, useState } from "react";
+import { NotionEditorInner } from "./NotionEditorInner";
+import type { NotionEditorHandle, NotionEditorProps } from "./notion-editor-types";
 
-export type NotionEditorProps = {
-  /** 에디터 인스턴스를 remount할 때 사용 (글 ID 변경 등) */
-  storageKey?: string;
-  initialContent?: BlogPostContent | null;
-  onChangeDocument?: (json: BlogPostContent) => void;
-  uploadFile?: (file: File) => Promise<string>;
-  editable?: boolean;
-};
+export type { NotionEditorHandle, NotionEditorProps } from "./notion-editor-types";
 
-export type NotionEditorHandle = {
-  getDocument: () => BlogPostContent;
-};
-
-function normalizeInitialBlocks(
-  raw: BlogPostContent | null | undefined
-): PartialBlock[] | undefined {
-  if (!raw || !Array.isArray(raw) || raw.length === 0) return undefined;
-  return raw as PartialBlock[];
+function EditorLoading() {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-500">
+      에디터를 불러오는 중입니다…
+    </div>
+  );
 }
 
 export const NotionEditor = forwardRef<NotionEditorHandle, NotionEditorProps>(
-  function NotionEditor(
-    {
-      storageKey = "default",
-      initialContent,
-      onChangeDocument,
-      uploadFile,
-      editable = true,
-    },
-    ref
-  ) {
-    const initialBlocks = useMemo(
-      () => normalizeInitialBlocks(initialContent ?? undefined),
-      [initialContent]
-    );
+  function NotionEditor(props, ref) {
+    const [mounted, setMounted] = useState(false);
 
-    const editor = useCreateBlockNote(
-      {
-        initialContent: initialBlocks,
-        uploadFile: uploadFile ? async (file) => uploadFile(file) : undefined,
-      },
-      [storageKey]
-    );
+    useEffect(() => {
+      setMounted(true);
+    }, []);
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        getDocument: () =>
-          JSON.parse(JSON.stringify(editor.document)) as BlogPostContent,
-      }),
-      [editor]
-    );
+    if (!mounted) {
+      return <EditorLoading />;
+    }
 
-    const handleChange = useCallback(() => {
-      if (!onChangeDocument) return;
-      const snapshot = JSON.parse(
-        JSON.stringify(editor.document)
-      ) as BlogPostContent;
-      onChangeDocument(snapshot);
-    }, [editor, onChangeDocument]);
-
-    return (
-      <BlockNoteView
-        editor={editor}
-        theme="light"
-        editable={editable}
-        onChange={handleChange}
-        className="[&_.bn-editor]:min-h-[50vh]"
-      />
-    );
+    return <NotionEditorInner ref={ref} {...props} />;
   }
 );
