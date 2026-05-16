@@ -2,7 +2,6 @@
 
 /**
  * [홍보팀/개발팀] 블로그 글 저장 — Tiptap JSON(`content`) + 임시저장(DRAFT) / 발행(PUBLISHED).
- * slug는 제목 기반으로 자동 생성되며 충돌 시 `-1`, `-2` 접미사가 붙습니다.
  */
 
 import { revalidatePath } from "next/cache";
@@ -12,16 +11,17 @@ import { prisma } from "@/lib/prisma";
 import { requireBlogEditor } from "@/lib/require-blog-editor";
 import type { BlogPostContent } from "@/types/blocknote";
 
-function revalidateBlogPaths(slug?: string) {
+async function revalidateBlogPaths(categorySlug?: string, postSlug?: string) {
   revalidatePath("/blog");
-  if (slug) revalidatePath(`/blog/${slug}`);
+  if (categorySlug) revalidatePath(`/blog/category/${categorySlug}`);
+  if (postSlug) revalidatePath(`/blog/${postSlug}`);
   revalidatePath("/admin/blog");
 }
 
 export type SaveBlogPostInput = {
   id?: string;
   title: string;
-  category: string;
+  categoryId: string;
   excerpt: string;
   content: BlogPostContent;
   status: BlogPostStatus;
@@ -36,8 +36,15 @@ export async function saveBlogPost(
   const title = input.title.trim();
   if (!title) return { success: false, message: "제목을 입력해 주세요." };
 
-  const category = input.category.trim();
-  if (!category) return { success: false, message: "카테고리를 선택해 주세요." };
+  if (!input.categoryId) {
+    return { success: false, message: "주제를 선택해 주세요." };
+  }
+
+  const category = await prisma.blogCategory.findUnique({
+    where: { id: input.categoryId },
+    select: { id: true, slug: true },
+  });
+  if (!category) return { success: false, message: "선택한 주제를 찾을 수 없습니다." };
 
   const excerpt = input.excerpt.trim() || null;
   const contentJson = JSON.parse(JSON.stringify(input.content)) as Prisma.InputJsonValue;
@@ -46,6 +53,7 @@ export async function saveBlogPost(
     if (input.id) {
       const existing = await prisma.blogPost.findUnique({
         where: { id: input.id },
+        include: { category: { select: { slug: true } } },
       });
       if (!existing) return { success: false, message: "글을 찾을 수 없습니다." };
 
@@ -58,7 +66,7 @@ export async function saveBlogPost(
         where: { id: input.id },
         data: {
           title,
-          category,
+          categoryId: category.id,
           excerpt,
           content: contentJson,
           status: input.status,
@@ -66,7 +74,11 @@ export async function saveBlogPost(
         },
       });
 
-      revalidateBlogPaths(existing.slug);
+      await revalidateBlogPaths(category.slug, existing.slug);
+      if (existing.category.slug !== category.slug) {
+        await revalidateBlogPaths(existing.category.slug);
+      }
+
       return {
         success: true,
         message: "저장되었습니다.",
@@ -84,7 +96,7 @@ export async function saveBlogPost(
       data: {
         slug,
         title,
-        category,
+        categoryId: category.id,
         excerpt,
         content: contentJson,
         status: input.status,
@@ -92,7 +104,7 @@ export async function saveBlogPost(
       },
     });
 
-    revalidateBlogPaths(created.slug);
+    await revalidateBlogPaths(category.slug, created.slug);
     return {
       success: true,
       message:

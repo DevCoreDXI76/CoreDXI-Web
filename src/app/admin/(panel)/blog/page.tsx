@@ -12,10 +12,10 @@ export default async function AdminBlogListPage() {
       id: true,
       slug: true,
       title: true,
-      category: true,
       status: true,
       updatedAt: true,
       publishedAt: true,
+      category: { select: { name: true } },
     },
   });
 
@@ -28,12 +28,20 @@ export default async function AdminBlogListPage() {
             노션형 에디터로 글을 작성하고 발행합니다.
           </p>
         </div>
-        <Link
-          href="/admin/blog/new"
-          className={cn(buttonVariants({ variant: "default", size: "default" }))}
-        >
-          새 글
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/blog/topics"
+            className={cn(buttonVariants({ variant: "outline", size: "default" }))}
+          >
+            주제 관리
+          </Link>
+          <Link
+            href="/admin/blog/new"
+            className={cn(buttonVariants({ variant: "default", size: "default" }))}
+          >
+            새 글
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -41,7 +49,7 @@ export default async function AdminBlogListPage() {
           <thead className="bg-gray-50 text-xs font-semibold uppercase text-gray-600">
             <tr>
               <th className="px-4 py-3">제목</th>
-              <th className="px-4 py-3">카테고리</th>
+              <th className="px-4 py-3">주제</th>
               <th className="px-4 py-3">상태</th>
               <th className="px-4 py-3">수정일</th>
               <th className="px-4 py-3" />
@@ -60,7 +68,7 @@ export default async function AdminBlogListPage() {
                   <td className="px-4 py-3 font-medium text-gray-900">
                     {p.title}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{p.category}</td>
+                  <td className="px-4 py-3 text-gray-600">{p.category.name}</td>
                   <td className="px-4 py-3">
                     <span
                       className={

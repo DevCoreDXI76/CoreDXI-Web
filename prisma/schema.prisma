@@ -113,7 +113,21 @@ model Portfolio {
 }
 
 // =====================================================
-// BlogPost — 홍보팀 블로그 (BlockNote JSON 본문)
+// BlogCategory — 블로그 주제(사이드바 메뉴)
+// =====================================================
+model BlogCategory {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  sortOrder   Int        @default(0)
+  posts       BlogPost[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// =====================================================
+// BlogPost — 홍보팀 블로그 (Tiptap doc JSON 본문)
 // =====================================================
 model BlogPost {
   id          String         @id @default(cuid())
@@ -121,7 +135,8 @@ model BlogPost {
   title       String
   excerpt     String?        @db.Text
   content     Json
-  category    String
+  categoryId  String
+  category    BlogCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   status      BlogPostStatus @default(DRAFT)
   publishedAt DateTime?
   createdAt   DateTime       @default(now())
@@ -129,6 +144,7 @@ model BlogPost {
 
   @@index([status])
   @@index([publishedAt])
+  @@index([categoryId])
 }
 
 // =====================================================

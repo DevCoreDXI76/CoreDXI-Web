@@ -23,20 +23,12 @@ import {
   type BlogPostContent,
 } from "@/types/blocknote";
 import { saveBlogPost } from "./actions";
-
-/** [홍보팀] 블로그 카테고리 옵션 — 필요 시 값·라벨만 추가하면 됩니다. */
-const BLOG_CATEGORIES = [
-  "회사 소식",
-  "기술·인사이트",
-  "고객 사례",
-  "미디어",
-  "기타",
-] as const;
+import type { BlogCategoryItem } from "@/lib/blog-categories";
 
 export type BlogEditorInitial = {
   id: string;
   title: string;
-  category: string;
+  categoryId: string;
   excerpt: string;
   content: BlogPostContent | unknown;
   status: "DRAFT" | "PUBLISHED";
@@ -44,6 +36,7 @@ export type BlogEditorInitial = {
 
 type Props = {
   mode: "create" | "edit";
+  categories: BlogCategoryItem[];
   initial?: BlogEditorInitial;
 };
 
@@ -61,7 +54,7 @@ async function uploadBlogImage(file: File, prefix: string): Promise<string> {
   return data.url;
 }
 
-export function BlogEditorForm({ mode, initial }: Props) {
+export function BlogEditorForm({ mode, categories, initial }: Props) {
   const router = useRouter();
   const reactId = useId();
   const draftKey = useMemo(
@@ -71,22 +64,14 @@ export function BlogEditorForm({ mode, initial }: Props) {
 
   const [postId, setPostId] = useState<string | undefined>(initial?.id);
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [category, setCategory] = useState(
-    initial?.category ?? BLOG_CATEGORIES[0]
+  const [categoryId, setCategoryId] = useState(
+    initial?.categoryId ?? categories[0]?.id ?? ""
   );
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [documentJson, setDocumentJson] = useState<BlogPostContent>(() =>
     normalizeBlogContent(initial?.content)
   );
   const [pending, setPending] = useState(false);
-
-  const categoryOptions = useMemo((): string[] => {
-    const base: string[] = [...BLOG_CATEGORIES];
-    if (initial?.category && !base.includes(initial.category)) {
-      base.unshift(initial.category);
-    }
-    return base;
-  }, [initial?.category]);
 
   const storageKey = useMemo(
     () => postId ?? `new-${draftKey}`,
@@ -107,7 +92,7 @@ export function BlogEditorForm({ mode, initial }: Props) {
       const result = await saveBlogPost({
         id: postId,
         title,
-        category,
+        categoryId,
         excerpt,
         content: documentJson,
         status,
@@ -145,21 +130,21 @@ export function BlogEditorForm({ mode, initial }: Props) {
           </Link>
           <div className="flex items-center gap-2">
             <Label htmlFor="blog-category" className="sr-only">
-              카테고리
+              주제
             </Label>
             <Select
-              value={category}
+              value={categoryId}
               onValueChange={(v) => {
-                if (v) setCategory(v);
+                if (v) setCategoryId(v);
               }}
             >
               <SelectTrigger id="blog-category" className="w-[200px] bg-white">
-                <SelectValue placeholder="카테고리" />
+                <SelectValue placeholder="주제" />
               </SelectTrigger>
               <SelectContent>
-                {categoryOptions.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
                   </SelectItem>
                 ))}
               </SelectContent>

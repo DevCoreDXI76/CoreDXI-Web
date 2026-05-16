@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { BlogCategoryItem } from "@/lib/blog-categories";
 import type { BlogEditorInitial } from "./blog-editor-form";
 
 const BlogEditorForm = dynamic(
@@ -20,10 +21,13 @@ const BlogEditorForm = dynamic(
 
 type Props = {
   mode: "create" | "edit";
+  categories: BlogCategoryItem[];
   initial?: BlogEditorInitial;
 };
 
 /** Tiptap 에디터 포함 폼 — 브라우저에서만 마운트 (SSR/hydration 오류 방지). */
-export function BlogEditorFormLoader({ mode, initial }: Props) {
-  return <BlogEditorForm mode={mode} initial={initial} />;
+export function BlogEditorFormLoader({ mode, categories, initial }: Props) {
+  return (
+    <BlogEditorForm mode={mode} categories={categories} initial={initial} />
+  );
 }
