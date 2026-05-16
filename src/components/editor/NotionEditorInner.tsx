@@ -3,14 +3,13 @@
 import {
   forwardRef,
   useCallback,
-  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
 } from "react";
-import { BlockNoteEditor, type PartialBlock } from "@blocknote/core";
+import type { PartialBlock } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
+import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import type { BlogPostContent } from "@/types/blocknote";
@@ -23,7 +22,7 @@ function normalizeInitialBlocks(
   return raw as PartialBlock[];
 }
 
-/** BlockNote — 클라이언트에서만 인스턴스 생성 후 Mantine 뷰 마운트. */
+/** BlockNote — 공식 useCreateBlockNote + Mantine 뷰 (클라이언트 전용). */
 export const NotionEditorInner = forwardRef<
   NotionEditorHandle,
   NotionEditorProps
@@ -37,7 +36,6 @@ export const NotionEditorInner = forwardRef<
   },
   ref
 ) {
-  const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
   const uploadFileRef = useRef(uploadFile);
   uploadFileRef.current = uploadFile;
 
@@ -46,55 +44,31 @@ export const NotionEditorInner = forwardRef<
     [initialContent]
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    let instance: BlockNoteEditor | null = null;
-
-    const init = () => {
-      instance = BlockNoteEditor.create({
-        initialContent: initialBlocks,
-        uploadFile: uploadFileRef.current
-          ? async (file) => uploadFileRef.current!(file)
-          : undefined,
-      });
-      if (!cancelled) setEditor(instance);
-    };
-
-    const frame = requestAnimationFrame(init);
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(frame);
-      instance?.unmount();
-      setEditor(null);
-    };
-  }, [storageKey, initialBlocks]);
+  const editor = useCreateBlockNote(
+    {
+      initialContent: initialBlocks,
+      uploadFile: uploadFileRef.current
+        ? async (file) => uploadFileRef.current!(file)
+        : undefined,
+    },
+    [storageKey, initialBlocks]
+  );
 
   useImperativeHandle(
     ref,
     () => ({
       getDocument: () =>
-        editor
-          ? (JSON.parse(JSON.stringify(editor.document)) as BlogPostContent)
-          : [],
+        JSON.parse(JSON.stringify(editor.document)) as BlogPostContent,
     }),
     [editor]
   );
 
   const handleChange = useCallback(() => {
-    if (!editor || !onChangeDocument) return;
+    if (!onChangeDocument) return;
     onChangeDocument(
       JSON.parse(JSON.stringify(editor.document)) as BlogPostContent
     );
   }, [editor, onChangeDocument]);
-
-  if (!editor) {
-    return (
-      <div className="rounded-lg border border-gray-200 bg-white px-4 py-12 text-center text-sm text-gray-500">
-        에디터를 불러오는 중입니다…
-      </div>
-    );
-  }
 
   return (
     <BlockNoteView
