@@ -30,6 +30,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 
+/** 로그아웃 후 이동 URL — Vercel 기본 도메인으로 붙는 것을 막고 공식 도메인으로 통일 */
+function publicLogoutUrl(): string {
+  const env = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (env) return `${env}/`;
+  if (typeof window !== "undefined") {
+    const h = window.location.hostname;
+    if (h === "localhost" || h === "127.0.0.1") {
+      return `${window.location.origin}/`;
+    }
+  }
+  return "https://www.coredxi.com/";
+}
+
 /* =====================================================
    타입 정의
    ===================================================== */
@@ -214,7 +227,7 @@ export function Header() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => void signOut({ callbackUrl: "/" })}
+                    onClick={() => void signOut({ callbackUrl: publicLogoutUrl() })}
                     className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     로그아웃
@@ -336,7 +349,7 @@ export function Header() {
                   className="flex items-center justify-center px-4 py-3 text-base font-medium text-foreground/80 rounded-xl hover:bg-muted/50 transition-colors"
                   onClick={() => {
                     closeMenu();
-                    void signOut({ callbackUrl: "/" });
+                    void signOut({ callbackUrl: publicLogoutUrl() });
                   }}
                 >
                   로그아웃

@@ -73,6 +73,55 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      const explicit = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+
+      let site: string;
+      if (explicit) {
+        site = explicit;
+      } else {
+        try {
+          const base = new URL(baseUrl);
+          const isLocal =
+            base.hostname === "localhost" || base.hostname === "127.0.0.1";
+          site = isLocal
+            ? base.origin.replace(/\/$/, "")
+            : "https://www.coredxi.com";
+        } catch {
+          site = "https://www.coredxi.com";
+        }
+      }
+
+      if (url.startsWith("/")) {
+        return `${site}${url}`;
+      }
+
+      try {
+        const next = new URL(url);
+        const allowedOrigin = new URL(
+          /^https?:\/\//i.test(site) ? site : `https://${site}`
+        ).origin;
+        if (next.origin === allowedOrigin) {
+          return url;
+        }
+        if (
+          next.hostname === "coredxi.com" ||
+          next.hostname === "www.coredxi.com"
+        ) {
+          return url;
+        }
+        if (next.origin === new URL(baseUrl).origin) {
+          return url;
+        }
+        if (next.hostname.endsWith(".vercel.app") && !explicit) {
+          return url;
+        }
+      } catch {
+        /* invalid url */
+      }
+
+      return `${site}/`;
+    },
     async jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
