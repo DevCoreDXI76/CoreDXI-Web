@@ -3,13 +3,13 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import authConfig from "./auth.config";
+import { sharedAuthCallbacks } from "@/lib/auth/callbacks";
 import {
   authUrl,
   normalizeSiteUrl,
   resolveAuthSecretForNextAuth,
 } from "@/lib/auth-env";
 import { prisma } from "@/lib/prisma";
-import type { Role } from "@/generated/prisma/client";
 
 const secret = resolveAuthSecretForNextAuth();
 
@@ -82,7 +82,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (!account?.provider || account.provider === "user-credentials" || account.provider === "admin-credentials") {
+      if (
+        !account?.provider ||
+        account.provider === "user-credentials" ||
+        account.provider === "admin-credentials"
+      ) {
         return true;
       }
 
@@ -154,30 +158,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
       return `${site}/`;
     },
-    async jwt({ token, user }) {
-      if (user?.id) {
-        token.id = user.id;
-        const accountType =
-          "accountType" in user && user.accountType
-            ? user.accountType
-            : "user";
-        token.accountType = accountType;
-
-        if (accountType === "admin" && "role" in user && user.role) {
-          token.role = user.role as Role;
-        } else {
-          token.role = undefined;
-        }
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.accountType = token.accountType as "user" | "admin";
-        session.user.role = token.role as Role | undefined;
-      }
-      return session;
-    },
+    ...sharedAuthCallbacks,
   },
 });

@@ -224,8 +224,9 @@ export default function LoginPage() {
       return;
     }
     const base = siteUrl.replace(/\/$/, "");
+    const target = callbackUrl.startsWith("/") ? callbackUrl : "/";
     void signIn(provider, {
-      callbackUrl: `${base}/`,
+      callbackUrl: `${base}${target}`,
       redirect: true,
     });
   }

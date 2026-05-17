@@ -12,7 +12,8 @@ import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import Kakao from "next-auth/providers/kakao";
 import Naver from "next-auth/providers/naver";
-import type { Role } from "@/generated/prisma/client";
+import { sharedAuthCallbacks } from "@/lib/auth/callbacks";
+import { mapKakaoProfile } from "@/lib/auth/kakao-profile";
 import {
   resolveAuthSecretForNextAuth,
   googleClientId,
@@ -47,6 +48,9 @@ if (kakaoClientId && kakaoClientSecret) {
           scope: "profile_nickname profile_image account_email",
         },
       },
+      profile(profile) {
+        return mapKakaoProfile(profile);
+      },
     })
   );
 }
@@ -75,29 +79,5 @@ export default {
     maxAge: 60 * 60 * 24 * 7,
   },
   providers,
-  callbacks: {
-    jwt({ token, user }) {
-      if (user?.id) {
-        token.id = user.id;
-        token.accountType =
-          "accountType" in user && user.accountType
-            ? user.accountType
-            : "user";
-        if ("role" in user && user.role) {
-          token.role = user.role as Role;
-        }
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.accountType = token.accountType as "user" | "admin";
-        if (token.role) {
-          session.user.role = token.role as Role;
-        }
-      }
-      return session;
-    },
-  },
+  callbacks: sharedAuthCallbacks,
 } satisfies NextAuthConfig;
