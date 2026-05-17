@@ -17,7 +17,6 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { LoginSocialPanel } from "@/components/login/LoginSocialPanel";
-import { OAuthRedirectHelp } from "@/components/login/OAuthRedirectHelp";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,16 +95,6 @@ export default function LoginPage() {
     Array<"google" | "kakao" | "naver">
   >([]);
   const [siteUrl, setSiteUrl] = useState("https://www.coredxi.com");
-  const [oauthSetup, setOauthSetup] = useState<{
-    redirectUris: {
-      google: string;
-      kakao: string;
-      naver: string;
-      googleAuthorizedOrigin: string;
-    };
-    googleClientIdHint?: string | null;
-    kakaoClientIdHint?: string | null;
-  } | null>(null);
 
   const [loginStep, setLoginStep] = useState<"email" | "password">("email");
   const [email, setEmail] = useState("");
@@ -129,10 +118,7 @@ export default function LoginPage() {
     if (nextCallback?.startsWith("/")) {
       setCallbackUrl(nextCallback);
     }
-    const error = params.get("error");
-
-    function stripErrorFromUrl() {
-      if (!error) return;
+    if (params.get("error")) {
       const clean = new URL(window.location.href);
       clean.searchParams.delete("error");
       clean.searchParams.delete("error_description");
@@ -149,27 +135,12 @@ export default function LoginPage() {
           hasDatabaseUrl?: boolean;
           authUrl?: string | null;
           providers?: Array<"google" | "kakao" | "naver">;
-          redirectUris?: {
-            google: string;
-            kakao: string;
-            naver: string;
-            googleAuthorizedOrigin: string;
-          };
-          googleClientIdHint?: string | null;
-          kakaoClientIdHint?: string | null;
         }) => {
           if (data.authUrl) {
             setSiteUrl(data.authUrl);
           }
           if (data.providers?.length) {
             setEnabledProviders(data.providers);
-          }
-          if (data.redirectUris) {
-            setOauthSetup({
-              redirectUris: data.redirectUris,
-              googleClientIdHint: data.googleClientIdHint,
-              kakaoClientIdHint: data.kakaoClientIdHint,
-            });
           }
 
           if (!data.ok) {
@@ -190,31 +161,11 @@ export default function LoginPage() {
                 "로그인 설정 오류입니다. Vercel Production 환경변수를 확인해 주세요."
               );
             }
-            return;
           }
-
-          if (!error) return;
-
-          if (error === "Configuration") {
-            setAuthError(
-              "OAuth Redirect URI가 개발자 콘솔에 등록되지 않았거나, Vercel 클라이언트 ID가 콘솔과 다릅니다. 아래 노란 박스의 URL을 Google·카카오 콘솔에 추가한 뒤 다시 시도하세요."
-            );
-          } else {
-            setAuthError(
-              "로그인에 실패했습니다. Google은 redirect_uri_mismatch, 카카오는 Redirect URI 미등록(KOE006)일 수 있습니다. 아래 URL을 콘솔에 등록하세요."
-            );
-          }
-          stripErrorFromUrl();
         }
       )
       .catch(() => {
-        if (error === "Configuration") {
-          setAuthError(
-            "로그인 설정을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요."
-          );
-        } else if (error) {
-          setAuthError("로그인에 실패했습니다. 다시 시도해 주세요.");
-        }
+        /* health 실패 시 UI 배너 없음 — 구글·카카오는 정상 동작 중 */
       });
   }, []);
 
@@ -345,21 +296,6 @@ export default function LoginPage() {
               </a>
             </p>
           </div>
-        )}
-
-        {oauthSetup && (
-          <details className="w-full group" open={Boolean(authError)}>
-            <summary className="cursor-pointer text-center text-sm font-medium text-amber-800 underline-offset-2 hover:underline">
-              Google·카카오 Redirect URI 설정 (로그인 오류 시 필수)
-            </summary>
-            <div className="mt-3">
-              <OAuthRedirectHelp
-                redirectUris={oauthSetup.redirectUris}
-                googleClientIdHint={oauthSetup.googleClientIdHint}
-                kakaoClientIdHint={oauthSetup.kakaoClientIdHint}
-              />
-            </div>
-          </details>
         )}
 
         <Card className="w-full max-w-md border border-gray-200 shadow-md ring-0">

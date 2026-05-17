@@ -63,7 +63,7 @@ export function LoginSocialPanel({
     if (!enabledProviders.includes(provider)) {
       if (provider === "naver") {
         alert(
-          "네이버 로그인은 서버에 NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 설정 후 이용할 수 있습니다."
+          "네이버 로그인은 Vercel에 NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 설정과\n네이버 개발자 콘솔 Callback URL\n(https://www.coredxi.com/api/auth/callback/naver) 등록이 필요합니다."
         );
         return;
       }
