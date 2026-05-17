@@ -44,6 +44,7 @@ if (kakaoClientId && kakaoClientSecret) {
       clientId: kakaoClientId,
       clientSecret: kakaoClientSecret,
       authorization: {
+        url: "https://kauth.kakao.com/oauth/authorize",
         params: {
           scope: "profile_nickname profile_image account_email",
         },
@@ -68,7 +69,7 @@ const secret = resolveAuthSecretForNextAuth();
 
 export default {
   trustHost: true,
-  ...(secret ? { secret } : {}),
+  secret,
   pages: {
     signIn: "/login",
     /** /api/auth/error 500 방지 — 에러를 로그인 페이지로 보냄 */

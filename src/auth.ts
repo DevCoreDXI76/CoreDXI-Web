@@ -15,7 +15,7 @@ const secret = resolveAuthSecretForNextAuth();
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
-  ...(secret ? { secret } : {}),
+  secret,
   adapter: PrismaAdapter(prisma),
   providers: [
     ...authConfig.providers,
