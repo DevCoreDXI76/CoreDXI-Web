@@ -15,10 +15,30 @@ export async function GET() {
   const base = authUrl ?? "https://www.coredxi.com";
   const response = NextResponse.redirect(new URL("/login", base));
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   for (const name of CALLBACK_COOKIE_NAMES) {
     response.cookies.set(name, "", {
       maxAge: 0,
       path: "/",
+      secure: isProduction,
+      sameSite: "lax",
+    });
+  }
+
+  const pkceNames = [
+    "authjs.pkce.code_verifier",
+    "__Secure-authjs.pkce.code_verifier",
+    "next-auth.pkce.code_verifier",
+    "__Secure-next-auth.pkce.code_verifier",
+  ] as const;
+
+  for (const name of pkceNames) {
+    response.cookies.set(name, "", {
+      maxAge: 0,
+      path: "/",
+      secure: isProduction,
+      sameSite: "lax",
     });
   }
 

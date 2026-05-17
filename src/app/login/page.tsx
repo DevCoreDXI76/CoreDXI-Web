@@ -91,6 +91,10 @@ export default function LoginPage() {
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/");
   const [authError, setAuthError] = useState<string | null>(null);
+  const [enabledProviders, setEnabledProviders] = useState<
+    Array<"google" | "kakao" | "naver">
+  >([]);
+  const [siteUrl, setSiteUrl] = useState("https://www.coredxi.com");
 
   const [loginStep, setLoginStep] = useState<"email" | "password">("email");
   const [email, setEmail] = useState("");
@@ -101,18 +105,27 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    if (window.location.hostname === "coredxi.com") {
+      window.location.replace(
+        `https://www.coredxi.com${window.location.pathname}${window.location.search}`
+      );
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const nextCallback = params.get("callbackUrl");
     if (nextCallback?.startsWith("/")) {
       setCallbackUrl(nextCallback);
     }
     const error = params.get("error");
-    if (error === "Configuration") {
-      setAuthError(
-        "로그인 설정 오류입니다. Vercel Production에 AUTH_SECRET과 AUTH_URL(https://www.coredxi.com)이 설정되어 있는지 확인해 주세요."
-      );
-    } else if (error) {
-      setAuthError("로그인에 실패했습니다. 다시 시도해 주세요.");
+
+    function stripErrorFromUrl() {
+      if (!error) return;
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete("error");
+      clean.searchParams.delete("error_description");
+      window.history.replaceState({}, "", clean.pathname + clean.search);
     }
 
     void fetch("/api/auth/health")
@@ -122,27 +135,71 @@ export default function LoginPage() {
           ok?: boolean;
           hasAuthSecret?: boolean;
           hasAuthUrl?: boolean;
+          hasDatabaseUrl?: boolean;
           authUrl?: string | null;
+          providers?: Array<"google" | "kakao" | "naver">;
         }) => {
-          if (data.ok) return;
-          if (!data.hasAuthSecret) {
-            setAuthError(
-              "서버에 AUTH_SECRET이 없습니다. Vercel → Settings → Environment Variables → Production에 AUTH_SECRET을 추가한 뒤 Redeploy 하세요."
-            );
-          } else if (!data.hasAuthUrl) {
-            setAuthError(
-              "서버에 AUTH_URL이 없습니다. Vercel Production에 AUTH_URL=https://www.coredxi.com 을 설정하세요."
-            );
+          if (data.authUrl) {
+            setSiteUrl(data.authUrl);
           }
+          if (data.providers?.length) {
+            setEnabledProviders(data.providers);
+          }
+
+          if (!data.ok) {
+            if (!data.hasAuthSecret) {
+              setAuthError(
+                "서버에 AUTH_SECRET이 없습니다. Vercel → Settings → Environment Variables → Production에 AUTH_SECRET을 추가한 뒤 Redeploy 하세요."
+              );
+            } else if (!data.hasAuthUrl) {
+              setAuthError(
+                "서버에 AUTH_URL이 없습니다. Vercel Production에 AUTH_URL=https://www.coredxi.com 을 설정하세요."
+              );
+            } else if (!data.hasDatabaseUrl) {
+              setAuthError(
+                "서버에 DATABASE_URL이 없습니다. Vercel Production 환경변수를 확인한 뒤 Redeploy 하세요."
+              );
+            } else {
+              setAuthError(
+                "로그인 설정 오류입니다. Vercel Production 환경변수를 확인해 주세요."
+              );
+            }
+            return;
+          }
+
+          if (!error) return;
+
+          if (error === "Configuration") {
+            setAuthError(
+              "로그인 중 오류가 발생했습니다. 등록되지 않은 로그인(예: 네이버)을 선택했거나 로그인 쿠키가 손상되었을 수 있습니다. 아래 \"로그인 쿠키 초기화\" 후 카카오·구글로 다시 시도해 주세요."
+            );
+          } else {
+            setAuthError("로그인에 실패했습니다. 다시 시도해 주세요.");
+          }
+          stripErrorFromUrl();
         }
       )
       .catch(() => {
-        /* ignore */
+        if (error === "Configuration") {
+          setAuthError(
+            "로그인 설정을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요."
+          );
+        } else if (error) {
+          setAuthError("로그인에 실패했습니다. 다시 시도해 주세요.");
+        }
       });
   }, []);
 
   function handleOAuthSignIn(provider: "google" | "kakao" | "naver") {
-    void signIn(provider, { callbackUrl: "/", redirect: true });
+    if (!enabledProviders.includes(provider)) {
+      toast.error("이 로그인 방식은 서버에 아직 설정되지 않았습니다.");
+      return;
+    }
+    const base = siteUrl.replace(/\/$/, "");
+    void signIn(provider, {
+      callbackUrl: `${base}/`,
+      redirect: true,
+    });
   }
 
   const isValidEmail = email.includes("@") && email.includes(".");
@@ -286,10 +343,16 @@ export default function LoginPage() {
               </TabsList>
 
               <TabsContent value="individual" className="mt-0">
-                <LoginSocialPanel onOAuthSignIn={handleOAuthSignIn} />
+                <LoginSocialPanel
+                  enabledProviders={enabledProviders}
+                  onOAuthSignIn={handleOAuthSignIn}
+                />
               </TabsContent>
               <TabsContent value="business" className="mt-0">
-                <LoginSocialPanel onOAuthSignIn={handleOAuthSignIn} />
+                <LoginSocialPanel
+                  enabledProviders={enabledProviders}
+                  onOAuthSignIn={handleOAuthSignIn}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>

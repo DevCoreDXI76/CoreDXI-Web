@@ -38,15 +38,39 @@ function NaverIcon({ className }: { className?: string }) {
   );
 }
 
+type OAuthProviderId = "google" | "kakao" | "naver";
+
 type LoginSocialPanelProps = {
-  onOAuthSignIn: (provider: "google" | "kakao" | "naver") => void;
+  enabledProviders: OAuthProviderId[];
+  onOAuthSignIn: (provider: OAuthProviderId) => void;
 };
 
-export function LoginSocialPanel({ onOAuthSignIn }: LoginSocialPanelProps) {
+export function LoginSocialPanel({
+  enabledProviders,
+  onOAuthSignIn,
+}: LoginSocialPanelProps) {
   const router = useRouter();
+
+  const canKakao = enabledProviders.includes("kakao");
+  const canNaver = enabledProviders.includes("naver");
+  const canGoogle = enabledProviders.includes("google");
 
   function handleNotReady() {
     alert(NOT_READY_MESSAGE);
+  }
+
+  function handleProviderClick(provider: OAuthProviderId) {
+    if (!enabledProviders.includes(provider)) {
+      if (provider === "naver") {
+        alert(
+          "네이버 로그인은 서버에 NAVER_CLIENT_ID / NAVER_CLIENT_SECRET 설정 후 이용할 수 있습니다."
+        );
+        return;
+      }
+      alert(NOT_READY_MESSAGE);
+      return;
+    }
+    onOAuthSignIn(provider);
   }
 
   return (
@@ -54,10 +78,12 @@ export function LoginSocialPanel({ onOAuthSignIn }: LoginSocialPanelProps) {
       <div className="space-y-3">
         <Button
           type="button"
-          onClick={() => onOAuthSignIn("kakao")}
+          disabled={!canKakao}
+          onClick={() => handleProviderClick("kakao")}
           className={cn(
             "h-12 w-full rounded-md border-transparent text-sm font-semibold text-black shadow-none",
-            "bg-[#FEE500] hover:bg-[#FEE500]/90 hover:text-black"
+            "bg-[#FEE500] hover:bg-[#FEE500]/90 hover:text-black",
+            !canKakao && "cursor-not-allowed opacity-50"
           )}
         >
           <KakaoIcon className="h-5 w-5 shrink-0" />
@@ -66,10 +92,11 @@ export function LoginSocialPanel({ onOAuthSignIn }: LoginSocialPanelProps) {
 
         <Button
           type="button"
-          onClick={() => onOAuthSignIn("naver")}
+          onClick={() => handleProviderClick("naver")}
           className={cn(
             "h-12 w-full rounded-md border-transparent text-sm font-semibold text-white shadow-none",
-            "bg-[#03C75A] hover:bg-[#03C75A]/90 hover:text-white"
+            "bg-[#03C75A] hover:bg-[#03C75A]/90 hover:text-white",
+            !canNaver && "opacity-70"
           )}
         >
           <NaverIcon className="h-4 w-4 shrink-0" />
@@ -91,8 +118,12 @@ export function LoginSocialPanel({ onOAuthSignIn }: LoginSocialPanelProps) {
       <div className="flex justify-center gap-3">
         <button
           type="button"
-          onClick={() => onOAuthSignIn("google")}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white transition-colors hover:bg-gray-50"
+          disabled={!canGoogle}
+          onClick={() => handleProviderClick("google")}
+          className={cn(
+            "flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white transition-colors hover:bg-gray-50",
+            !canGoogle && "cursor-not-allowed opacity-50"
+          )}
           aria-label="Google로 로그인"
         >
           <FcGoogle className="h-6 w-6" />

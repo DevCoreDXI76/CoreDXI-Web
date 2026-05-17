@@ -118,3 +118,14 @@ export const naverClientSecret = readEnv(
   "NAVER_CLIENT_SECRET",
   "AUTH_NAVER_SECRET"
 );
+
+export type OAuthProviderId = "google" | "kakao" | "naver";
+
+/** NextAuth에 실제 등록된 OAuth 프로바이더 (미설정 시 signIn → Configuration 오류) */
+export function getEnabledOAuthProviders(): OAuthProviderId[] {
+  const providers: OAuthProviderId[] = [];
+  if (googleClientId && googleClientSecret) providers.push("google");
+  if (kakaoClientId && kakaoClientSecret) providers.push("kakao");
+  if (naverClientId && naverClientSecret) providers.push("naver");
+  return providers;
+}
