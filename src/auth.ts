@@ -9,6 +9,10 @@ import {
   type KakaoProfile,
 } from "@/lib/auth/kakao-profile";
 import {
+  naverFallbackEmail,
+  type NaverProfile,
+} from "@/lib/auth/naver-profile";
+import {
   authUrl,
   normalizeSiteUrl,
   resolveAuthSecretForNextAuth,
@@ -104,6 +108,19 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             kakaoProfile?.id ?? account.providerAccountId ?? user.id;
           const fromKakao = kakaoProfile?.kakao_account?.email?.trim();
           user.email = fromKakao || kakaoFallbackEmail(kakaoId);
+        } else if (account.provider === "naver") {
+          const naverProfile =
+            profile &&
+            typeof profile === "object" &&
+            "response" in profile
+              ? (profile as unknown as NaverProfile)
+              : null;
+          const naverId =
+            naverProfile?.response?.id ??
+            account.providerAccountId ??
+            user.id;
+          const fromNaver = naverProfile?.response?.email?.trim();
+          user.email = fromNaver || naverFallbackEmail(naverId);
         } else if (account.providerAccountId) {
           user.email = `${account.provider}_${account.providerAccountId}@oauth.coredxi.com`;
         }

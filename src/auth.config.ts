@@ -14,6 +14,7 @@ import Kakao from "next-auth/providers/kakao";
 import Naver from "next-auth/providers/naver";
 import { sharedAuthCallbacks } from "@/lib/auth/callbacks";
 import { mapKakaoProfile } from "@/lib/auth/kakao-profile";
+import { mapNaverProfile } from "@/lib/auth/naver-profile";
 import {
   resolveAuthSecretForNextAuth,
   googleClientId,
@@ -61,6 +62,16 @@ if (naverClientId && naverClientSecret) {
     Naver({
       clientId: naverClientId,
       clientSecret: naverClientSecret,
+      authorization: {
+        url: "https://nid.naver.com/oauth2.0/authorize",
+        params: {
+          // 테스트·계정 전환 시 매번 네이버 인증 화면 표시 (운영 부담 시 제거 가능)
+          auth_type: "reauthenticate",
+        },
+      },
+      profile(profile) {
+        return mapNaverProfile(profile);
+      },
     })
   );
 }
