@@ -129,3 +129,20 @@ export function getEnabledOAuthProviders(): OAuthProviderId[] {
   if (naverClientId && naverClientSecret) providers.push("naver");
   return providers;
 }
+
+/** OAuth 개발자 콘솔에 등록해야 하는 Redirect URI (슬래시 없음, www 포함) */
+export function getOAuthRedirectUris(baseUrl?: string) {
+  const base = (baseUrl ?? authUrl ?? PRODUCTION_SITE_URL).replace(/\/$/, "");
+  return {
+    google: `${base}/api/auth/callback/google`,
+    kakao: `${base}/api/auth/callback/kakao`,
+    naver: `${base}/api/auth/callback/naver`,
+    googleAuthorizedOrigin: base,
+  };
+}
+
+export function maskClientId(clientId: string | undefined): string | null {
+  if (!clientId) return null;
+  if (clientId.length <= 12) return clientId;
+  return `…${clientId.slice(-24)}`;
+}

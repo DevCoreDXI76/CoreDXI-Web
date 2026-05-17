@@ -3,9 +3,11 @@ import {
   authSecret,
   authUrl,
   getEnabledOAuthProviders,
+  getOAuthRedirectUris,
   googleClientId,
   kakaoClientId,
   kakaoClientSecret,
+  maskClientId,
   naverClientId,
   naverClientSecret,
   readEnv,
@@ -14,12 +16,16 @@ import {
 /** 배포 환경 OAuth 설정 진단 (비밀값은 노출하지 않음) */
 export async function GET() {
   const providers = getEnabledOAuthProviders();
+  const redirectUris = getOAuthRedirectUris(authUrl);
 
   return NextResponse.json({
     ok: Boolean(authSecret && authUrl),
     hasAuthSecret: Boolean(authSecret),
     hasAuthUrl: Boolean(authUrl),
     authUrl: authUrl ?? null,
+    redirectUris,
+    googleClientIdHint: maskClientId(googleClientId),
+    kakaoClientIdHint: maskClientId(kakaoClientId),
     providers,
     hasDatabaseUrl: Boolean(readEnv("DATABASE_URL")),
     hasKakaoClientId: Boolean(kakaoClientId),
