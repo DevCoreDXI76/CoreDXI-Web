@@ -70,6 +70,7 @@ const secret = resolveAuthSecretForNextAuth();
 export default {
   trustHost: true,
   secret,
+  debug: process.env.NODE_ENV === "development",
   pages: {
     signIn: "/login",
     /** /api/auth/error 500 방지 — 에러를 로그인 페이지로 보냄 */

@@ -5,6 +5,10 @@ import bcrypt from "bcryptjs";
 import authConfig from "./auth.config";
 import { sharedAuthCallbacks } from "@/lib/auth/callbacks";
 import {
+  kakaoFallbackEmail,
+  type KakaoProfile,
+} from "@/lib/auth/kakao-profile";
+import {
   authUrl,
   normalizeSiteUrl,
   resolveAuthSecretForNextAuth,
@@ -90,20 +94,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         return true;
       }
 
-      if (!user.email) {
-        if (
-          account.provider === "kakao" &&
-          profile &&
-          typeof profile === "object" &&
-          "kakao_account" in profile
-        ) {
-          const kakaoAccount = profile.kakao_account as { email?: string };
-          if (kakaoAccount.email) {
-            user.email = kakaoAccount.email;
-          }
-        }
-
-        if (!user.email && account.providerAccountId) {
+      if (!user.email?.trim()) {
+        if (account.provider === "kakao") {
+          const kakaoProfile =
+            profile && typeof profile === "object" && "id" in profile
+              ? (profile as unknown as KakaoProfile)
+              : null;
+          const kakaoId =
+            kakaoProfile?.id ?? account.providerAccountId ?? user.id;
+          const fromKakao = kakaoProfile?.kakao_account?.email?.trim();
+          user.email = fromKakao || kakaoFallbackEmail(kakaoId);
+        } else if (account.providerAccountId) {
           user.email = `${account.provider}_${account.providerAccountId}@oauth.coredxi.com`;
         }
       }
