@@ -56,8 +56,10 @@ export const NotionEditorInner = forwardRef<
     void uploadFileRef
       .current(file)
       .then(onSuccess)
-      .catch(() => {
-        toast.error("이미지 업로드에 실패했습니다.");
+      .catch((err: unknown) => {
+        const message =
+          err instanceof Error ? err.message : "이미지 업로드에 실패했습니다.";
+        toast.error(message);
       })
       .finally(() => {
         imageUploadingRef.current = false;

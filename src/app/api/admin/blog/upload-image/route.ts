@@ -18,8 +18,14 @@ export async function POST(req: Request) {
 
   const supabase = createSupabaseAdmin();
   if (!supabase) {
+    const missing = [
+      !process.env.NEXT_PUBLIC_SUPABASE_URL && "NEXT_PUBLIC_SUPABASE_URL",
+      !process.env.SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY",
+    ].filter(Boolean) as string[];
     return NextResponse.json(
-      { error: "Supabase 환경 변수(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)가 없습니다." },
+      {
+        error: `Supabase 환경 변수가 설정되지 않았습니다: ${missing.join(", ")}. Vercel·로컬 .env에 추가 후 재배포하세요.`,
+      },
       { status: 503 }
     );
   }
@@ -38,7 +44,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "file 필드가 필요합니다." }, { status: 400 });
   }
 
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+  ];
+  if (file.type && !allowedTypes.includes(file.type)) {
+    return NextResponse.json(
+      { error: "지원하지 않는 이미지 형식입니다. (JPEG, PNG, GIF, WebP, SVG)" },
+      { status: 400 }
+    );
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
+  const maxBytes = 5 * 1024 * 1024;
+  if (buffer.length > maxBytes) {
+    return NextResponse.json(
+      { error: "파일 크기는 5MB 이하여야 합니다." },
+      { status: 400 }
+    );
+  }
   const prefix = sanitizeSegment(prefixRaw, 96);
   const extMatch = /\.([a-zA-Z0-9]+)$/.exec(file.name);
   const ext = extMatch ? `.${extMatch[1].toLowerCase()}` : "";
@@ -51,7 +78,12 @@ export async function POST(req: Request) {
 
   if (error) {
     console.error("[upload-image]", error);
-    return NextResponse.json({ error: "스토리지 업로드에 실패했습니다." }, { status: 500 });
+    const message =
+      error.message?.includes("Bucket not found") ||
+      error.message?.includes("bucket")
+        ? "Supabase Storage에 blog-images 버킷이 없습니다. 대시보드에서 public 버킷을 생성해 주세요."
+        : error.message || "스토리지 업로드에 실패했습니다.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 
   const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
