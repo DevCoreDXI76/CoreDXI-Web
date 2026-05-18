@@ -18,11 +18,37 @@ export const EMPTY_BLOG_DOC: TiptapBlogContent = {
   content: [{ type: "paragraph" }],
 };
 
+const BLOCKNOTE_BLOCK_TYPES = new Set([
+  "paragraph",
+  "heading",
+  "bulletListItem",
+  "numberedListItem",
+  "checkListItem",
+  "table",
+  "image",
+  "video",
+  "audio",
+  "file",
+  "codeBlock",
+]);
+
+function isBlockNoteBlock(block: unknown): block is PartialBlock {
+  if (!block || typeof block !== "object" || !("type" in block)) return false;
+  const b = block as { id?: unknown; type?: unknown };
+  return (
+    typeof b.id === "string" &&
+    b.id.length > 0 &&
+    typeof b.type === "string" &&
+    BLOCKNOTE_BLOCK_TYPES.has(b.type)
+  );
+}
+
+/** BlockNote 저장본 — 블록마다 id·지원 type 필요 (빈 배열·Tiptap 유사 배열 제외) */
 export function isBlockNoteContent(value: unknown): value is BlockNoteContent {
   return (
     Array.isArray(value) &&
-    (value.length === 0 ||
-      value.every((b) => b && typeof b === "object" && "type" in b))
+    value.length > 0 &&
+    value.every((b) => isBlockNoteBlock(b))
   );
 }
 
@@ -36,15 +62,32 @@ export function isTiptapDocument(value: unknown): value is TiptapBlogContent {
   );
 }
 
+/** 잘못된 inline content(예: content: "") 정리 */
+export function sanitizeBlockNoteContent(
+  blocks: BlockNoteContent
+): BlockNoteContent {
+  const sanitized = blocks
+    .filter((b) => isBlockNoteBlock(b))
+    .map((block) => {
+      const next = { ...block } as PartialBlock;
+      if (next.content === "" || next.content === null) {
+        delete next.content;
+      }
+      return next;
+    });
+
+  return sanitized.length > 0 ? sanitized : EMPTY_BLOCKNOTE_DOC;
+}
+
 /** 공개/저장용 — BlockNote · Tiptap 모두 인식 */
 export function normalizeBlogContent(raw: unknown): BlogPostContent {
-  if (isBlockNoteContent(raw)) return raw;
+  if (isBlockNoteContent(raw)) return sanitizeBlockNoteContent(raw);
   if (isTiptapDocument(raw)) return raw;
   return EMPTY_BLOCKNOTE_DOC;
 }
 
-/** 에디터 초기값 — BlockNote만 (Tiptap 글은 별도 레거시 UI) */
+/** 에디터 초기값 — 유효한 BlockNote만, 아니면 빈 문서 */
 export function getBlockNoteEditorInitial(raw: unknown): BlockNoteContent {
-  if (isBlockNoteContent(raw)) return raw;
+  if (isBlockNoteContent(raw)) return sanitizeBlockNoteContent(raw);
   return EMPTY_BLOCKNOTE_DOC;
 }

@@ -4,7 +4,10 @@ import { BlockNoteView } from "@blocknote/shadcn";
 import { useCreateBlockNote } from "@blocknote/react";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/shadcn/style.css";
-import type { BlockNoteContent } from "@/types/blocknote";
+import {
+  getBlockNoteEditorInitial,
+  type BlockNoteContent,
+} from "@/types/blocknote";
 
 type Props = {
   blocks: BlockNoteContent;
@@ -12,8 +15,10 @@ type Props = {
 
 /** BlockNote JSON 본문 — 읽기 전용 */
 export function BlockNoteReader({ blocks }: Props) {
+  const initialBlocks = getBlockNoteEditorInitial(blocks);
+
   const editor = useCreateBlockNote({
-    initialContent: blocks,
+    initialContent: initialBlocks,
   });
 
   if (!editor) {

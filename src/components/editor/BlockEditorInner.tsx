@@ -5,8 +5,10 @@ import { useCreateBlockNote } from "@blocknote/react";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/shadcn/style.css";
 import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
   forwardRef,
-  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -51,16 +53,8 @@ export const BlockEditorInner = forwardRef<BlockEditorHandle, BlockEditorProps>(
             }
           : {}),
       },
-      [storageKey]
+      [storageKey, initialContent]
     );
-
-    // storageKey 변경 시에만 문서 리셋 (initialContent에 live state를 넣으면 입력마다 replaceBlocks → 크래시)
-    useEffect(() => {
-      if (!editor) return;
-      const blocks = getBlockNoteEditorInitial(initialContent);
-      editor.replaceBlocks(editor.document, blocks);
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- initialContent는 마운트/글 전환 시에만 반영
-    }, [editor, storageKey]);
 
     useImperativeHandle(
       ref,
@@ -76,18 +70,50 @@ export const BlockEditorInner = forwardRef<BlockEditorHandle, BlockEditorProps>(
     }
 
     return (
-      <div className="min-h-[50vh] rounded-lg border border-gray-200 bg-white [&_.bn-editor]:min-h-[48vh]">
-        <BlockNoteView
-          editor={editor}
-          editable={editable}
-          onChange={() => {
-            onChangeDocument?.(editor.document as BlockNoteContent);
-          }}
-        />
-      </div>
+      <BlockEditorErrorBoundary>
+        <div className="min-h-[50vh] rounded-lg border border-gray-200 bg-white [&_.bn-editor]:min-h-[48vh]">
+          <BlockNoteView
+            editor={editor}
+            editable={editable}
+            onChange={() => {
+              onChangeDocument?.(editor.document as BlockNoteContent);
+            }}
+          />
+        </div>
+      </BlockEditorErrorBoundary>
     );
   }
 );
+
+class BlockEditorErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[BlockEditor]", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-900">
+          <p className="font-medium">본문 에디터를 불러오지 못했습니다.</p>
+          <p className="mt-2 text-red-800">
+            저장된 본문 형식이 손상되었거나 이전 에디터 형식일 수 있습니다. 페이지를
+            새로고침하거나 「BlockNote으로 새로 작성」을 사용해 주세요.
+          </p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function EditorLoadingPlaceholder() {
   return (
