@@ -54,11 +54,13 @@ export const BlockEditorInner = forwardRef<BlockEditorHandle, BlockEditorProps>(
       [storageKey]
     );
 
+    // storageKey 변경 시에만 문서 리셋 (initialContent에 live state를 넣으면 입력마다 replaceBlocks → 크래시)
     useEffect(() => {
       if (!editor) return;
       const blocks = getBlockNoteEditorInitial(initialContent);
       editor.replaceBlocks(editor.document, blocks);
-    }, [editor, storageKey, initialContent]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- initialContent는 마운트/글 전환 시에만 반영
+    }, [editor, storageKey]);
 
     useImperativeHandle(
       ref,

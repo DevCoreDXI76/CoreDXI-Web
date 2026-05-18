@@ -10,9 +10,7 @@ export type TiptapBlogContent = JSONContent;
 /** Prisma에 저장되는 본문 JSON (BlockNote 우선, Tiptap 레거시 호환) */
 export type BlogPostContent = BlockNoteContent | TiptapBlogContent;
 
-export const EMPTY_BLOCKNOTE_DOC: BlockNoteContent = [
-  { type: "paragraph", content: "" },
-];
+export const EMPTY_BLOCKNOTE_DOC: BlockNoteContent = [{ type: "paragraph" }];
 
 /** @deprecated BlockNote 전환 이전 Tiptap 빈 문서 */
 export const EMPTY_BLOG_DOC: TiptapBlogContent = {
@@ -24,9 +22,7 @@ export function isBlockNoteContent(value: unknown): value is BlockNoteContent {
   return (
     Array.isArray(value) &&
     (value.length === 0 ||
-      value.every(
-        (b) => b && typeof b === "object" && "id" in b && "type" in b
-      ))
+      value.every((b) => b && typeof b === "object" && "type" in b))
   );
 }
 

@@ -215,11 +215,10 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
           </div>
         ) : (
           <BlockEditor
+            key={`${storageKey}-${isBlockNoteContent(documentJson) ? "bn" : "new"}`}
             storageKey={storageKey}
             initialContent={
-              isBlockNoteContent(documentJson)
-                ? documentJson
-                : EMPTY_BLOCKNOTE_DOC
+              (initial?.content ?? null) as BlogPostContent | null
             }
             onChangeDocument={(doc: BlockNoteContent) =>
               setDocumentJson(doc)
