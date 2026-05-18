@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { listBlogCategories } from "@/lib/blog-categories";
 import { prisma } from "@/lib/prisma";
-import { BlogEditorFormLoader } from "../../blog-editor-form-loader";
+import { BlogEditEditor } from "./blog-edit-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +17,7 @@ export default async function AdminBlogEditPage({ params }: PageProps) {
 
   return (
     <div className="px-0 py-2">
-      <BlogEditorFormLoader
-        mode="edit"
+      <BlogEditEditor
         categories={categories}
         initial={{
           id: post.id,

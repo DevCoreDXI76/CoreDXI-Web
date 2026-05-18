@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useMemo, useState } from "react";
@@ -16,8 +17,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { BlockEditor } from "@/components/editor/BlockEditor";
-import { TiptapBlogReader } from "@/components/editor/TiptapBlogReader";
+function EditorLoadingFallback() {
+  return (
+    <div className="p-10 text-center text-gray-500">
+      에디터를 불러오는 중입니다...
+    </div>
+  );
+}
+
+const BlockEditor = dynamic(
+  () =>
+    import("@/components/editor/BlockEditor").then((m) => ({
+      default: m.BlockEditor,
+    })),
+  { ssr: false, loading: EditorLoadingFallback }
+);
+
+const TiptapBlogReader = dynamic(
+  () =>
+    import("@/components/editor/TiptapBlogReader").then((m) => ({
+      default: m.TiptapBlogReader,
+    })),
+  { ssr: false, loading: EditorLoadingFallback }
+);
 import {
   EMPTY_BLOCKNOTE_DOC,
   isBlockNoteContent,

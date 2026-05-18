@@ -1,5 +1,5 @@
 import { listBlogCategories } from "@/lib/blog-categories";
-import { BlogEditorFormLoader } from "../blog-editor-form-loader";
+import { BlogNewEditor } from "./blog-new-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,7 @@ export default async function AdminBlogNewPage() {
 
   return (
     <div className="px-0 py-2">
-      <BlogEditorFormLoader mode="create" categories={categories} />
+      <BlogNewEditor categories={categories} />
     </div>
   );
 }
