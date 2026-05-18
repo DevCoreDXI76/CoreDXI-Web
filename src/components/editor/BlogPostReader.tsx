@@ -5,6 +5,7 @@ import Link from "@tiptap/extension-link";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { normalizeBlogContent, type BlogPostContent } from "@/types/blocknote";
+import { Iframe } from "./iframe-extension";
 
 type Props = {
   storageKey: string;
@@ -20,6 +21,7 @@ export function BlogPostReader({ content }: Props) {
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Link.configure({ openOnClick: true }),
       Image,
+      Iframe,
     ],
     content: doc,
     editable: false,
@@ -31,7 +33,7 @@ export function BlogPostReader({ content }: Props) {
   }
 
   return (
-    <div className="max-w-none text-gray-800 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6">
+    <div className="max-w-none text-gray-800 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_iframe]:my-6 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6">
       <EditorContent editor={editor} />
     </div>
   );

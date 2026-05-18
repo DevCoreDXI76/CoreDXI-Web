@@ -39,9 +39,10 @@ export async function POST(req: Request) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const safeName = file.name.replace(/[^\w.-]/g, "_").slice(0, 120) || "image";
   const prefix = sanitizeSegment(prefixRaw, 96);
-  const path = `${prefix}/${Date.now()}-${safeName}`;
+  const extMatch = /\.([a-zA-Z0-9]+)$/.exec(file.name);
+  const ext = extMatch ? `.${extMatch[1].toLowerCase()}` : "";
+  const path = `${prefix}/${crypto.randomUUID()}${ext}`;
 
   const { error } = await supabase.storage.from("blog-images").upload(path, buffer, {
     contentType: file.type || "application/octet-stream",
