@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * [홍보팀/개발팀] 블로그 글 저장 — Tiptap JSON(`content`) + 임시저장(DRAFT) / 발행(PUBLISHED).
+ * [홍보팀/개발팀] 블로그 글 저장 — BlockNote/Tiptap JSON(`content`) + 임시저장(DRAFT) / 발행(PUBLISHED).
  */
 
 import { revalidatePath } from "next/cache";

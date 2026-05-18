@@ -16,10 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { NotionEditor } from "@/components/editor/NotionEditor";
+import { BlockEditor } from "@/components/editor/BlockEditor";
+import { TiptapBlogReader } from "@/components/editor/TiptapBlogReader";
 import {
-  EMPTY_BLOG_DOC,
+  EMPTY_BLOCKNOTE_DOC,
+  isBlockNoteContent,
+  isTiptapDocument,
   normalizeBlogContent,
+  type BlockNoteContent,
   type BlogPostContent,
 } from "@/types/blocknote";
 import { saveBlogPost } from "./actions";
@@ -191,13 +195,39 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
           />
         </div>
 
-        <NotionEditor
-          storageKey={storageKey}
-          initialContent={initial?.content ?? EMPTY_BLOG_DOC}
-          onChangeDocument={setDocumentJson}
-          uploadFile={uploadFile}
-          editable
-        />
+        {isTiptapDocument(documentJson) ? (
+          <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50/80 p-4">
+            <p className="text-sm text-amber-950">
+              이 글은 이전 에디터(Tiptap) 형식으로 저장되어 있습니다. 아래는
+              읽기 전용 미리보기입니다. 본문을 BlockNote로 새로 작성하려면
+              버튼을 누르세요. (공개 페이지에는 그대로 표시됩니다.)
+            </p>
+            <TiptapBlogReader content={documentJson} />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="bg-white"
+              onClick={() => setDocumentJson(EMPTY_BLOCKNOTE_DOC)}
+            >
+              BlockNote으로 새로 작성
+            </Button>
+          </div>
+        ) : (
+          <BlockEditor
+            storageKey={storageKey}
+            initialContent={
+              isBlockNoteContent(documentJson)
+                ? documentJson
+                : EMPTY_BLOCKNOTE_DOC
+            }
+            onChangeDocument={(doc: BlockNoteContent) =>
+              setDocumentJson(doc)
+            }
+            uploadFile={uploadFile}
+            editable
+          />
+        )}
       </div>
     </div>
   );

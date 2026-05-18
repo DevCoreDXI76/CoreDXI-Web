@@ -25,7 +25,7 @@ type Props = {
   initial?: BlogEditorInitial;
 };
 
-/** Tiptap 에디터 포함 폼 — 브라우저에서만 마운트 (SSR/hydration 오류 방지). */
+/** BlockNote 에디터 포함 폼 — 브라우저에서만 마운트 (SSR/hydration 오류 방지). */
 export function BlogEditorFormLoader({ mode, categories, initial }: Props) {
   return (
     <BlogEditorForm mode={mode} categories={categories} initial={initial} />

@@ -20,7 +20,7 @@ import {
   EMPTY_BLOG_DOC,
   isTiptapDocument,
   normalizeBlogContent,
-  type BlogPostContent,
+  type TiptapBlogContent,
 } from "@/types/blocknote";
 import { Iframe } from "./iframe-extension";
 import type { NotionEditorHandle, NotionEditorProps } from "./notion-editor-types";
@@ -132,7 +132,7 @@ export const NotionEditorInner = forwardRef<
         },
       },
       onUpdate: ({ editor: ed }) => {
-        onChangeDocument?.(ed.getJSON() as BlogPostContent);
+        onChangeDocument?.(ed.getJSON() as TiptapBlogContent);
       },
     },
     [storageKey]
@@ -154,7 +154,7 @@ export const NotionEditorInner = forwardRef<
     ref,
     () => ({
       getDocument: () =>
-        (editor?.getJSON() as BlogPostContent) ?? EMPTY_BLOG_DOC,
+        (editor?.getJSON() as TiptapBlogContent) ?? EMPTY_BLOG_DOC,
     }),
     [editor]
   );

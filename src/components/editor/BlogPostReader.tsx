@@ -1,40 +1,51 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { normalizeBlogContent, type BlogPostContent } from "@/types/blocknote";
-import { Iframe } from "./iframe-extension";
+import dynamic from "next/dynamic";
+import {
+  isBlockNoteContent,
+  isTiptapDocument,
+  normalizeBlogContent,
+  type BlogPostContent,
+} from "@/types/blocknote";
+
+const BlockNoteReader = dynamic(
+  () =>
+    import("./BlockNoteReader").then((m) => ({ default: m.BlockNoteReader })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[20vh] animate-pulse rounded-lg bg-gray-50" />
+    ),
+  }
+);
+
+const TiptapBlogReader = dynamic(
+  () =>
+    import("./TiptapBlogReader").then((m) => ({ default: m.TiptapBlogReader })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[20vh] animate-pulse rounded-lg bg-gray-50" />
+    ),
+  }
+);
 
 type Props = {
   storageKey: string;
   content: BlogPostContent | null;
 };
 
-/** 공개 블로그 글 본문 — Tiptap JSON, 읽기 전용. */
+/** 공개 블로그 글 본문 — BlockNote · Tiptap 이중 렌더링 */
 export function BlogPostReader({ content }: Props) {
-  const doc = normalizeBlogContent(content);
+  const normalized = normalizeBlogContent(content);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-      Link.configure({ openOnClick: true }),
-      Image,
-      Iframe,
-    ],
-    content: doc,
-    editable: false,
-    immediatelyRender: false,
-  });
-
-  if (!editor) {
-    return <div className="min-h-[20vh] animate-pulse rounded-lg bg-gray-50" />;
+  if (isBlockNoteContent(normalized)) {
+    return <BlockNoteReader blocks={normalized} />;
   }
 
-  return (
-    <div className="max-w-none text-gray-800 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_iframe]:my-6 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6">
-      <EditorContent editor={editor} />
-    </div>
-  );
+  if (isTiptapDocument(normalized)) {
+    return <TiptapBlogReader content={normalized} />;
+  }
+
+  return <BlockNoteReader blocks={[]} />;
 }
