@@ -159,8 +159,8 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-4 lg:min-h-[calc(100vh-5rem)]">
+      <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80">
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/admin/blog"
@@ -210,16 +210,16 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-4xl space-y-6 px-1">
+      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-5 min-h-0 px-1">
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="제목을 입력하세요"
-          className="border-0 px-0 text-3xl font-semibold shadow-none focus-visible:ring-0 md:text-4xl"
+          className="shrink-0 border-0 px-0 py-2 text-3xl font-semibold leading-tight shadow-none focus-visible:ring-0 min-h-[3.25rem] md:text-4xl"
           aria-label="제목"
         />
 
-        <div className="space-y-1.5">
+        <div className="shrink-0 space-y-1.5">
           <Label htmlFor="blog-excerpt">요약 (선택)</Label>
           <Textarea
             id="blog-excerpt"
@@ -250,16 +250,19 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
             </Button>
           </div>
         ) : (
-          <TiptapEditor
-            ref={editorRef}
-            key={storageKey}
-            storageKey={storageKey}
-            initialContent={documentJson}
-            onChangeDocument={(doc: TiptapBlogContent) => setDocumentJson(doc)}
-            uploadFile={uploadFile}
-            importRemoteImage={importRemoteImage}
-            editable
-          />
+          <div className="flex min-h-0 flex-1 flex-col">
+            <TiptapEditor
+              ref={editorRef}
+              key={storageKey}
+              storageKey={storageKey}
+              className="h-full"
+              initialContent={documentJson}
+              onChangeDocument={(doc: TiptapBlogContent) => setDocumentJson(doc)}
+              uploadFile={uploadFile}
+              importRemoteImage={importRemoteImage}
+              editable
+            />
+          </div>
         )}
       </div>
     </div>

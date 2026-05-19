@@ -40,6 +40,7 @@ export const TiptapEditorInner = forwardRef<TiptapEditorHandle, TiptapEditorProp
       uploadFile,
       importRemoteImage,
       editable = true,
+      className,
     },
     ref
   ) {
@@ -316,10 +317,16 @@ export const TiptapEditorInner = forwardRef<TiptapEditorHandle, TiptapEditorProp
     }
 
     return (
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div
+        className={cn(
+          "flex min-h-[28rem] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white",
+          className
+        )}
+      >
         {editable && uploadFile ? (
-          <div className="flex flex-wrap gap-1 border-b border-gray-100 px-2 py-2">
-            <ToolbarButton
+          <div className="sticky top-0 z-10 shrink-0 border-b border-gray-100 bg-white px-2 py-2 shadow-sm">
+            <div className="flex flex-wrap gap-1">
+              <ToolbarButton
               label="굵게"
               disabled={toolbarDisabled}
               onClick={() => editor.chain().focus().toggleBold().run()}
@@ -407,9 +414,12 @@ export const TiptapEditorInner = forwardRef<TiptapEditorHandle, TiptapEditorProp
                 }
               />
             </div>
+            </div>
           </div>
         ) : null}
-        <EditorContent editor={editor} />
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <EditorContent editor={editor} />
+        </div>
       </div>
     );
   }

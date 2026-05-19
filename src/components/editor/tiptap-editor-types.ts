@@ -8,6 +8,7 @@ export type TiptapEditorProps = {
   /** 붙여넣기 HTML의 외부 img URL → Supabase (CORS 회피) */
   importRemoteImage?: (url: string) => Promise<string>;
   editable?: boolean;
+  className?: string;
 };
 
 export type TiptapEditorHandle = {
