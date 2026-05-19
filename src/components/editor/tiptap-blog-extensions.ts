@@ -62,7 +62,7 @@ const TABLE_TAILWIND =
   "[&_table]:my-4 [&_table]:w-full [&_th]:bg-gray-50 [&_td]:align-top";
 
 export const TIPTAP_BLOG_EDITOR_CONTENT_CLASS =
-  `tiptap min-h-full max-w-none px-1 py-2 text-gray-800 focus:outline-none [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_iframe]:my-4 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_div[data-youtube-video]]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 ${TABLE_TAILWIND}`;
+  `tiptap min-h-[12rem] max-w-none px-1 py-2 text-gray-800 focus:outline-none [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_iframe]:my-4 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_div[data-youtube-video]]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 ${TABLE_TAILWIND}`;
 
 export const TIPTAP_BLOG_READER_CONTENT_CLASS =
   `tiptap max-w-none text-gray-800 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_iframe]:my-6 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_div[data-youtube-video]]:my-6 [&_div[data-youtube-video]]:w-full [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 ${TABLE_TAILWIND}`;

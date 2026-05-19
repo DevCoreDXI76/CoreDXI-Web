@@ -159,7 +159,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-4 lg:min-h-[calc(100vh-5rem)]">
+    <div className="flex h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex-col gap-4 overflow-hidden lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)]">
       <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80">
         <div className="flex flex-wrap items-center gap-3">
           <Link
@@ -250,12 +250,12 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
             </Button>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <TiptapEditor
               ref={editorRef}
               key={storageKey}
               storageKey={storageKey}
-              className="h-full"
+              className="h-full min-h-0 flex-1"
               initialContent={documentJson}
               onChangeDocument={(doc: TiptapBlogContent) => setDocumentJson(doc)}
               uploadFile={uploadFile}

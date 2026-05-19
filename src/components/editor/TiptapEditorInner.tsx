@@ -319,7 +319,7 @@ export const TiptapEditorInner = forwardRef<TiptapEditorHandle, TiptapEditorProp
     return (
       <div
         className={cn(
-          "flex min-h-[28rem] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white",
+          "flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white",
           className
         )}
       >
