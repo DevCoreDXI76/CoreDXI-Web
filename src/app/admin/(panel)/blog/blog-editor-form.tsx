@@ -41,6 +41,10 @@ const BlockNoteReader = dynamic(
   { ssr: false, loading: EditorLoadingFallback }
 );
 import {
+  importBlogImageFromUrl,
+  uploadBlogImageFile,
+} from "@/lib/blog-image-client";
+import {
   countBrokenImages,
   stripUnpersistedImages,
 } from "@/lib/tiptap-content";
@@ -71,36 +75,6 @@ type Props = {
   initial?: BlogEditorInitial;
 };
 
-async function uploadBlogImage(file: File, prefix: string): Promise<string> {
-  const fd = new FormData();
-  fd.set("file", file);
-  fd.set("prefix", prefix);
-  const res = await fetch("/api/admin/blog/upload-image", {
-    method: "POST",
-    body: fd,
-  });
-  const data: { url?: string; error?: string } = await res.json();
-  if (!res.ok) throw new Error(data.error ?? "이미지 업로드에 실패했습니다.");
-  if (!data.url) throw new Error("업로드 응답이 올바르지 않습니다.");
-  return data.url;
-}
-
-async function importBlogImageUrl(url: string, prefix: string): Promise<string> {
-  const res = await fetch("/api/admin/blog/import-image", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url, prefix }),
-  });
-  const data: { url?: string; error?: string } = await res.json();
-  if (!res.ok) {
-    throw new Error(
-      data.error ?? "붙여넣은 이미지를 서버에 올리지 못했습니다."
-    );
-  }
-  if (!data.url) throw new Error("업로드 응답이 올바르지 않습니다.");
-  return data.url;
-}
-
 export function BlogEditorForm({ mode, categories, initial }: Props) {
   const router = useRouter();
   const reactId = useId();
@@ -129,12 +103,12 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
   const uploadPrefix = postId ?? draftKey;
 
   const uploadFile = useMemo(
-    () => (file: File) => uploadBlogImage(file, uploadPrefix),
+    () => (file: File) => uploadBlogImageFile(file, uploadPrefix),
     [uploadPrefix]
   );
 
   const importRemoteImage = useMemo(
-    () => (url: string) => importBlogImageUrl(url, uploadPrefix),
+    () => (url: string) => importBlogImageFromUrl(url, uploadPrefix),
     [uploadPrefix]
   );
 

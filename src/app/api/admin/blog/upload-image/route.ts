@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
+import {
+  ALLOWED_IMAGE_TYPES,
+  BlogImageStorageError,
+  extensionFromFileName,
+  getSupabaseEnvErrorMessage,
+  sanitizeStoragePrefix,
+  uploadBufferToBlogImages,
+} from "@/lib/blog-image-storage";
 import { requireBlogEditor } from "@/lib/require-blog-editor";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-
-function sanitizeSegment(s: string, max: number): string {
-  const t = s
-    .replace(/[^a-zA-Z0-9_-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return t.slice(0, max) || "upload";
-}
 
 export async function POST(req: Request) {
   const gate = await requireBlogEditor();
@@ -16,16 +16,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: gate.message }, { status: 403 });
   }
 
-  const supabase = createSupabaseAdmin();
-  if (!supabase) {
-    const missing = [
-      !process.env.NEXT_PUBLIC_SUPABASE_URL && "NEXT_PUBLIC_SUPABASE_URL",
-      !process.env.SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY",
-    ].filter(Boolean) as string[];
+  if (!createSupabaseAdmin()) {
     return NextResponse.json(
-      {
-        error: `Supabase 환경 변수가 설정되지 않았습니다: ${missing.join(", ")}. Vercel·로컬 .env에 추가 후 재배포하세요.`,
-      },
+      { error: getSupabaseEnvErrorMessage() },
       { status: 503 }
     );
   }
@@ -44,14 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "file 필드가 필요합니다." }, { status: 400 });
   }
 
-  const allowedTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "image/svg+xml",
-  ];
-  if (file.type && !allowedTypes.includes(file.type)) {
+  if (file.type && !ALLOWED_IMAGE_TYPES.has(file.type)) {
     return NextResponse.json(
       { error: "지원하지 않는 이미지 형식입니다. (JPEG, PNG, GIF, WebP, SVG)" },
       { status: 400 }
@@ -59,33 +45,29 @@ export async function POST(req: Request) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const maxBytes = 5 * 1024 * 1024;
-  if (buffer.length > maxBytes) {
+  const prefix = sanitizeStoragePrefix(prefixRaw, 96);
+  const ext = extensionFromFileName(file.name) || ".png";
+
+  try {
+    const { publicUrl } = await uploadBufferToBlogImages(buffer, {
+      prefix,
+      contentType: file.type || "application/octet-stream",
+      ext,
+    });
+    return NextResponse.json({ url: publicUrl });
+  } catch (e) {
+    if (e instanceof BlogImageStorageError) {
+      const status =
+        e.code === "env" ? 503 : e.code === "validation" ? 400 : 500;
+      if (e.code !== "validation") {
+        console.error("[upload-image]", { message: e.message, prefix });
+      }
+      return NextResponse.json({ error: e.message }, { status });
+    }
+    console.error("[upload-image] unexpected", e);
     return NextResponse.json(
-      { error: "파일 크기는 5MB 이하여야 합니다." },
-      { status: 400 }
+      { error: "스토리지 업로드에 실패했습니다." },
+      { status: 500 }
     );
   }
-  const prefix = sanitizeSegment(prefixRaw, 96);
-  const extMatch = /\.([a-zA-Z0-9]+)$/.exec(file.name);
-  const ext = extMatch ? `.${extMatch[1].toLowerCase()}` : "";
-  const path = `${prefix}/${crypto.randomUUID()}${ext}`;
-
-  const { error } = await supabase.storage.from("blog-images").upload(path, buffer, {
-    contentType: file.type || "application/octet-stream",
-    upsert: false,
-  });
-
-  if (error) {
-    console.error("[upload-image]", error);
-    const message =
-      error.message?.includes("Bucket not found") ||
-      error.message?.includes("bucket")
-        ? "Supabase Storage에 blog-images 버킷이 없습니다. 대시보드에서 public 버킷을 생성해 주세요."
-        : error.message || "스토리지 업로드에 실패했습니다.";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-
-  const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
-  return NextResponse.json({ url: data.publicUrl });
 }

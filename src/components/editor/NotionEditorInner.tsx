@@ -63,6 +63,10 @@ export const NotionEditorInner = forwardRef<
 
   const emitDocumentChangeRef = useRef<() => void>(() => {});
 
+  const runRemoteImageImportRef = useRef<
+    (url: string, onSuccess: (publicUrl: string) => void) => void
+  >(() => {});
+
   processImageUploadRef.current = (file, onSuccess) => {
     if (!uploadFileRef.current || imageUploadingRef.current) return;
     imageUploadingRef.current = true;
@@ -71,8 +75,30 @@ export const NotionEditorInner = forwardRef<
       .current(file)
       .then(onSuccess)
       .catch((err: unknown) => {
+        console.error("[NotionEditor] image upload failed", err);
         const message =
           err instanceof Error ? err.message : "이미지 업로드에 실패했습니다.";
+        toast.error(message);
+      })
+      .finally(() => {
+        imageUploadingRef.current = false;
+        setImageUploading(false);
+      });
+  };
+
+  runRemoteImageImportRef.current = (url, onSuccess) => {
+    const importer = importRemoteImageRef.current;
+    if (!importer || imageUploadingRef.current) return;
+    imageUploadingRef.current = true;
+    setImageUploading(true);
+    void importer(url)
+      .then(onSuccess)
+      .catch((err: unknown) => {
+        console.error("[NotionEditor] import image failed", { imgSrc: url, err });
+        const message =
+          err instanceof Error
+            ? err.message
+            : "붙여넣은 이미지를 서버에 올리지 못했습니다.";
         toast.error(message);
       })
       .finally(() => {
@@ -173,20 +199,15 @@ export const NotionEditorInner = forwardRef<
             }
           }
 
-          const importer = importRemoteImageRef.current;
-          if (importer) {
-            void importer(imgSrc)
-              .then(insertImageAtSelection)
-              .catch((err: unknown) => {
-                const message =
-                  err instanceof Error
-                    ? err.message
-                    : "붙여넣은 이미지를 서버에 올리지 못했습니다.";
-                toast.error(message);
-              });
+          if (importRemoteImageRef.current) {
+            runRemoteImageImportRef.current(imgSrc, insertImageAtSelection);
             return true;
           }
 
+          console.error("[NotionEditor] import image failed", {
+            imgSrc,
+            reason: "importRemoteImage not configured",
+          });
           toast.error(
             "붙여넣은 이미지를 서버에 올리지 못했습니다. 「이미지」 버튼으로 파일을 선택해 주세요."
           );
