@@ -18,7 +18,7 @@ export function BlockNoteReader({ blocks }: Props) {
   const initialBlocks = getBlockNoteEditorInitial(blocks);
 
   const editor = useCreateBlockNote({
-    initialContent: initialBlocks,
+    ...(initialBlocks !== undefined ? { initialContent: initialBlocks } : {}),
   });
 
   if (!editor) {

@@ -10,7 +10,8 @@ export type TiptapBlogContent = JSONContent;
 /** Prisma에 저장되는 본문 JSON (BlockNote 우선, Tiptap 레거시 호환) */
 export type BlogPostContent = BlockNoteContent | TiptapBlogContent;
 
-export const EMPTY_BLOCKNOTE_DOC: BlockNoteContent = [{ type: "paragraph" }];
+/** DB·상태용 빈 본문(에디터 initialContent로는 사용하지 않음 — BlockNote가 id를 부여함) */
+export const EMPTY_BLOCKNOTE_DOC: BlockNoteContent = [];
 
 /** @deprecated BlockNote 전환 이전 Tiptap 빈 문서 */
 export const EMPTY_BLOG_DOC: TiptapBlogContent = {
@@ -86,8 +87,10 @@ export function normalizeBlogContent(raw: unknown): BlogPostContent {
   return EMPTY_BLOCKNOTE_DOC;
 }
 
-/** 에디터 초기값 — 유효한 BlockNote만, 아니면 빈 문서 */
-export function getBlockNoteEditorInitial(raw: unknown): BlockNoteContent {
+/** BlockNote `initialContent` — id가 있는 저장본만. 그 외는 undefined(라이브러리 기본 문서) */
+export function getBlockNoteEditorInitial(
+  raw: unknown
+): BlockNoteContent | undefined {
   if (isBlockNoteContent(raw)) return sanitizeBlockNoteContent(raw);
-  return EMPTY_BLOCKNOTE_DOC;
+  return undefined;
 }

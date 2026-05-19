@@ -41,7 +41,9 @@ export const BlockEditorInner = forwardRef<BlockEditorHandle, BlockEditorProps>(
 
     const editor = useCreateBlockNote(
       {
-        initialContent: initialBlocks,
+        ...(initialBlocks !== undefined
+          ? { initialContent: initialBlocks }
+          : {}),
         ...(uploadFile
           ? {
               uploadFile: async (file: File) => {
@@ -60,7 +62,8 @@ export const BlockEditorInner = forwardRef<BlockEditorHandle, BlockEditorProps>(
       ref,
       () => ({
         getDocument: (): BlockNoteContent =>
-          editor?.document ?? EMPTY_BLOCKNOTE_DOC,
+          (editor?.document as BlockNoteContent | undefined) ??
+          EMPTY_BLOCKNOTE_DOC,
       }),
       [editor]
     );
@@ -105,8 +108,8 @@ class BlockEditorErrorBoundary extends Component<
         <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-900">
           <p className="font-medium">본문 에디터를 불러오지 못했습니다.</p>
           <p className="mt-2 text-red-800">
-            저장된 본문 형식이 손상되었거나 이전 에디터 형식일 수 있습니다. 페이지를
-            새로고침하거나 「BlockNote으로 새로 작성」을 사용해 주세요.
+            페이지를 새로고침해 주세요. 문제가 계속되면 「BlockNote으로 새로
+            작성」(편집 화면)을 사용하거나 관리자에게 문의해 주세요.
           </p>
         </div>
       );
