@@ -85,6 +85,22 @@ async function uploadBlogImage(file: File, prefix: string): Promise<string> {
   return data.url;
 }
 
+async function importBlogImageUrl(url: string, prefix: string): Promise<string> {
+  const res = await fetch("/api/admin/blog/import-image", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, prefix }),
+  });
+  const data: { url?: string; error?: string } = await res.json();
+  if (!res.ok) {
+    throw new Error(
+      data.error ?? "붙여넣은 이미지를 서버에 올리지 못했습니다."
+    );
+  }
+  if (!data.url) throw new Error("업로드 응답이 올바르지 않습니다.");
+  return data.url;
+}
+
 export function BlogEditorForm({ mode, categories, initial }: Props) {
   const router = useRouter();
   const reactId = useId();
@@ -114,6 +130,11 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
 
   const uploadFile = useMemo(
     () => (file: File) => uploadBlogImage(file, uploadPrefix),
+    [uploadPrefix]
+  );
+
+  const importRemoteImage = useMemo(
+    () => (url: string) => importBlogImageUrl(url, uploadPrefix),
     [uploadPrefix]
   );
 
@@ -262,6 +283,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
             initialContent={documentJson}
             onChangeDocument={(doc: TiptapBlogContent) => setDocumentJson(doc)}
             uploadFile={uploadFile}
+            importRemoteImage={importRemoteImage}
             editable
           />
         )}

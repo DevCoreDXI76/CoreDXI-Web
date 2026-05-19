@@ -16,6 +16,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import {
+  dataUrlToImageFile,
+  getFirstImageSrcFromHtml,
+  getImageFileFromClipboard,
+} from "@/lib/clipboard-image";
+import {
   isBlogStorageImageSrc,
   isEphemeralImageSrc,
 } from "@/lib/tiptap-content";
@@ -38,12 +43,16 @@ export const NotionEditorInner = forwardRef<
     initialContent,
     onChangeDocument,
     uploadFile,
+    importRemoteImage,
     editable = true,
   },
   ref
 ) {
   const uploadFileRef = useRef(uploadFile);
   uploadFileRef.current = uploadFile;
+
+  const importRemoteImageRef = useRef(importRemoteImage);
+  importRemoteImageRef.current = importRemoteImage;
 
   const imageUploadingRef = useRef(false);
   const [imageUploading, setImageUploading] = useState(false);
@@ -128,59 +137,60 @@ export const NotionEditorInner = forwardRef<
           const clipboard = event.clipboardData;
           if (!clipboard || !uploadFileRef.current) return false;
 
-          const file = clipboard.files?.[0];
-          if (file?.type.startsWith("image/")) {
+          const insertImageAtSelection = (url: string) => {
+            view.dispatch(
+              view.state.tr.replaceSelectionWith(
+                view.state.schema.nodes.image!.create({ src: url })
+              )
+            );
+            emitDocumentChangeRef.current();
+          };
+
+          const clipFile = getImageFileFromClipboard(clipboard);
+          if (clipFile) {
             event.preventDefault();
-            processImageUploadRef.current(file, (url) => {
-              view.dispatch(
-                view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.image!.create({ src: url })
-                )
-              );
-              emitDocumentChangeRef.current();
-            });
+            processImageUploadRef.current(clipFile, insertImageAtSelection);
             return true;
           }
 
           const html = clipboard.getData("text/html");
-          if (html) {
-            const doc = new DOMParser().parseFromString(html, "text/html");
-            const img = doc.querySelector("img");
-            const src = img?.getAttribute("src")?.trim();
-            if (
-              src &&
-              !isEphemeralImageSrc(src) &&
-              !isBlogStorageImageSrc(src)
-            ) {
-              event.preventDefault();
-              void fetch(src)
-                .then((res) => {
-                  if (!res.ok) throw new Error("fetch failed");
-                  return res.blob();
-                })
-                .then((blob) => {
-                  const type = blob.type || "image/png";
-                  const ext = type.split("/")[1] || "png";
-                  const pasted = new File([blob], `pasted.${ext}`, { type });
-                  processImageUploadRef.current(pasted, (url) => {
-                    view.dispatch(
-                      view.state.tr.replaceSelectionWith(
-                        view.state.schema.nodes.image!.create({ src: url })
-                      )
-                    );
-                    emitDocumentChangeRef.current();
-                  });
-                })
-                .catch(() => {
-                  toast.error(
-                    "붙여넣은 이미지를 서버에 올리지 못했습니다. 「이미지」 버튼으로 파일을 선택해 주세요."
-                  );
-                });
+          const imgSrc = html ? getFirstImageSrcFromHtml(html) : null;
+          if (!imgSrc || isBlogStorageImageSrc(imgSrc)) {
+            return false;
+          }
+
+          if (isEphemeralImageSrc(imgSrc)) {
+            return false;
+          }
+
+          event.preventDefault();
+
+          if (imgSrc.startsWith("data:image/")) {
+            const dataFile = dataUrlToImageFile(imgSrc);
+            if (dataFile) {
+              processImageUploadRef.current(dataFile, insertImageAtSelection);
               return true;
             }
           }
 
-          return false;
+          const importer = importRemoteImageRef.current;
+          if (importer) {
+            void importer(imgSrc)
+              .then(insertImageAtSelection)
+              .catch((err: unknown) => {
+                const message =
+                  err instanceof Error
+                    ? err.message
+                    : "붙여넣은 이미지를 서버에 올리지 못했습니다.";
+                toast.error(message);
+              });
+            return true;
+          }
+
+          toast.error(
+            "붙여넣은 이미지를 서버에 올리지 못했습니다. 「이미지」 버튼으로 파일을 선택해 주세요."
+          );
+          return true;
         },
       },
       onUpdate: ({ editor: ed }) => {
