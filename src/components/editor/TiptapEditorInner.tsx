@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { getImageFileFromClipboard } from "@/lib/clipboard-image";
 import {
   hasMeaningfulPasteText,
@@ -256,7 +257,59 @@ export const TiptapEditorInner = forwardRef<TiptapEditorHandle, TiptapEditorProp
       emitDocumentChangeRef.current();
     }, [editor]);
 
+    const [tableActive, setTableActive] = useState(false);
+
+    useEffect(() => {
+      if (!editor) return;
+      const sync = () => setTableActive(editor.isActive("table"));
+      editor.on("selectionUpdate", sync);
+      editor.on("transaction", sync);
+      sync();
+      return () => {
+        editor.off("selectionUpdate", sync);
+        editor.off("transaction", sync);
+      };
+    }, [editor]);
+
+    const toggleLink = useCallback(() => {
+      if (!editor || imageUploadingRef.current) return;
+      const previous = editor.getAttributes("link").href as string | undefined;
+      const url = window.prompt("링크 URL", previous ?? "");
+      if (url === null) return;
+      if (url.trim() === "") {
+        editor.chain().focus().extendMarkRange("link").unsetLink().run();
+      } else {
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange("link")
+          .setLink({ href: url.trim() })
+          .run();
+      }
+      emitDocumentChangeRef.current();
+    }, [editor]);
+
+    const runTableCommand = useCallback(
+      (command: () => boolean) => {
+        if (!editor || imageUploadingRef.current) return;
+        command();
+        emitDocumentChangeRef.current();
+      },
+      [editor]
+    );
+
+    const insertTable = useCallback(() => {
+      runTableCommand(() =>
+        editor!
+          .chain()
+          .focus()
+          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+          .run()
+      );
+    }, [editor, runTableCommand]);
+
     const toolbarDisabled = imageUploading;
+    const tableCommandsDisabled = toolbarDisabled || !tableActive;
 
     if (!editor) {
       return <EditorLoadingPlaceholder />;
@@ -289,6 +342,12 @@ export const TiptapEditorInner = forwardRef<TiptapEditorHandle, TiptapEditorProp
               onClick={() => editor.chain().focus().toggleBulletList().run()}
             />
             <ToolbarButton
+              label="링크"
+              active={editor.isActive("link")}
+              disabled={toolbarDisabled}
+              onClick={toggleLink}
+            />
+            <ToolbarButton
               label={imageUploading ? "업로드 중…" : "이미지"}
               disabled={toolbarDisabled}
               onClick={insertImage}
@@ -298,6 +357,56 @@ export const TiptapEditorInner = forwardRef<TiptapEditorHandle, TiptapEditorProp
               disabled={toolbarDisabled}
               onClick={insertYoutube}
             />
+            <div className="ml-auto flex flex-wrap items-center gap-1 border-l border-gray-200 pl-2">
+              <ToolbarButton
+                label="표 삽입"
+                disabled={toolbarDisabled}
+                onClick={insertTable}
+              />
+              <ToolbarButton
+                label="행 추가"
+                disabled={tableCommandsDisabled}
+                onClick={() =>
+                  runTableCommand(() =>
+                    editor.chain().focus().addRowAfter().run()
+                  )
+                }
+              />
+              <ToolbarButton
+                label="행 삭제"
+                disabled={tableCommandsDisabled}
+                onClick={() =>
+                  runTableCommand(() => editor.chain().focus().deleteRow().run())
+                }
+              />
+              <ToolbarButton
+                label="열 추가"
+                disabled={tableCommandsDisabled}
+                onClick={() =>
+                  runTableCommand(() =>
+                    editor.chain().focus().addColumnAfter().run()
+                  )
+                }
+              />
+              <ToolbarButton
+                label="열 삭제"
+                disabled={tableCommandsDisabled}
+                onClick={() =>
+                  runTableCommand(() =>
+                    editor.chain().focus().deleteColumn().run()
+                  )
+                }
+              />
+              <ToolbarButton
+                label="표 삭제"
+                disabled={tableCommandsDisabled}
+                onClick={() =>
+                  runTableCommand(() =>
+                    editor.chain().focus().deleteTable().run()
+                  )
+                }
+              />
+            </div>
           </div>
         ) : null}
         <EditorContent editor={editor} />
@@ -310,17 +419,25 @@ function ToolbarButton({
   label,
   onClick,
   disabled = false,
+  active = false,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  active?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+      aria-pressed={active}
+      className={cn(
+        "rounded-md border px-2.5 py-1 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50",
+        active
+          ? "border-[#1E4E8C] bg-[#EEF2F7] text-[#1E4E8C]"
+          : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+      )}
     >
       {label}
     </button>

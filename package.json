@@ -23,6 +23,10 @@
     "@tiptap/extension-image": "3.13.0",
     "@tiptap/extension-link": "3.13.0",
     "@tiptap/extension-placeholder": "3.13.0",
+    "@tiptap/extension-table": "3.13.0",
+    "@tiptap/extension-table-cell": "3.13.0",
+    "@tiptap/extension-table-header": "3.13.0",
+    "@tiptap/extension-table-row": "3.13.0",
     "@tiptap/extension-youtube": "3.13.0",
     "@tiptap/pm": "3.13.0",
     "@tiptap/react": "3.13.0",
@@ -67,6 +71,10 @@
     "@tiptap/extension-image": "3.13.0",
     "@tiptap/extension-link": "3.13.0",
     "@tiptap/extension-placeholder": "3.13.0",
-    "@tiptap/extension-youtube": "3.13.0"
+    "@tiptap/extension-youtube": "3.13.0",
+    "@tiptap/extension-table": "3.13.0",
+    "@tiptap/extension-table-cell": "3.13.0",
+    "@tiptap/extension-table-header": "3.13.0",
+    "@tiptap/extension-table-row": "3.13.0"
   }
 }

@@ -1,6 +1,12 @@
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import {
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@tiptap/extension-table";
 import Youtube from "@tiptap/extension-youtube";
 import StarterKit from "@tiptap/starter-kit";
 import type { Extensions } from "@tiptap/core";
@@ -22,9 +28,15 @@ export function getTiptapBlogExtensions({
       link: false,
     }),
     Link.configure({
-      openOnClick: !editable,
+      openOnClick: editable ? false : true,
       HTMLAttributes: { class: "text-[#1E4E8C] underline" },
     }),
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
     Image.configure({ allowBase64: false }),
     Youtube.configure({
       width: 640,
@@ -46,8 +58,11 @@ export function getTiptapBlogExtensions({
   return extensions;
 }
 
+const TABLE_TAILWIND =
+  "[&_table]:my-4 [&_table]:w-full [&_th]:bg-gray-50 [&_td]:align-top";
+
 export const TIPTAP_BLOG_EDITOR_CONTENT_CLASS =
-  "min-h-[50vh] max-w-none px-1 py-2 text-gray-800 focus:outline-none [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_iframe]:my-4 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_div[data-youtube-video]]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6";
+  `tiptap min-h-[50vh] max-w-none px-1 py-2 text-gray-800 focus:outline-none [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_iframe]:my-4 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_div[data-youtube-video]]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 ${TABLE_TAILWIND}`;
 
 export const TIPTAP_BLOG_READER_CONTENT_CLASS =
-  "max-w-none text-gray-800 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_iframe]:my-6 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_div[data-youtube-video]]:my-6 [&_div[data-youtube-video]]:w-full [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6";
+  `tiptap max-w-none text-gray-800 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:text-xl [&_h3]:font-semibold [&_iframe]:my-6 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-lg [&_div[data-youtube-video]]:my-6 [&_div[data-youtube-video]]:w-full [&_img]:my-4 [&_img]:max-w-full [&_img]:rounded-lg [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6 ${TABLE_TAILWIND}`;
