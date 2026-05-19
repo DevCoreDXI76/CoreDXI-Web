@@ -25,10 +25,10 @@ function EditorLoadingFallback() {
   );
 }
 
-const NotionEditor = dynamic(
+const TiptapEditor = dynamic(
   () =>
-    import("@/components/editor/NotionEditor").then((m) => ({
-      default: m.NotionEditor,
+    import("@/components/editor/TiptapEditor").then((m) => ({
+      default: m.TiptapEditor,
     })),
   { ssr: false, loading: EditorLoadingFallback }
 );
@@ -56,7 +56,7 @@ import {
   type BlogPostContent,
   type TiptapBlogContent,
 } from "@/types/blocknote";
-import type { NotionEditorHandle } from "@/components/editor/NotionEditor";
+import type { TiptapEditorHandle } from "@/components/editor/TiptapEditor";
 import { saveBlogPost } from "./actions";
 import type { BlogCategoryItem } from "@/lib/blog-categories";
 
@@ -93,7 +93,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
     normalizeBlogContent(initial?.content)
   );
   const [pending, setPending] = useState(false);
-  const editorRef = useRef<NotionEditorHandle>(null);
+  const editorRef = useRef<TiptapEditorHandle>(null);
 
   const storageKey = useMemo(
     () => postId ?? `new-${draftKey}`,
@@ -250,7 +250,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
             </Button>
           </div>
         ) : (
-          <NotionEditor
+          <TiptapEditor
             ref={editorRef}
             key={storageKey}
             storageKey={storageKey}

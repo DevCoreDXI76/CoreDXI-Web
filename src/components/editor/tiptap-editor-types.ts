@@ -1,6 +1,6 @@
 import type { BlogPostContent, TiptapBlogContent } from "@/types/blocknote";
 
-export type NotionEditorProps = {
+export type TiptapEditorProps = {
   storageKey?: string;
   initialContent?: BlogPostContent | null;
   onChangeDocument?: (json: TiptapBlogContent) => void;
@@ -10,6 +10,6 @@ export type NotionEditorProps = {
   editable?: boolean;
 };
 
-export type NotionEditorHandle = {
+export type TiptapEditorHandle = {
   getDocument: () => TiptapBlogContent;
 };
