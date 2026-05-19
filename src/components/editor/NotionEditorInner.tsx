@@ -15,15 +15,13 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { getImageFileFromClipboard } from "@/lib/clipboard-image";
 import {
-  dataUrlToImageFile,
-  getFirstImageSrcFromHtml,
-  getImageFileFromClipboard,
-} from "@/lib/clipboard-image";
-import {
-  isBlogStorageImageSrc,
-  isEphemeralImageSrc,
-} from "@/lib/tiptap-content";
+  hasMeaningfulPasteText,
+  hostImagesInHtml,
+  htmlContainsExternalImages,
+  isImageOnlyClipboard,
+} from "@/lib/paste-html-images";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 import {
   EMPTY_BLOG_DOC,
@@ -63,9 +61,7 @@ export const NotionEditorInner = forwardRef<
 
   const emitDocumentChangeRef = useRef<() => void>(() => {});
 
-  const runRemoteImageImportRef = useRef<
-    (url: string, onSuccess: (publicUrl: string) => void) => void
-  >(() => {});
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null);
 
   processImageUploadRef.current = (file, onSuccess) => {
     if (!uploadFileRef.current || imageUploadingRef.current) return;
@@ -78,27 +74,6 @@ export const NotionEditorInner = forwardRef<
         console.error("[NotionEditor] image upload failed", err);
         const message =
           err instanceof Error ? err.message : "이미지 업로드에 실패했습니다.";
-        toast.error(message);
-      })
-      .finally(() => {
-        imageUploadingRef.current = false;
-        setImageUploading(false);
-      });
-  };
-
-  runRemoteImageImportRef.current = (url, onSuccess) => {
-    const importer = importRemoteImageRef.current;
-    if (!importer || imageUploadingRef.current) return;
-    imageUploadingRef.current = true;
-    setImageUploading(true);
-    void importer(url)
-      .then(onSuccess)
-      .catch((err: unknown) => {
-        console.error("[NotionEditor] import image failed", { imgSrc: url, err });
-        const message =
-          err instanceof Error
-            ? err.message
-            : "붙여넣은 이미지를 서버에 올리지 못했습니다.";
         toast.error(message);
       })
       .finally(() => {
@@ -163,55 +138,81 @@ export const NotionEditorInner = forwardRef<
           const clipboard = event.clipboardData;
           if (!clipboard || !uploadFileRef.current) return false;
 
-          const insertImageAtSelection = (url: string) => {
-            view.dispatch(
-              view.state.tr.replaceSelectionWith(
-                view.state.schema.nodes.image!.create({ src: url })
-              )
-            );
+          const ed = editorRef.current;
+          if (!ed) return false;
+
+          const html = clipboard.getData("text/html");
+          const plain = clipboard.getData("text/plain");
+          const upload = uploadFileRef.current;
+          const importRemote = importRemoteImageRef.current;
+
+          const beginPasteWork = () => {
+            imageUploadingRef.current = true;
+            setImageUploading(true);
+          };
+          const endPasteWork = () => {
+            imageUploadingRef.current = false;
+            setImageUploading(false);
+          };
+
+          const insertProcessedHtml = (processedHtml: string) => {
+            ed.chain().focus().insertContent(processedHtml).run();
             emitDocumentChangeRef.current();
           };
 
-          const clipFile = getImageFileFromClipboard(clipboard);
-          if (clipFile) {
-            event.preventDefault();
-            processImageUploadRef.current(clipFile, insertImageAtSelection);
-            return true;
-          }
-
-          const html = clipboard.getData("text/html");
-          const imgSrc = html ? getFirstImageSrcFromHtml(html) : null;
-          if (!imgSrc || isBlogStorageImageSrc(imgSrc)) {
-            return false;
-          }
-
-          if (isEphemeralImageSrc(imgSrc)) {
-            return false;
-          }
-
-          event.preventDefault();
-
-          if (imgSrc.startsWith("data:image/")) {
-            const dataFile = dataUrlToImageFile(imgSrc);
-            if (dataFile) {
-              processImageUploadRef.current(dataFile, insertImageAtSelection);
-              return true;
+          const pasteHtmlWithHostedImages = (rawHtml: string) => {
+            if (!importRemote) {
+              insertProcessedHtml(rawHtml);
+              return;
             }
-          }
+            beginPasteWork();
+            void hostImagesInHtml(rawHtml, {
+              uploadFile: upload,
+              importRemote,
+            })
+              .then(insertProcessedHtml)
+              .catch((err: unknown) => {
+                console.error("[NotionEditor] paste html with images failed", err);
+                toast.error(
+                  err instanceof Error
+                    ? err.message
+                    : "붙여넣기 중 일부 이미지를 올리지 못했습니다."
+                );
+                insertProcessedHtml(rawHtml);
+              })
+              .finally(endPasteWork);
+          };
 
-          if (importRemoteImageRef.current) {
-            runRemoteImageImportRef.current(imgSrc, insertImageAtSelection);
+          // 텍스트+이미지 등 풍부한 HTML — 본문 전체 붙여넣기 후 이미지 URL 치환
+          if (html && hasMeaningfulPasteText(html, plain)) {
+            event.preventDefault();
+            if (htmlContainsExternalImages(html)) {
+              pasteHtmlWithHostedImages(html);
+            } else {
+              insertProcessedHtml(html);
+            }
             return true;
           }
 
-          console.error("[NotionEditor] import image failed", {
-            imgSrc,
-            reason: "importRemoteImage not configured",
-          });
-          toast.error(
-            "붙여넣은 이미지를 서버에 올리지 못했습니다. 「이미지」 버튼으로 파일을 선택해 주세요."
-          );
-          return true;
+          // 이미지만 있는 HTML (여러 장 포함)
+          if (html?.includes("<img") && htmlContainsExternalImages(html)) {
+            event.preventDefault();
+            pasteHtmlWithHostedImages(html);
+            return true;
+          }
+
+          // 스크린샷·이미지 파일만
+          const clipFile = getImageFileFromClipboard(clipboard);
+          if (clipFile && isImageOnlyClipboard(clipboard)) {
+            event.preventDefault();
+            processImageUploadRef.current(clipFile, (url) => {
+              ed.chain().focus().setImage({ src: url }).run();
+              emitDocumentChangeRef.current();
+            });
+            return true;
+          }
+
+          return false;
         },
       },
       onUpdate: ({ editor: ed }) => {
@@ -220,6 +221,10 @@ export const NotionEditorInner = forwardRef<
     },
     [storageKey]
   );
+
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
 
   useEffect(() => {
     emitDocumentChangeRef.current = () => {
