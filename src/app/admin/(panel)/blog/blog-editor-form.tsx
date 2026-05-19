@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -41,12 +41,18 @@ const BlockNoteReader = dynamic(
   { ssr: false, loading: EditorLoadingFallback }
 );
 import {
+  countBrokenImages,
+  stripUnpersistedImages,
+} from "@/lib/tiptap-content";
+import {
   EMPTY_BLOG_DOC,
   isBlockNoteContent,
+  isTiptapDocument,
   normalizeBlogContent,
   type BlogPostContent,
   type TiptapBlogContent,
 } from "@/types/blocknote";
+import type { NotionEditorHandle } from "@/components/editor/NotionEditor";
 import { saveBlogPost } from "./actions";
 import type { BlogCategoryItem } from "@/lib/blog-categories";
 
@@ -97,6 +103,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
     normalizeBlogContent(initial?.content)
   );
   const [pending, setPending] = useState(false);
+  const editorRef = useRef<NotionEditorHandle>(null);
 
   const storageKey = useMemo(
     () => postId ?? `new-${draftKey}`,
@@ -114,12 +121,25 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
     if (pending) return;
     setPending(true);
     try {
+      let contentToSave: BlogPostContent = documentJson;
+      const latest = editorRef.current?.getDocument();
+      if (latest && isTiptapDocument(latest)) {
+        contentToSave = stripUnpersistedImages(latest);
+        const broken = countBrokenImages(latest);
+        if (broken > 0) {
+          toast.warning(
+            `본문에 서버에 저장되지 않은 이미지가 ${broken}개 있습니다. 「이미지」 버튼으로 다시 넣어 주세요.`
+          );
+        }
+        setDocumentJson(contentToSave);
+      }
+
       const result = await saveBlogPost({
         id: postId,
         title,
         categoryId,
         excerpt,
-        content: documentJson,
+        content: contentToSave,
         status,
       });
 
@@ -236,11 +256,10 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
           </div>
         ) : (
           <NotionEditor
+            ref={editorRef}
             key={storageKey}
             storageKey={storageKey}
-            initialContent={
-              (initial?.content ?? null) as BlogPostContent | null
-            }
+            initialContent={documentJson}
             onChangeDocument={(doc: TiptapBlogContent) => setDocumentJson(doc)}
             uploadFile={uploadFile}
             editable

@@ -15,10 +15,13 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import {
+  isBlogStorageImageSrc,
+  isEphemeralImageSrc,
+} from "@/lib/tiptap-content";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 import {
   EMPTY_BLOG_DOC,
-  isTiptapDocument,
   normalizeBlogContent,
   type TiptapBlogContent,
 } from "@/types/blocknote";
@@ -49,6 +52,8 @@ export const NotionEditorInner = forwardRef<
     (file: File, onSuccess: (url: string) => void) => void
   >(() => {});
 
+  const emitDocumentChangeRef = useRef<() => void>(() => {});
+
   processImageUploadRef.current = (file, onSuccess) => {
     if (!uploadFileRef.current || imageUploadingRef.current) return;
     imageUploadingRef.current = true;
@@ -69,7 +74,9 @@ export const NotionEditorInner = forwardRef<
 
   const initialDoc = useMemo(
     () => normalizeBlogContent(initialContent),
-    [initialContent]
+    // storageKey(글 ID)가 바뀔 때만 본문 초기화 — refresh 시 편집 중 내용이 덮이지 않도록
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [storageKey]
   );
 
   const editor = useEditor(
@@ -113,23 +120,67 @@ export const NotionEditorInner = forwardRef<
             if (!node || !coordinates) return;
             const transaction = view.state.tr.insert(coordinates.pos, node);
             view.dispatch(transaction);
+            emitDocumentChangeRef.current();
           });
           return true;
         },
         handlePaste: (view, event) => {
-          const file = event.clipboardData?.files?.[0];
-          if (!file?.type.startsWith("image/") || !uploadFileRef.current) {
-            return false;
+          const clipboard = event.clipboardData;
+          if (!clipboard || !uploadFileRef.current) return false;
+
+          const file = clipboard.files?.[0];
+          if (file?.type.startsWith("image/")) {
+            event.preventDefault();
+            processImageUploadRef.current(file, (url) => {
+              view.dispatch(
+                view.state.tr.replaceSelectionWith(
+                  view.state.schema.nodes.image!.create({ src: url })
+                )
+              );
+              emitDocumentChangeRef.current();
+            });
+            return true;
           }
-          event.preventDefault();
-          processImageUploadRef.current(file, (url) => {
-            view.dispatch(
-              view.state.tr.replaceSelectionWith(
-                view.state.schema.nodes.image!.create({ src: url })
-              )
-            );
-          });
-          return true;
+
+          const html = clipboard.getData("text/html");
+          if (html) {
+            const doc = new DOMParser().parseFromString(html, "text/html");
+            const img = doc.querySelector("img");
+            const src = img?.getAttribute("src")?.trim();
+            if (
+              src &&
+              !isEphemeralImageSrc(src) &&
+              !isBlogStorageImageSrc(src)
+            ) {
+              event.preventDefault();
+              void fetch(src)
+                .then((res) => {
+                  if (!res.ok) throw new Error("fetch failed");
+                  return res.blob();
+                })
+                .then((blob) => {
+                  const type = blob.type || "image/png";
+                  const ext = type.split("/")[1] || "png";
+                  const pasted = new File([blob], `pasted.${ext}`, { type });
+                  processImageUploadRef.current(pasted, (url) => {
+                    view.dispatch(
+                      view.state.tr.replaceSelectionWith(
+                        view.state.schema.nodes.image!.create({ src: url })
+                      )
+                    );
+                    emitDocumentChangeRef.current();
+                  });
+                })
+                .catch(() => {
+                  toast.error(
+                    "붙여넣은 이미지를 서버에 올리지 못했습니다. 「이미지」 버튼으로 파일을 선택해 주세요."
+                  );
+                });
+              return true;
+            }
+          }
+
+          return false;
         },
       },
       onUpdate: ({ editor: ed }) => {
@@ -140,12 +191,11 @@ export const NotionEditorInner = forwardRef<
   );
 
   useEffect(() => {
-    if (!editor) return;
-    const doc = isTiptapDocument(initialContent)
-      ? initialContent
-      : EMPTY_BLOG_DOC;
-    editor.commands.setContent(doc, { emitUpdate: false });
-  }, [editor, storageKey, initialContent]);
+    emitDocumentChangeRef.current = () => {
+      if (!editor) return;
+      onChangeDocument?.(editor.getJSON() as TiptapBlogContent);
+    };
+  }, [editor, onChangeDocument]);
 
   useEffect(() => {
     if (editor) editor.setEditable(editable);
@@ -172,6 +222,7 @@ export const NotionEditorInner = forwardRef<
       if (!file) return;
       processImageUploadRef.current(file, (url) => {
         editor.chain().focus().setImage({ src: url }).run();
+        emitDocumentChangeRef.current();
       });
     };
     input.click();
