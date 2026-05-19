@@ -84,7 +84,7 @@ export function sanitizeBlockNoteContent(
 export function normalizeBlogContent(raw: unknown): BlogPostContent {
   if (isBlockNoteContent(raw)) return sanitizeBlockNoteContent(raw);
   if (isTiptapDocument(raw)) return raw;
-  return EMPTY_BLOCKNOTE_DOC;
+  return EMPTY_BLOG_DOC;
 }
 
 /** BlockNote `initialContent` — id가 있는 저장본만. 그 외는 undefined(라이브러리 기본 문서) */
