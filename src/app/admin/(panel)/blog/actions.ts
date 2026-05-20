@@ -117,3 +117,25 @@ export async function saveBlogPost(
     return { success: false, message: "저장 중 오류가 발생했습니다." };
   }
 }
+
+export async function deleteBlogPost(
+  id: string
+): Promise<{ success: boolean; message: string }> {
+  const gate = await requireBlogEditor();
+  if (!gate.ok) return { success: false, message: gate.message };
+
+  try {
+    const existing = await prisma.blogPost.findUnique({
+      where: { id },
+      include: { category: { select: { slug: true } } },
+    });
+    if (!existing) return { success: false, message: "글을 찾을 수 없습니다." };
+
+    await prisma.blogPost.delete({ where: { id } });
+    await revalidateBlogPaths(existing.category.slug, existing.slug);
+    return { success: true, message: "삭제되었습니다." };
+  } catch (e) {
+    console.error("[deleteBlogPost]", e);
+    return { success: false, message: "삭제 중 오류가 발생했습니다." };
+  }
+}

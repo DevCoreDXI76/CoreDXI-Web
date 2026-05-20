@@ -57,7 +57,7 @@ import {
   type TiptapBlogContent,
 } from "@/types/blocknote";
 import type { TiptapEditorHandle } from "@/components/editor/TiptapEditor";
-import { saveBlogPost } from "./actions";
+import { deleteBlogPost, saveBlogPost } from "./actions";
 import type { BlogCategoryItem } from "@/lib/blog-categories";
 
 export type BlogEditorInitial = {
@@ -158,6 +158,29 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
     }
   }
 
+  async function removePost() {
+    if (pending) return;
+    if (!postId || mode !== "edit") return;
+    const ok = window.confirm(
+      "정말 삭제할까요? 이 작업은 되돌릴 수 없습니다."
+    );
+    if (!ok) return;
+
+    setPending(true);
+    try {
+      const result = await deleteBlogPost(postId);
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+      toast.success(result.message);
+      router.replace("/admin/blog");
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <div className="flex h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex-col gap-4 overflow-hidden lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)]">
       <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80">
@@ -192,6 +215,16 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {mode === "edit" && postId ? (
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={pending}
+              onClick={() => void removePost()}
+            >
+              삭제
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="secondary"
@@ -226,7 +259,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
             placeholder="목록·검색 미리보기에 쓰일 짧은 요약"
-            rows={3}
+            rows={2}
             className="resize-y bg-white"
           />
         </div>
