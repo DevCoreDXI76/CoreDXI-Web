@@ -24,6 +24,7 @@ export default async function AdminBlogEditPage({ params }: PageProps) {
           title: post.title,
           categoryId: post.categoryId,
           excerpt: post.excerpt ?? "",
+          coverImageUrl: post.coverImageUrl,
           content: post.content,
           status: post.status,
         }}

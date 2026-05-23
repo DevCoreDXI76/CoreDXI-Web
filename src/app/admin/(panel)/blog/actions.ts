@@ -23,9 +23,26 @@ export type SaveBlogPostInput = {
   title: string;
   categoryId: string;
   excerpt: string;
+  coverImageUrl?: string | null;
   content: BlogPostContent;
   status: BlogPostStatus;
 };
+
+function normalizeCoverImageUrl(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return null;
+  if (!trimmed.startsWith("https://")) {
+    return null;
+  }
+  return trimmed;
+}
+
+function validateCoverImageUrl(url: string | null): string | null {
+  if (!url) return null;
+  const isBlogStorage = url.includes("/storage/v1/object/public/blog-images/");
+  if (isBlogStorage || url.startsWith("https://")) return url;
+  return null;
+}
 
 export async function saveBlogPost(
   input: SaveBlogPostInput
@@ -48,6 +65,12 @@ export async function saveBlogPost(
 
   const excerpt = input.excerpt.trim() || null;
   const contentJson = JSON.parse(JSON.stringify(input.content)) as Prisma.InputJsonValue;
+  const coverImageUrl = validateCoverImageUrl(
+    normalizeCoverImageUrl(input.coverImageUrl)
+  );
+  if (input.coverImageUrl?.trim() && !coverImageUrl) {
+    return { success: false, message: "썸네일 URL 형식이 올바르지 않습니다." };
+  }
 
   try {
     if (input.id) {
@@ -68,6 +91,7 @@ export async function saveBlogPost(
           title,
           categoryId: category.id,
           excerpt,
+          coverImageUrl,
           content: contentJson,
           status: input.status,
           publishedAt,
@@ -98,6 +122,7 @@ export async function saveBlogPost(
         title,
         categoryId: category.id,
         excerpt,
+        coverImageUrl,
         content: contentJson,
         status: input.status,
         publishedAt: input.status === "PUBLISHED" ? new Date() : null,

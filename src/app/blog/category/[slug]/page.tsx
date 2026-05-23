@@ -37,6 +37,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
       slug: true,
       title: true,
       excerpt: true,
+      coverImageUrl: true,
       publishedAt: true,
       updatedAt: true,
       category: { select: { name: true, slug: true } },

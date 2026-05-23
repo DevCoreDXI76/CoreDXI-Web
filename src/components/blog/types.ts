@@ -2,6 +2,7 @@ export type BlogPostCard = {
   slug: string;
   title: string;
   excerpt: string | null;
+  coverImageUrl?: string | null;
   publishedAt: Date | null;
   updatedAt?: Date | null;
   category: { name: string; slug: string };
@@ -73,7 +74,7 @@ export function mapBlogPostToListCard(post: BlogPostCard): BlogListCard {
     href: `/blog/${post.slug}`,
     tag: blogTagFromCategory(post.category.name),
     subCategory: post.category.name,
-    coverImageUrl: blogCoverImageFromSlug(post.slug),
+    coverImageUrl: post.coverImageUrl ?? blogCoverImageFromSlug(post.slug),
     createdAt,
     updatedAt,
     author: "CoreDXI",

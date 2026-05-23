@@ -134,6 +134,7 @@ model BlogPost {
   slug        String         @unique
   title       String
   excerpt     String?        @db.Text
+  coverImageUrl String?
   content     Json
   categoryId  String
   category    BlogCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)

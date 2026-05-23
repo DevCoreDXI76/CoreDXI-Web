@@ -65,6 +65,7 @@ export type BlogEditorInitial = {
   title: string;
   categoryId: string;
   excerpt: string;
+  coverImageUrl?: string | null;
   content: BlogPostContent | unknown;
   status: "DRAFT" | "PUBLISHED";
 };
@@ -89,11 +90,17 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
     initial?.categoryId ?? categories[0]?.id ?? ""
   );
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(
+    initial?.coverImageUrl ?? null
+  );
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverUrlInput, setCoverUrlInput] = useState("");
   const [documentJson, setDocumentJson] = useState<BlogPostContent>(() =>
     normalizeBlogContent(initial?.content)
   );
   const [pending, setPending] = useState(false);
   const editorRef = useRef<TiptapEditorHandle>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
 
   const storageKey = useMemo(
     () => postId ?? `new-${draftKey}`,
@@ -101,16 +108,62 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
   );
 
   const uploadPrefix = postId ?? draftKey;
+  const coverUploadPrefix = `${uploadPrefix}/cover`;
 
   const uploadFile = useMemo(
     () => (file: File) => uploadBlogImageFile(file, uploadPrefix),
     [uploadPrefix]
   );
 
+  const uploadCoverFile = useMemo(
+    () => (file: File) => uploadBlogImageFile(file, coverUploadPrefix),
+    [coverUploadPrefix]
+  );
+
   const importRemoteImage = useMemo(
     () => (url: string) => importBlogImageFromUrl(url, uploadPrefix),
     [uploadPrefix]
   );
+
+  const importCoverFromUrl = useMemo(
+    () => (url: string) => importBlogImageFromUrl(url, coverUploadPrefix),
+    [coverUploadPrefix]
+  );
+
+  async function handleCoverFileChange(file: File | undefined) {
+    if (!file || coverUploading || pending) return;
+    setCoverUploading(true);
+    try {
+      const url = await uploadCoverFile(file);
+      setCoverImageUrl(url);
+      toast.success("썸네일이 업로드되었습니다.");
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "썸네일 업로드에 실패했습니다."
+      );
+    } finally {
+      setCoverUploading(false);
+      if (coverFileInputRef.current) coverFileInputRef.current.value = "";
+    }
+  }
+
+  async function handleCoverUrlImport() {
+    const url = coverUrlInput.trim();
+    if (!url || coverUploading || pending) return;
+    setCoverUploading(true);
+    try {
+      const hosted = await importCoverFromUrl(url);
+      setCoverImageUrl(hosted);
+      setCoverUrlInput("");
+      toast.success("썸네일이 등록되었습니다.");
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "썸네일을 가져오지 못했습니다."
+      );
+    } finally {
+      setCoverUploading(false);
+    }
+  }
 
   async function submit(status: "DRAFT" | "PUBLISHED") {
     if (pending) return;
@@ -134,6 +187,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
         title,
         categoryId,
         excerpt,
+        coverImageUrl,
         content: contentToSave,
         status,
       });
@@ -262,6 +316,79 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
             rows={2}
             className="resize-y bg-white"
           />
+        </div>
+
+        <div className="shrink-0 space-y-3 rounded-lg border border-gray-200 bg-white p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label htmlFor="blog-cover-url">썸네일 (선택)</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={pending || coverUploading}
+                onClick={() => coverFileInputRef.current?.click()}
+              >
+                {coverUploading ? "업로드 중…" : "이미지 선택"}
+              </Button>
+              {coverImageUrl ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={pending || coverUploading}
+                  onClick={() => setCoverImageUrl(null)}
+                >
+                  삭제
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <input
+            ref={coverFileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => void handleCoverFileChange(e.target.files?.[0])}
+          />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              id="blog-cover-url"
+              value={coverUrlInput}
+              onChange={(e) => setCoverUrlInput(e.target.value)}
+              placeholder="이미지 URL 붙여넣기 (선택)"
+              disabled={pending || coverUploading}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void handleCoverUrlImport();
+                }
+              }}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="shrink-0"
+              disabled={pending || coverUploading || !coverUrlInput.trim()}
+              onClick={() => void handleCoverUrlImport()}
+            >
+              URL 가져오기
+            </Button>
+          </div>
+          {coverImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={coverImageUrl}
+              alt="썸네일 미리보기"
+              className="aspect-[16/10] w-full max-w-md rounded-lg border object-cover"
+            />
+          ) : (
+            <p className="text-sm text-gray-500">
+              목록 카드에 표시될 대표 이미지입니다. 미설정 시 기본 이미지가
+              사용됩니다.
+            </p>
+          )}
         </div>
 
         {isBlockNoteContent(documentJson) ? (
