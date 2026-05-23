@@ -1,10 +1,11 @@
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const BLOG_IMAGES_BUCKET = "blog-images";
-export const MAX_BLOG_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_BLOG_IMAGE_BYTES = 4 * 1024 * 1024;
 
 export const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/gif",
   "image/webp",
@@ -59,7 +60,7 @@ export async function uploadBufferToBlogImages(
 ): Promise<UploadBufferResult> {
   if (buffer.length > MAX_BLOG_IMAGE_BYTES) {
     throw new BlogImageStorageError(
-      "파일 크기는 5MB 이하여야 합니다.",
+      "파일 크기는 4MB 이하여야 합니다.",
       "validation"
     );
   }
@@ -107,6 +108,29 @@ export function normalizeImageContentType(contentType: string): string {
 export function extensionFromFileName(fileName: string): string {
   const extMatch = /\.([a-zA-Z0-9]+)$/.exec(fileName);
   return extMatch ? `.${extMatch[1].toLowerCase()}` : "";
+}
+
+const EXTENSION_TO_MIME: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+};
+
+export function resolveImageContentType(file: File): string {
+  if (file.type && ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return file.type;
+  }
+  const ext = extensionFromFileName(file.name);
+  return EXTENSION_TO_MIME[ext] ?? file.type ?? "application/octet-stream";
+}
+
+export function isAllowedImageFile(file: File): boolean {
+  if (file.type && ALLOWED_IMAGE_TYPES.has(file.type)) return true;
+  const ext = extensionFromFileName(file.name);
+  return ext in EXTENSION_TO_MIME;
 }
 
 export function extensionFromUrlPath(pathname: string, fallbackType: string): string {

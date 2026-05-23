@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import {
-  ALLOWED_IMAGE_TYPES,
   BlogImageStorageError,
   extensionFromFileName,
   getSupabaseEnvErrorMessage,
+  isAllowedImageFile,
+  resolveImageContentType,
   sanitizeStoragePrefix,
   uploadBufferToBlogImages,
 } from "@/lib/blog-image-storage";
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "file 필드가 필요합니다." }, { status: 400 });
   }
 
-  if (file.type && !ALLOWED_IMAGE_TYPES.has(file.type)) {
+  if (!isAllowedImageFile(file)) {
     return NextResponse.json(
       { error: "지원하지 않는 이미지 형식입니다. (JPEG, PNG, GIF, WebP, SVG)" },
       { status: 400 }
@@ -47,11 +48,12 @@ export async function POST(req: Request) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const prefix = sanitizeStoragePrefix(prefixRaw, 96);
   const ext = extensionFromFileName(file.name) || ".png";
+  const contentType = resolveImageContentType(file);
 
   try {
     const { publicUrl } = await uploadBufferToBlogImages(buffer, {
       prefix,
-      contentType: file.type || "application/octet-stream",
+      contentType,
       ext,
     });
     return NextResponse.json({ url: publicUrl });
