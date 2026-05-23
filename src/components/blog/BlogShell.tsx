@@ -11,8 +11,8 @@ export function BlogShell({ categories, children }: Props) {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50 pt-24 pb-16">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 lg:flex-row lg:gap-12 lg:px-8">
+      <main className="min-h-screen bg-slate-50 pt-24 pb-16">
+        <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 lg:flex-row lg:gap-12 lg:px-8">
           <BlogSidebar categories={categories} />
           <div className="min-w-0 flex-1">{children}</div>
         </div>

@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getBlogCategoryBySlug } from "@/lib/blog-categories";
 import { prisma } from "@/lib/prisma";
-import { BlogPostList } from "@/components/blog/BlogPostList";
-import type { BlogPostCard } from "@/components/blog/types";
+import { BlogPostGrid } from "@/components/blog/BlogPostGrid";
+import {
+  mapBlogPostToListCard,
+  type BlogPostCard,
+} from "@/components/blog/types";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +30,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
   const category = await getBlogCategoryBySlug(slug);
   if (!category) notFound();
 
-  const posts: BlogPostCard[] = await prisma.blogPost.findMany({
+  const rows: BlogPostCard[] = await prisma.blogPost.findMany({
     where: { status: "PUBLISHED", categoryId: category.id },
     orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
     select: {
@@ -35,26 +38,29 @@ export default async function BlogCategoryPage({ params }: PageProps) {
       title: true,
       excerpt: true,
       publishedAt: true,
+      updatedAt: true,
       category: { select: { name: true, slug: true } },
     },
   });
 
+  const posts = rows.map(mapBlogPostToListCard);
+
   return (
     <>
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
           {category.name}
         </h1>
         {category.description ? (
-          <p className="mt-2 text-gray-600">{category.description}</p>
+          <p className="mt-2 text-slate-600">{category.description}</p>
         ) : null}
       </header>
       <Suspense
         fallback={
-          <div className="py-12 text-center text-sm text-gray-500">불러오는 중…</div>
+          <div className="py-12 text-center text-sm text-slate-500">불러오는 중…</div>
         }
       >
-        <BlogPostList posts={posts} />
+        <BlogPostGrid posts={posts} />
       </Suspense>
     </>
   );
