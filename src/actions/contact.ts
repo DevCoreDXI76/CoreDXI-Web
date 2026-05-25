@@ -116,6 +116,7 @@ export async function updateContactNotificationEmail(
     }
 
     revalidatePath("/admin/contact");
+    revalidatePath("/contact");
     return { success: true, email: trimmed };
   } catch (e) {
     console.error("[updateContactNotificationEmail]", e);
