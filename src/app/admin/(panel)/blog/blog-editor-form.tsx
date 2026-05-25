@@ -89,6 +89,10 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
   const [categoryId, setCategoryId] = useState(
     initial?.categoryId ?? categories[0]?.id ?? ""
   );
+  const selectedCategoryName = useMemo(
+    () => categories.find((c) => c.id === categoryId)?.name,
+    [categories, categoryId]
+  );
   const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(
     initial?.coverImageUrl ?? null
@@ -256,7 +260,9 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
               }}
             >
               <SelectTrigger id="blog-category" className="w-[200px] bg-white">
-                <SelectValue placeholder="주제" />
+                <SelectValue placeholder="주제">
+                  {selectedCategoryName}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {categories.map((c) => (
