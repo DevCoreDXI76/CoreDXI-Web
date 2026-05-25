@@ -1,7 +1,8 @@
 "use client";
 
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   createBlogCategory,
@@ -18,27 +19,90 @@ type Props = {
   categories: BlogCategoryItem[];
 };
 
+function OrderControls({
+  index,
+  total,
+  sortOrder,
+  onMove,
+}: {
+  index: number;
+  total: number;
+  sortOrder: number;
+  onMove: (direction: "up" | "down") => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-gray-500"
+        disabled={index === 0}
+        aria-label="순서 위로"
+        onClick={() => onMove("up")}
+      >
+        <ChevronUp className="h-4 w-4" />
+      </Button>
+      <span className="min-w-[1.25rem] text-center text-gray-500 tabular-nums">
+        {sortOrder}
+      </span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-gray-500"
+        disabled={index === total - 1}
+        aria-label="순서 아래로"
+        onClick={() => onMove("down")}
+      >
+        <ChevronDown className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
 export function BlogTopicsManager({ categories: initial }: Props) {
   const router = useRouter();
+  const [mockTopics, setMockTopics] = useState<BlogCategoryItem[]>(initial);
   const [pending, setPending] = useState(false);
   const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+
+  useEffect(() => {
+    setMockTopics(initial);
+  }, [initial]);
+
+  function moveTopic(index: number, direction: "up" | "down") {
+    setMockTopics((prev) => {
+      const target = direction === "up" ? index - 1 : index + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next.map((item, i) => ({ ...item, sortOrder: i + 1 }));
+    });
+  }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (pending) return;
     setPending(true);
     try {
-      const result = await createBlogCategory({ name, description });
+      const result = await createBlogCategory({
+        name,
+        slug: slug || undefined,
+        description,
+      });
       if (!result.success) {
         toast.error(result.message);
         return;
       }
       toast.success(result.message);
       setName("");
+      setSlug("");
       setDescription("");
       router.refresh();
     } finally {
@@ -113,6 +177,20 @@ export function BlogTopicsManager({ categories: initial }: Props) {
               required
             />
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="topic-slug">URL SLUG</Label>
+            <Input
+              id="topic-slug"
+              value={slug}
+              onChange={(e) =>
+                setSlug(e.target.value.replace(/[^a-z0-9-]/g, ""))
+              }
+              placeholder="예: company-news"
+            />
+            <p className="text-xs text-gray-500">
+              영문 소문자와 하이픈(-)만 사용할 수 있습니다.
+            </p>
+          </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="topic-desc">설명 (공개 페이지 상단)</Label>
             <Textarea
@@ -141,14 +219,14 @@ export function BlogTopicsManager({ categories: initial }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {initial.length === 0 ? (
+            {mockTopics.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-gray-500">
                   등록된 주제가 없습니다.
                 </td>
               </tr>
             ) : (
-              initial.map((cat) => (
+              mockTopics.map((cat, index) => (
                 <tr key={cat.id} className="hover:bg-gray-50/80">
                   {editingId === cat.id ? (
                     <>
@@ -166,7 +244,14 @@ export function BlogTopicsManager({ categories: initial }: Props) {
                           />
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{cat.sortOrder}</td>
+                      <td className="px-4 py-3">
+                        <OrderControls
+                          index={index}
+                          total={mockTopics.length}
+                          sortOrder={cat.sortOrder}
+                          onMove={(direction) => moveTopic(index, direction)}
+                        />
+                      </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <Button
                           type="button"
@@ -198,7 +283,14 @@ export function BlogTopicsManager({ categories: initial }: Props) {
                       <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
                         {cat.description ?? "—"}
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{cat.sortOrder}</td>
+                      <td className="px-4 py-3">
+                        <OrderControls
+                          index={index}
+                          total={mockTopics.length}
+                          sortOrder={cat.sortOrder}
+                          onMove={(direction) => moveTopic(index, direction)}
+                        />
+                      </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <Button
                           type="button"

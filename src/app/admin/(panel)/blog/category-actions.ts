@@ -1,7 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { uniqueCategorySlug } from "@/lib/blog-category-slug";
+import {
+  normalizeCategorySlug,
+  uniqueCategorySlug,
+} from "@/lib/blog-category-slug";
 import { prisma } from "@/lib/prisma";
 import { requireBlogEditor } from "@/lib/require-blog-editor";
 
@@ -14,6 +17,7 @@ function revalidateCategoryPaths(slug?: string) {
 
 export type BlogCategoryInput = {
   name: string;
+  slug?: string;
   description?: string;
   sortOrder?: number;
 };
@@ -28,10 +32,32 @@ export async function createBlogCategory(
   if (!name) return { success: false, message: "주제 이름을 입력해 주세요." };
 
   try {
-    const slug = await uniqueCategorySlug(name, async (s) => {
-      const row = await prisma.blogCategory.findUnique({ where: { slug: s } });
-      return row !== null;
-    });
+    const slugInput = normalizeCategorySlug(input.slug ?? "");
+    let slug: string;
+
+    if (slugInput) {
+      const taken = await prisma.blogCategory.findUnique({
+        where: { slug: slugInput },
+      });
+      if (taken) {
+        return {
+          success: false,
+          message: "이미 사용 중인 URL slug입니다.",
+        };
+      }
+      slug = slugInput;
+    } else if (input.slug?.trim()) {
+      return {
+        success: false,
+        message:
+          "URL slug는 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.",
+      };
+    } else {
+      slug = await uniqueCategorySlug(name, async (s) => {
+        const row = await prisma.blogCategory.findUnique({ where: { slug: s } });
+        return row !== null;
+      });
+    }
 
     const maxOrder = await prisma.blogCategory.aggregate({
       _max: { sortOrder: true },
