@@ -297,7 +297,7 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-5 min-h-0 px-1">
+      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-5 min-h-0 overflow-y-auto px-1 pb-6">
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -410,12 +410,12 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
             </Button>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-[min(55vh,40rem)] min-h-[24rem] shrink-0 flex-col">
             <TiptapEditor
               ref={editorRef}
               key={storageKey}
               storageKey={storageKey}
-              className="h-full min-h-0 flex-1"
+              className="h-full min-h-0"
               initialContent={documentJson}
               onChangeDocument={(doc: TiptapBlogContent) => setDocumentJson(doc)}
               uploadFile={uploadFile}
