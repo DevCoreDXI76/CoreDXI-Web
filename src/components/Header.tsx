@@ -72,10 +72,9 @@ const NAV_ITEMS = [
 ] satisfies NavItem[];
 
 /**
- * [홍보팀] 오른쪽 버튼 3개의 텍스트와 링크입니다.
+ * [홍보팀] 오른쪽 버튼의 텍스트와 링크입니다.
  * - login: 로그인 페이지로 이동하는 텍스트 버튼
- * - primary: 진한 파란색 배경 버튼 (주요 행동 유도)
- * - outline: 테두리만 있는 버튼 (보조 행동 유도)
+ * - primary: 진한 파란색 배경 버튼 (주요 행동 유도 — 도입 문의)
  */
 const HEADER_BUTTONS = {
   /** [홍보팀] 로그인 버튼 텍스트와 이동 링크입니다. */
@@ -86,10 +85,6 @@ const HEADER_BUTTONS = {
   primary: {
     label: "도입 문의",
     href: "/contact",
-  },
-  outline: {
-    label: "상담 신청",
-    href: "/consult",
   },
 } as const;
 
@@ -165,7 +160,7 @@ export function Header() {
           {/* ─── 우측: 버튼 2개 (lg 이상) + 햄버거 (lg 미만) ─── */}
           <div className="flex items-center gap-3">
 
-            {/* [홍보팀] 로그인 여부에 따라 오른쪽 버튼 구역이 바뀝니다. 비로그인: 로그인·상담·문의 / 로그인: 프로필·로그아웃 + 문의·상담 */}
+            {/* [홍보팀] 로그인 여부에 따라 오른쪽 버튼 구역이 바뀝니다. 비로그인: 로그인·도입 문의 / 로그인: 프로필·로그아웃·도입 문의 */}
             <div className="hidden lg:flex items-center gap-2">
               {isLoggedIn ? (
                 <>
@@ -198,12 +193,6 @@ export function Header() {
                     로그아웃
                   </button>
                   <Link
-                    href={HEADER_BUTTONS.outline.href}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-primary border border-primary/40 rounded-xl transition-all duration-150 hover:bg-primary/5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                  >
-                    {HEADER_BUTTONS.outline.label}
-                  </Link>
-                  <Link
                     href={HEADER_BUTTONS.primary.href}
                     className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-xl shadow-sm shadow-primary/20 transition-all duration-150 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
                   >
@@ -217,13 +206,6 @@ export function Header() {
                     className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {HEADER_BUTTONS.login.label}
-                  </Link>
-
-                  <Link
-                    href={HEADER_BUTTONS.outline.href}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-primary border border-primary/40 rounded-xl transition-all duration-150 hover:bg-primary/5 hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                  >
-                    {HEADER_BUTTONS.outline.label}
                   </Link>
 
                   <Link
@@ -320,13 +302,6 @@ export function Header() {
                   로그아웃
                 </button>
                 <Link
-                  href={HEADER_BUTTONS.outline.href}
-                  className="flex items-center justify-center px-4 py-3 text-base font-semibold text-primary border border-primary/40 rounded-xl hover:bg-primary/5 transition-colors"
-                  onClick={closeMenu}
-                >
-                  {HEADER_BUTTONS.outline.label}
-                </Link>
-                <Link
                   href={HEADER_BUTTONS.primary.href}
                   className="flex items-center justify-center px-4 py-3 text-base font-semibold text-white bg-primary rounded-xl hover:bg-primary/90 transition-colors"
                   onClick={closeMenu}
@@ -342,13 +317,6 @@ export function Header() {
                   onClick={closeMenu}
                 >
                   {HEADER_BUTTONS.login.label}
-                </Link>
-                <Link
-                  href={HEADER_BUTTONS.outline.href}
-                  className="flex items-center justify-center px-4 py-3 text-base font-semibold text-primary border border-primary/40 rounded-xl hover:bg-primary/5 transition-colors"
-                  onClick={closeMenu}
-                >
-                  {HEADER_BUTTONS.outline.label}
                 </Link>
                 <Link
                   href={HEADER_BUTTONS.primary.href}

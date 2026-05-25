@@ -22,10 +22,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-const USE_CASE_OPTIONS = [
-  { value: "product", label: "제품 도입 문의" },
-  { value: "partnership", label: "파트너십 · 협업" },
-  { value: "media", label: "미디어 · 제휴" },
+const INQUIRY_TYPE_OPTIONS = [
+  { value: "service-quote", label: "서비스 도입 및 견적 문의" },
+  { value: "demo", label: "제품 데모 시연 요청" },
+  { value: "technical", label: "기능 및 기술 관련 문의" },
+  { value: "partnership", label: "파트너십 및 제휴 제안" },
   { value: "other", label: "기타" },
 ] as const;
 
@@ -114,21 +115,38 @@ export default function ContactPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [useCase, setUseCase] = useState<string>("");
+  const [inquiryType, setInquiryType] = useState("");
   const [message, setMessage] = useState("");
 
-  const selectedUseCaseLabel = useMemo(
-    () => USE_CASE_OPTIONS.find((o) => o.value === useCase)?.label,
-    [useCase]
+  const selectedInquiryTypeLabel = useMemo(
+    () => INQUIRY_TYPE_OPTIONS.find((o) => o.value === inquiryType)?.label,
+    [inquiryType]
   );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!inquiryType) {
+      alert("문의 유형을 선택해 주세요.");
+      return;
+    }
+
+    const formData = {
+      firstName,
+      lastName,
+      email,
+      inquiryType:
+        INQUIRY_TYPE_OPTIONS.find((o) => o.value === inquiryType)?.label ??
+        inquiryType,
+      message,
+    };
+
+    console.log("[Contact Form]", formData);
+
     alert("문의가 성공적으로 접수되었습니다. 곧 연락드리겠습니다.");
     setFirstName("");
     setLastName("");
     setEmail("");
-    setUseCase("");
+    setInquiryType("");
     setMessage("");
   }
 
@@ -184,22 +202,20 @@ export default function ContactPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="use-case">
-                    CoreDXI를 어떻게 사용하실 계획이신가요?
-                  </Label>
+                  <Label htmlFor="inquiry-type">문의 유형</Label>
                   <Select
-                    value={useCase}
+                    value={inquiryType}
                     onValueChange={(v) => {
-                      if (v) setUseCase(v);
+                      if (v) setInquiryType(v);
                     }}
                   >
-                    <SelectTrigger id="use-case" className="w-full bg-white">
+                    <SelectTrigger id="inquiry-type" className="w-full bg-white">
                       <SelectValue placeholder="선택해 주세요">
-                        {selectedUseCaseLabel}
+                        {selectedInquiryTypeLabel}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {USE_CASE_OPTIONS.map((option) => (
+                      {INQUIRY_TYPE_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
