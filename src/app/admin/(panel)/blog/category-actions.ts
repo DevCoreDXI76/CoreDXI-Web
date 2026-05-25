@@ -80,6 +80,50 @@ export async function createBlogCategory(
   }
 }
 
+export async function reorderBlogCategories(
+  orderedIds: string[]
+): Promise<{ success: boolean; message: string }> {
+  const gate = await requireBlogEditor();
+  if (!gate.ok) return { success: false, message: gate.message };
+
+  if (orderedIds.length === 0) {
+    return { success: false, message: "변경할 주제가 없습니다." };
+  }
+
+  try {
+    const rows = await prisma.blogCategory.findMany({
+      where: { id: { in: orderedIds } },
+      select: { id: true, slug: true },
+    });
+
+    if (rows.length !== orderedIds.length) {
+      return { success: false, message: "주제 목록이 올바르지 않습니다." };
+    }
+
+    const slugById = new Map(rows.map((row) => [row.id, row.slug]));
+
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.blogCategory.update({
+          where: { id },
+          data: { sortOrder: index },
+        })
+      )
+    );
+
+    revalidateCategoryPaths();
+    for (const id of orderedIds) {
+      const slug = slugById.get(id);
+      if (slug) revalidateCategoryPaths(slug);
+    }
+
+    return { success: true, message: "순서가 저장되었습니다." };
+  } catch (e) {
+    console.error("[reorderBlogCategories]", e);
+    return { success: false, message: "순서 저장 중 오류가 발생했습니다." };
+  }
+}
+
 export async function updateBlogCategory(
   id: string,
   input: BlogCategoryInput

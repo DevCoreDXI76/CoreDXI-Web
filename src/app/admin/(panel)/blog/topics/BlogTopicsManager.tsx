@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   createBlogCategory,
   deleteBlogCategory,
+  reorderBlogCategories,
   updateBlogCategory,
 } from "../category-actions";
 import { Button } from "@/components/ui/button";
@@ -23,11 +24,13 @@ function OrderControls({
   index,
   total,
   sortOrder,
+  disabled,
   onMove,
 }: {
   index: number;
   total: number;
   sortOrder: number;
+  disabled?: boolean;
   onMove: (direction: "up" | "down") => void;
 }) {
   return (
@@ -37,7 +40,7 @@ function OrderControls({
         variant="ghost"
         size="icon"
         className="h-7 w-7 text-gray-500"
-        disabled={index === 0}
+        disabled={disabled || index === 0}
         aria-label="순서 위로"
         onClick={() => onMove("up")}
       >
@@ -51,7 +54,7 @@ function OrderControls({
         variant="ghost"
         size="icon"
         className="h-7 w-7 text-gray-500"
-        disabled={index === total - 1}
+        disabled={disabled || index === total - 1}
         aria-label="순서 아래로"
         onClick={() => onMove("down")}
       >
@@ -71,19 +74,39 @@ export function BlogTopicsManager({ categories: initial }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [reordering, setReordering] = useState(false);
+
+  const initialKey = initial.map((c) => `${c.id}:${c.sortOrder}`).join("|");
 
   useEffect(() => {
     setMockTopics(initial);
-  }, [initial]);
+  }, [initialKey, initial]);
 
-  function moveTopic(index: number, direction: "up" | "down") {
-    setMockTopics((prev) => {
-      const target = direction === "up" ? index - 1 : index + 1;
-      if (target < 0 || target >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next.map((item, i) => ({ ...item, sortOrder: i + 1 }));
-    });
+  async function moveTopic(index: number, direction: "up" | "down") {
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (target < 0 || target >= mockTopics.length || reordering) return;
+
+    const next = [...mockTopics];
+    [next[index], next[target]] = [next[target], next[index]];
+    const reordered = next.map((item, i) => ({ ...item, sortOrder: i }));
+    const previous = mockTopics;
+
+    setMockTopics(reordered);
+    setReordering(true);
+    try {
+      const result = await reorderBlogCategories(reordered.map((item) => item.id));
+      if (!result.success) {
+        setMockTopics(previous);
+        toast.error(result.message);
+        return;
+      }
+      router.refresh();
+    } catch {
+      setMockTopics(previous);
+      toast.error("순서 저장 중 오류가 발생했습니다.");
+    } finally {
+      setReordering(false);
+    }
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -249,7 +272,8 @@ export function BlogTopicsManager({ categories: initial }: Props) {
                           index={index}
                           total={mockTopics.length}
                           sortOrder={cat.sortOrder}
-                          onMove={(direction) => moveTopic(index, direction)}
+                          disabled={reordering || pending}
+                          onMove={(direction) => void moveTopic(index, direction)}
                         />
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -288,7 +312,8 @@ export function BlogTopicsManager({ categories: initial }: Props) {
                           index={index}
                           total={mockTopics.length}
                           sortOrder={cat.sortOrder}
-                          onMove={(direction) => moveTopic(index, direction)}
+                          disabled={reordering || pending}
+                          onMove={(direction) => void moveTopic(index, direction)}
                         />
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
