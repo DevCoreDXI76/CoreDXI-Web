@@ -1,8 +1,18 @@
 "use client";
 
 import type { ContactRecord } from "@/actions/contact";
-import { updateContactNotificationEmail } from "@/actions/contact";
+import {
+  updateContactNotificationEmail,
+  updateContactStatus,
+} from "@/actions/contact";
 import { sendReplyEmail } from "@/actions/sendEmail";
+import {
+  CONTACT_STATUS_BADGE,
+  CONTACT_STATUS_OPTIONS,
+  type ContactStatus,
+  getContactStatusLabel,
+  normalizeContactStatus,
+} from "@/lib/contact-status";
 import {
   FileText,
   Mail,
@@ -45,6 +55,17 @@ function formatContactDate(iso: string): string {
   });
 }
 
+function ContactStatusBadge({ status }: { status: string }) {
+  const normalized = normalizeContactStatus(status);
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${CONTACT_STATUS_BADGE[normalized]}`}
+    >
+      {getContactStatusLabel(normalized)}
+    </span>
+  );
+}
+
 type Props = {
   initialContacts: ContactRecord[];
   loadError?: string;
@@ -59,13 +80,15 @@ export function AdminContactManager({
   const [adminEmail, setAdminEmail] = useState(initialNotificationEmail);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [contacts, setContacts] = useState(initialContacts);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialContacts[0]?.id ?? null
   );
 
   const selectedContact = useMemo(
-    () => initialContacts.find((c) => c.id === selectedId) ?? null,
-    [initialContacts, selectedId]
+    () => contacts.find((c) => c.id === selectedId) ?? null,
+    [contacts, selectedId]
   );
 
   const templateKey = selectedContact
@@ -108,6 +131,48 @@ export function AdminContactManager({
     setReplyBody(formattedTemplate);
   };
 
+  const applyContactStatus = async (
+    contactId: string,
+    newStatus: ContactStatus,
+    previousStatus: ContactStatus
+  ) => {
+    setContacts((prev) =>
+      prev.map((contact) =>
+        contact.id === contactId ? { ...contact, status: newStatus } : contact
+      )
+    );
+
+    const result = await updateContactStatus(contactId, newStatus);
+    if (!result.success) {
+      setContacts((prev) =>
+        prev.map((contact) =>
+          contact.id === contactId
+            ? { ...contact, status: previousStatus }
+            : contact
+        )
+      );
+      alert(result.error ?? "상태 변경에 실패했습니다.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleStatusChange = async (newStatus: ContactStatus) => {
+    if (!selectedContact || selectedContact.status === newStatus) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      await applyContactStatus(
+        selectedContact.id,
+        newStatus,
+        selectedContact.status
+      );
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedContact) {
@@ -130,6 +195,32 @@ export function AdminContactManager({
       if (!result.success) {
         alert(result.error ?? "메일 발송에 실패했습니다.");
         return;
+      }
+
+      const previousStatus = selectedContact.status;
+      setContacts((prev) =>
+        prev.map((contact) =>
+          contact.id === selectedContact.id
+            ? { ...contact, status: "COMPLETED" }
+            : contact
+        )
+      );
+
+      const statusResult = await updateContactStatus(
+        selectedContact.id,
+        "COMPLETED"
+      );
+      if (!statusResult.success) {
+        setContacts((prev) =>
+          prev.map((contact) =>
+            contact.id === selectedContact.id
+              ? { ...contact, status: previousStatus }
+              : contact
+          )
+        );
+        alert(
+          `메일은 발송되었으나 상태 변경에 실패했습니다. ${statusResult.error ?? ""}`.trim()
+        );
       }
 
       alert("성공적으로 발송되었습니다");
@@ -202,7 +293,7 @@ export function AdminContactManager({
         <div className="border-b border-slate-100 px-4 py-3">
           <h2 className="text-sm font-bold text-slate-900">접수된 문의 목록</h2>
         </div>
-        {initialContacts.length === 0 ? (
+        {contacts.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-slate-500">
             접수된 문의가 없습니다.
           </p>
@@ -219,7 +310,7 @@ export function AdminContactManager({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {initialContacts.map((contact) => {
+                {contacts.map((contact) => {
                   const isSelected = contact.id === selectedId;
                   return (
                     <tr
@@ -242,9 +333,7 @@ export function AdminContactManager({
                       </td>
                       <td className="px-4 py-3 text-slate-600">{contact.type}</td>
                       <td className="px-4 py-3">
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                          {contact.status}
-                        </span>
+                        <ContactStatusBadge status={contact.status} />
                       </td>
                     </tr>
                   );
@@ -298,6 +387,33 @@ export function AdminContactManager({
               <div className="min-h-[120px] whitespace-pre-wrap rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
                 {selectedContact.message}
               </div>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <label
+                  htmlFor="contact-status"
+                  className="mb-1 block text-xs font-medium text-slate-400"
+                >
+                  처리 상태
+                </label>
+                <select
+                  id="contact-status"
+                  value={selectedContact.status}
+                  disabled={isUpdatingStatus}
+                  onChange={(e) =>
+                    void handleStatusChange(e.target.value as ContactStatus)
+                  }
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {CONTACT_STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <ContactStatusBadge status={selectedContact.status} />
             </div>
 
             <div className="text-right text-xs text-slate-400">

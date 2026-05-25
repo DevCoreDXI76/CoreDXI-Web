@@ -2,8 +2,14 @@
 
 import { auth } from "@/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import {
+  type ContactStatus,
+  isContactStatus,
+} from "@/lib/contact-status";
 import { sendResendEmail } from "@/lib/resend";
 import { revalidatePath } from "next/cache";
+
+export type { ContactStatus } from "@/lib/contact-status";
 
 export type ContactRecord = {
   id: string;
@@ -11,7 +17,7 @@ export type ContactRecord = {
   email: string;
   type: string;
   message: string;
-  status: string;
+  status: ContactStatus;
   created_at: string;
 };
 
@@ -40,6 +46,13 @@ const NOTIFICATION_EMAIL_KEY = "notification_email";
 export type UpdateContactNotificationEmailResult =
   | { success: true; email: string }
   | { success: false; error: string };
+
+export type UpdateContactStatusResult =
+  | { success: true }
+  | { success: false; error: string };
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function requireAdmin(): Promise<{ ok: true } | { ok: false; error: string }> {
   const session = await auth();
@@ -160,6 +173,54 @@ export async function listContacts(): Promise<ContactListResult> {
     return {
       success: false,
       error: "문의 목록을 불러오는 중 오류가 발생했습니다.",
+    };
+  }
+}
+
+export async function updateContactStatus(
+  contactId: string,
+  status: ContactStatus
+): Promise<UpdateContactStatusResult> {
+  const gate = await requireAdmin();
+  if (!gate.ok) return { success: false, error: gate.error };
+
+  const trimmedId = contactId.trim();
+  if (!trimmedId || !UUID_PATTERN.test(trimmedId)) {
+    return { success: false, error: "유효하지 않은 문의 ID입니다." };
+  }
+  if (!isContactStatus(status)) {
+    return { success: false, error: "유효하지 않은 상태값입니다." };
+  }
+
+  const supabase = createSupabaseAdmin();
+  if (!supabase) {
+    return {
+      success: false,
+      error: "문의 상태 변경 설정이 완료되지 않았습니다.",
+    };
+  }
+
+  try {
+    const { error } = await supabase
+      .from("contacts")
+      .update({ status })
+      .eq("id", trimmedId);
+
+    if (error) {
+      console.error("[updateContactStatus]", error);
+      return {
+        success: false,
+        error: "문의 상태 변경 중 오류가 발생했습니다.",
+      };
+    }
+
+    revalidatePath("/admin/contact");
+    return { success: true };
+  } catch (e) {
+    console.error("[updateContactStatus]", e);
+    return {
+      success: false,
+      error: "문의 상태 변경 중 오류가 발생했습니다.",
     };
   }
 }
