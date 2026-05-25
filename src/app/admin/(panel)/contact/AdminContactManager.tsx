@@ -1,6 +1,7 @@
 "use client";
 
 import type { ContactRecord } from "@/actions/contact";
+import { sendReplyEmail } from "@/actions/sendEmail";
 import {
   FileText,
   Mail,
@@ -33,6 +34,8 @@ function templateKeyFromType(type: string): TemplateKey {
   return TYPE_TO_TEMPLATE[type] ?? "general";
 }
 
+const DEFAULT_REPLY_SUBJECT = "[CoreDXI] 문의하신 내용에 대한 답변입니다.";
+
 function formatContactDate(iso: string): string {
   return new Date(iso).toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -62,10 +65,9 @@ export function AdminContactManager({ initialContacts, loadError }: Props) {
     ? templateKeyFromType(selectedContact.type)
     : "general";
 
-  const [replySubject, setReplySubject] = useState(
-    "[CoreDXI] 문의하신 내용에 대한 답변입니다."
-  );
+  const [replySubject, setReplySubject] = useState(DEFAULT_REPLY_SUBJECT);
   const [replyBody, setReplyBody] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const handleSaveEmail = () => {
     setIsEditingEmail(false);
@@ -81,7 +83,7 @@ export function AdminContactManager({ initialContacts, loadError }: Props) {
     setReplyBody(formattedTemplate);
   };
 
-  const handleSendEmail = (e: React.FormEvent) => {
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedContact) {
       alert("답장할 문의를 선택해 주세요.");
@@ -91,10 +93,26 @@ export function AdminContactManager({ initialContacts, loadError }: Props) {
       alert("메일 본문 내용을 입력해 주세요.");
       return;
     }
-    alert(
-      `${selectedContact.email} 주소로 답장 메일이 성공적으로 발송되었습니다!`
-    );
-    setReplyBody("");
+
+    setIsSending(true);
+    try {
+      const result = await sendReplyEmail({
+        to: selectedContact.email,
+        subject: replySubject,
+        text: replyBody,
+      });
+
+      if (!result.success) {
+        alert(result.error ?? "메일 발송에 실패했습니다.");
+        return;
+      }
+
+      alert("성공적으로 발송되었습니다");
+      setReplySubject(DEFAULT_REPLY_SUBJECT);
+      setReplyBody("");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -310,10 +328,11 @@ export function AdminContactManager({ initialContacts, loadError }: Props) {
 
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white transition duration-200 hover:bg-indigo-700"
+              disabled={isSending}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white transition duration-200 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Send className="h-4 w-4" />
-              답장 이메일 발송하기
+              {isSending ? "메일 발송 중..." : "답장 이메일 발송하기"}
             </button>
           </form>
         </div>
