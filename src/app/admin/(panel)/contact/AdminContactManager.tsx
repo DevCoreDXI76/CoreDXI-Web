@@ -1,6 +1,7 @@
 "use client";
 
 import type { ContactRecord } from "@/actions/contact";
+import { updateContactNotificationEmail } from "@/actions/contact";
 import { sendReplyEmail } from "@/actions/sendEmail";
 import {
   FileText,
@@ -47,11 +48,17 @@ function formatContactDate(iso: string): string {
 type Props = {
   initialContacts: ContactRecord[];
   loadError?: string;
+  initialNotificationEmail: string;
 };
 
-export function AdminContactManager({ initialContacts, loadError }: Props) {
-  const [adminEmail, setAdminEmail] = useState("contact@coredxi.com");
+export function AdminContactManager({
+  initialContacts,
+  loadError,
+  initialNotificationEmail,
+}: Props) {
+  const [adminEmail, setAdminEmail] = useState(initialNotificationEmail);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialContacts[0]?.id ?? null
   );
@@ -69,9 +76,27 @@ export function AdminContactManager({ initialContacts, loadError }: Props) {
   const [replyBody, setReplyBody] = useState("");
   const [isSending, setIsSending] = useState(false);
 
-  const handleSaveEmail = () => {
-    setIsEditingEmail(false);
-    alert(`문의 수신 메일 주소가 ${adminEmail}로 변경되었습니다.`);
+  const handleSaveEmail = async () => {
+    const trimmed = adminEmail.trim();
+    if (!trimmed) {
+      alert("알림 수신 메일 주소를 입력해 주세요.");
+      return;
+    }
+
+    setIsSavingEmail(true);
+    try {
+      const result = await updateContactNotificationEmail(trimmed);
+      if (!result.success) {
+        alert(result.error ?? "알림 수신 메일 저장에 실패했습니다.");
+        return;
+      }
+
+      setAdminEmail(result.email);
+      setIsEditingEmail(false);
+      alert(`문의 수신 메일 주소가 ${result.email}로 변경되었습니다.`);
+    } finally {
+      setIsSavingEmail(false);
+    }
   };
 
   const loadTemplate = (key: TemplateKey) => {
@@ -150,9 +175,10 @@ export function AdminContactManager({ initialContacts, loadError }: Props) {
               <button
                 type="button"
                 onClick={handleSaveEmail}
-                className="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700"
+                disabled={isSavingEmail}
+                className="rounded bg-indigo-600 px-2 py-1 text-xs text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                저장
+                {isSavingEmail ? "저장 중..." : "저장"}
               </button>
             </div>
           ) : (

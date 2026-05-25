@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { revalidatePath } from "next/cache";
 
 export type ContactRecord = {
   id: string;
@@ -31,12 +32,98 @@ export type ContactListResult =
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const DEFAULT_CONTACT_NOTIFICATION_EMAIL = "contact@coredxi.com";
+
+const NOTIFICATION_EMAIL_KEY = "notification_email";
+
+export type UpdateContactNotificationEmailResult =
+  | { success: true; email: string }
+  | { success: false; error: string };
+
 async function requireAdmin(): Promise<{ ok: true } | { ok: false; error: string }> {
   const session = await auth();
   if (session?.user?.accountType !== "admin" || !session.user.role) {
     return { ok: false, error: "관리자 로그인이 필요합니다." };
   }
   return { ok: true };
+}
+
+export async function getContactNotificationEmail(): Promise<string> {
+  const supabase = createSupabaseAdmin();
+  if (!supabase) {
+    return DEFAULT_CONTACT_NOTIFICATION_EMAIL;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("contact_settings")
+      .select("value")
+      .eq("key", NOTIFICATION_EMAIL_KEY)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[getContactNotificationEmail]", error);
+      return DEFAULT_CONTACT_NOTIFICATION_EMAIL;
+    }
+
+    const email = data?.value?.trim();
+    if (!email || !EMAIL_PATTERN.test(email)) {
+      return DEFAULT_CONTACT_NOTIFICATION_EMAIL;
+    }
+
+    return email;
+  } catch (e) {
+    console.error("[getContactNotificationEmail]", e);
+    return DEFAULT_CONTACT_NOTIFICATION_EMAIL;
+  }
+}
+
+export async function updateContactNotificationEmail(
+  email: string
+): Promise<UpdateContactNotificationEmailResult> {
+  const gate = await requireAdmin();
+  if (!gate.ok) return { success: false, error: gate.error };
+
+  const trimmed = email.trim();
+  if (!trimmed || !EMAIL_PATTERN.test(trimmed)) {
+    return { success: false, error: "올바른 이메일 주소를 입력해 주세요." };
+  }
+
+  const supabase = createSupabaseAdmin();
+  if (!supabase) {
+    return {
+      success: false,
+      error: "알림 수신 메일 설정이 완료되지 않았습니다.",
+    };
+  }
+
+  try {
+    const { error } = await supabase.from("contact_settings").upsert(
+      {
+        key: NOTIFICATION_EMAIL_KEY,
+        value: trimmed,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "key" }
+    );
+
+    if (error) {
+      console.error("[updateContactNotificationEmail]", error);
+      return {
+        success: false,
+        error: "알림 수신 메일 저장 중 오류가 발생했습니다.",
+      };
+    }
+
+    revalidatePath("/admin/contact");
+    return { success: true, email: trimmed };
+  } catch (e) {
+    console.error("[updateContactNotificationEmail]", e);
+    return {
+      success: false,
+      error: "알림 수신 메일 저장 중 오류가 발생했습니다.",
+    };
+  }
 }
 
 export async function listContacts(): Promise<ContactListResult> {
