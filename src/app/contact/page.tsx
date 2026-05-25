@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { submitContactForm } from "@/actions/contact";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,37 +118,50 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [inquiryType, setInquiryType] = useState("");
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedInquiryTypeLabel = useMemo(
     () => INQUIRY_TYPE_OPTIONS.find((o) => o.value === inquiryType)?.label,
     [inquiryType]
   );
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!inquiryType) {
       alert("문의 유형을 선택해 주세요.");
       return;
     }
 
-    const formData = {
-      firstName,
-      lastName,
-      email,
-      inquiryType:
-        INQUIRY_TYPE_OPTIONS.find((o) => o.value === inquiryType)?.label ??
-        inquiryType,
-      message,
-    };
+    const typeLabel =
+      INQUIRY_TYPE_OPTIONS.find((o) => o.value === inquiryType)?.label ??
+      inquiryType;
 
-    console.log("[Contact Form]", formData);
+    setIsSubmitting(true);
+    try {
+      const result = await submitContactForm({
+        firstName,
+        lastName,
+        email,
+        type: typeLabel,
+        message,
+      });
 
-    alert("문의가 성공적으로 접수되었습니다. 곧 연락드리겠습니다.");
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setInquiryType("");
-    setMessage("");
+      if (!result.success) {
+        alert(result.error ?? "문의 접수에 실패했습니다.");
+        return;
+      }
+
+      alert(
+        "문의가 성공적으로 접수되었습니다. 영업일 기준 1~2일 내로 연락드리겠습니다."
+      );
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setInquiryType("");
+      setMessage("");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -238,9 +252,10 @@ export default function ContactPage() {
 
                 <Button
                   type="submit"
+                  disabled={isSubmitting}
                   className="mt-2 h-11 w-full bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  제출하기
+                  {isSubmitting ? "전송 중..." : "제출하기"}
                 </Button>
               </form>
             </section>
