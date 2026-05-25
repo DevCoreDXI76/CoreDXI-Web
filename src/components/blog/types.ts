@@ -59,11 +59,6 @@ export function blogCoverImageFromSlug(slug: string): string {
   return COVER_IMAGES[hash]!;
 }
 
-function blogTagFromCategory(name: string): string {
-  if (/ai|인공지능|챗봇/i.test(name)) return "AI";
-  return "Tech";
-}
-
 export function mapBlogPostToListCard(post: BlogPostCard): BlogListCard {
   const createdAt = post.publishedAt ?? new Date();
   const updatedAt = post.updatedAt ?? createdAt;
@@ -72,7 +67,7 @@ export function mapBlogPostToListCard(post: BlogPostCard): BlogListCard {
     slug: post.slug,
     title: post.title,
     href: `/blog/${post.slug}`,
-    tag: blogTagFromCategory(post.category.name),
+    tag: post.category.name,
     subCategory: post.category.name,
     coverImageUrl: post.coverImageUrl ?? blogCoverImageFromSlug(post.slug),
     createdAt,
