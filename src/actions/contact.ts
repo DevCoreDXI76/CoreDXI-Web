@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { sendResendEmail } from "@/lib/resend";
 import { revalidatePath } from "next/cache";
 
 export type ContactRecord = {
@@ -209,6 +210,29 @@ export async function submitContactForm(
         success: false,
         error: "문의 접수 중 오류가 발생했습니다.",
       };
+    }
+
+    const notificationEmail = await getContactNotificationEmail();
+    const notifyResult = await sendResendEmail({
+      to: notificationEmail,
+      subject: `[CoreDXI] 새 문의 접수 - ${type}`,
+      text: [
+        "새 문의가 접수되었습니다.",
+        "",
+        `이름: ${name}`,
+        `이메일: ${email}`,
+        `문의 유형: ${type}`,
+        "",
+        "문의 내용:",
+        message,
+        "",
+        "관리자 페이지(/admin/contact)에서 확인해 주세요.",
+      ].join("\n"),
+      replyTo: email,
+    });
+
+    if (!notifyResult.success) {
+      console.error("[submitContactForm] notification email failed:", notifyResult.error);
     }
 
     return { success: true };

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
+import { sendResendEmail } from "@/lib/resend";
 import {
   generateOtpCode,
   getOtpExpiresAt,
@@ -50,16 +50,14 @@ export async function POST(request: Request) {
       data: { email, code, expiresAt },
     });
 
-    const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({
-      from: "noreply@coredxi.com",
+    const sendResult = await sendResendEmail({
       to: email,
       subject: "[CoreDXI] 회원가입 인증 코드입니다.",
       html: `인증 코드 6자리: <strong>${code}</strong><br/>이 코드는 5분간 유효합니다.`,
     });
 
-    if (error) {
-      console.error("[send-otp] Resend error:", error);
+    if (!sendResult.success) {
+      console.error("[send-otp] Resend error:", sendResult.error);
       return NextResponse.json(
         { success: false, message: "인증 메일 발송에 실패했습니다." },
         { status: 500 }

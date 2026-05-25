@@ -1,7 +1,10 @@
 "use server";
 
 import { auth } from "@/auth";
-import { Resend } from "resend";
+import { getContactNotificationEmail } from "@/actions/contact";
+import { sendResendEmail } from "@/lib/resend";
+
+const REPLY_EMAIL_FROM = "CoreDXI <contact@coredxi.com>";
 
 export type SendReplyEmailInput = {
   to: string;
@@ -43,37 +46,23 @@ export async function sendReplyEmail(
     return { success: false, error: "메일 본문 내용을 입력해 주세요." };
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
+  const replyTo = await getContactNotificationEmail();
+
+  const result = await sendResendEmail({
+    from: REPLY_EMAIL_FROM,
+    to,
+    subject,
+    text,
+    replyTo,
+  });
+
+  if (!result.success) {
+    console.error("[sendReplyEmail]", result.error);
     return {
       success: false,
-      error: "이메일 발송 설정이 완료되지 않았습니다.",
+      error: result.error,
     };
   }
 
-  try {
-    const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to,
-      subject,
-      text,
-    });
-
-    if (error) {
-      console.error("[sendReplyEmail]", error);
-      return {
-        success: false,
-        error: "메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-      };
-    }
-
-    return { success: true };
-  } catch (e) {
-    console.error("[sendReplyEmail]", e);
-    return {
-      success: false,
-      error: "메일 발송 중 오류가 발생했습니다.",
-    };
-  }
+  return { success: true };
 }
