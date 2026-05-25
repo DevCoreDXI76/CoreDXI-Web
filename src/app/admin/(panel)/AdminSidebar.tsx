@@ -33,7 +33,7 @@ const ADMIN_CMS_NAV: {
   { label: "솔루션 관리", href: "/admin/solutions", icon: Layers },
   { label: "성공사례 관리", href: "/admin/portfolio", icon: Briefcase },
   { label: "블로그", href: "/admin/blog", icon: FileText },
-  { label: "문의 내역 확인", href: "/admin/inquiries", icon: Mail },
+  { label: "문의 내역 확인", href: "/admin/contact", icon: Mail },
   { label: "관리자 설정", href: "/admin/settings", icon: Settings },
 ];
 

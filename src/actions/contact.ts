@@ -1,6 +1,17 @@
 "use server";
 
+import { auth } from "@/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+
+export type ContactRecord = {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+  message: string;
+  status: string;
+  created_at: string;
+};
 
 export type ContactFormInput = {
   firstName: string;
@@ -14,7 +25,55 @@ export type ContactSubmitResult =
   | { success: true }
   | { success: false; error: string };
 
+export type ContactListResult =
+  | { success: true; data: ContactRecord[] }
+  | { success: false; error: string };
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function requireAdmin(): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await auth();
+  if (session?.user?.accountType !== "admin" || !session.user.role) {
+    return { ok: false, error: "관리자 로그인이 필요합니다." };
+  }
+  return { ok: true };
+}
+
+export async function listContacts(): Promise<ContactListResult> {
+  const gate = await requireAdmin();
+  if (!gate.ok) return { success: false, error: gate.error };
+
+  const supabase = createSupabaseAdmin();
+  if (!supabase) {
+    return {
+      success: false,
+      error: "문의 조회 설정이 완료되지 않았습니다.",
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("contacts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[listContacts]", error);
+      return {
+        success: false,
+        error: "문의 목록을 불러오는 중 오류가 발생했습니다.",
+      };
+    }
+
+    return { success: true, data: (data ?? []) as ContactRecord[] };
+  } catch (e) {
+    console.error("[listContacts]", e);
+    return {
+      success: false,
+      error: "문의 목록을 불러오는 중 오류가 발생했습니다.",
+    };
+  }
+}
 
 export async function submitContactForm(
   data: ContactFormInput
