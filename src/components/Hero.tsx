@@ -115,14 +115,13 @@ export function Hero() {
      * - 전체 뷰포트 높이 이상 사용
      */
     <section
-      className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-background via-background to-secondary/20 px-6 pt-28 pb-16 text-center"
+      className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center overflow-hidden bg-white px-6 pt-28 pb-16 text-center"
       aria-labelledby="hero-title"
     >
-      {/* 배경 장식: 중앙 블루 글로우 */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 flex items-center justify-center">
-        <div className="h-[700px] w-[700px] rounded-full bg-primary/[0.04] blur-3xl" />
-        {/* 좌측 상단 보조 글로우 */}
-        <div className="absolute top-1/4 -left-32 h-[400px] w-[400px] rounded-full bg-primary/[0.03] blur-3xl" />
+      {/* 배경 장식: 미세한 그리드 패턴 */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
+        {/* 그리드가 하단으로 갈수록 페이드 아웃되도록 마스크 추가 */}
+        <div className="absolute inset-0 bg-white [mask-image:linear-gradient(180deg,transparent,rgba(255,255,255,0.9)_80%)]"></div>
       </div>
 
       {/* 콘텐츠 컨테이너: 최대 너비 5xl */}
@@ -130,8 +129,7 @@ export function Hero() {
 
         {/* ─── 뱃지 ─────────────────────────────────────────── */}
         {/* [홍보팀] 타이틀 위 뱃지. HERO_CONTENT.badge 수정 */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-4 py-1.5 text-sm font-medium text-primary">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-transparent px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm">
           {HERO_CONTENT.badge}
         </div>
 
@@ -142,7 +140,7 @@ export function Hero() {
          */}
         <h1
           id="hero-title"
-          className="text-5xl font-extrabold leading-[1.08] tracking-tighter text-foreground sm:text-6xl lg:text-7xl xl:text-8xl"
+          className="text-5xl font-extrabold leading-[1.05] tracking-tighter text-slate-900 sm:text-6xl lg:text-7xl xl:text-8xl"
         >
           {titleLines.map((line, i) => (
             <span key={i} className="block">
@@ -163,7 +161,7 @@ export function Hero() {
          * [홍보팀] 메인 타이틀 아래 부제목입니다.
          * HERO_CONTENT.subtitle 값을 수정하세요.
          */}
-        <p className="mx-auto max-w-2xl whitespace-pre-line text-lg leading-relaxed text-muted-foreground sm:text-xl lg:text-2xl">
+        <p className="mx-auto max-w-2xl whitespace-pre-line text-lg leading-relaxed text-slate-500 sm:text-xl lg:text-2xl">
           {HERO_CONTENT.subtitle}
         </p>
 
@@ -176,7 +174,7 @@ export function Hero() {
            */}
           <a
             href={HERO_CONTENT.primaryCtaHref}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-semibold text-white shadow-lg shadow-primary/25 transition-all duration-200 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-8 py-4 text-base font-semibold text-white shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] transition-all duration-200 hover:bg-primary/90 hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 sm:w-auto"
           >
             {HERO_CONTENT.primaryCtaText}
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -190,7 +188,7 @@ export function Hero() {
            */}
           <a
             href={HERO_CONTENT.secondaryCtaHref}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary/30 bg-white px-8 py-4 text-base font-semibold text-primary transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 sm:w-auto"
           >
             {HERO_CONTENT.secondaryCtaText}
           </a>
@@ -265,7 +263,7 @@ export function Hero() {
           {HERO_CONTENT.stats.map((stat, i) => (
             <div key={stat.label} className="flex items-center gap-6 sm:contents">
               {i > 0 && (
-                <div className="hidden h-8 w-px bg-border sm:block" aria-hidden="true" />
+                <div className="hidden h-8 w-px bg-slate-200 sm:block" aria-hidden="true" />
               )}
               <div className="flex flex-col items-center gap-1">
                 <span className="text-2xl font-bold text-foreground">{stat.value}</span>

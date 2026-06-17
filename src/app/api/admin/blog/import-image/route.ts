@@ -10,6 +10,20 @@ import {
 import { requireBlogEditor } from "@/lib/require-blog-editor";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return (
+    h === "localhost" ||
+    h === "127.0.0.1" ||
+    h === "::1" ||
+    h.startsWith("192.168.") ||
+    h.startsWith("10.") ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
+    h.endsWith(".internal") ||
+    h.endsWith(".local")
+  );
+}
+
 /** 붙여넣기 HTML 등 외부 이미지 URL — 서버에서 받아 blog-images에 저장 (CORS 회피) */
 export async function POST(req: Request) {
   const gate = await requireBlogEditor();
@@ -45,6 +59,10 @@ export async function POST(req: Request) {
 
   if (!["http:", "https:"].includes(parsed.protocol)) {
     return NextResponse.json({ error: "http(s) URL만 지원합니다." }, { status: 400 });
+  }
+
+  if (isBlockedHost(parsed.hostname)) {
+    return NextResponse.json({ error: "허용되지 않는 호스트입니다." }, { status: 400 });
   }
 
   const prefix = sanitizeStoragePrefix(body.prefix?.trim() ?? "import", 96);

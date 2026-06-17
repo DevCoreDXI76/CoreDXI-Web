@@ -42,6 +42,19 @@ export async function POST(request: Request) {
       );
     }
 
+    const existingOtp = await prisma.otpCode.findFirst({ where: { email } });
+    if (existingOtp) {
+      const secondsElapsed = (Date.now() - existingOtp.createdAt.getTime()) / 1000;
+      const cooldownSeconds = 60;
+      if (secondsElapsed < cooldownSeconds) {
+        const remaining = Math.ceil(cooldownSeconds - secondsElapsed);
+        return NextResponse.json(
+          { success: false, message: `인증 코드 재발송은 ${remaining}초 후에 가능합니다.` },
+          { status: 429 }
+        );
+      }
+    }
+
     const code = generateOtpCode();
     const expiresAt = getOtpExpiresAt();
 

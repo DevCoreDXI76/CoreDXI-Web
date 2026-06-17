@@ -33,6 +33,31 @@ export const metadata: Metadata = {
   title: "CoreDXI — 비즈니스의 중심을 AI로 깨우다",
   description:
     "복잡한 협업은 심플하게, 변화는 단단하게. B2B 회의 예약 및 AX 전환 솔루션을 제공하는 당신의 AI 코어 파트너, CoreDXI.",
+  metadataBase: new URL("https://www.coredxi.com"),
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: "https://www.coredxi.com",
+    siteName: "CoreDXI",
+    title: "CoreDXI — 비즈니스의 중심을 AI로 깨우다",
+    description:
+      "복잡한 협업은 심플하게, 변화는 단단하게. B2B AX 전환 솔루션을 제공하는 AI 코어 파트너, CoreDXI.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "CoreDXI — AI 기반 AX 전환 솔루션",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CoreDXI — 비즈니스의 중심을 AI로 깨우다",
+    description:
+      "복잡한 협업은 심플하게, 변화는 단단하게. B2B AX 전환 솔루션을 제공하는 AI 코어 파트너.",
+    images: ["/og-image.png"],
+  },
   icons: {
     icon: [
       {
@@ -61,10 +86,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "CoreDXI",
+    url: "https://www.coredxi.com",
+    logo: "https://www.coredxi.com/brand/logo.png",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      email: "contact@coredxi.com",
+      availableLanguage: "Korean",
+    },
+    sameAs: [],
+  };
+
   return (
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
     <html lang="ko">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <link
           rel="icon"
           type="image/png"

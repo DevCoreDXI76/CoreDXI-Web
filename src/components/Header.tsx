@@ -126,7 +126,7 @@ export function Header() {
       className={[
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-border/50"
+          ? "bg-white/80 backdrop-blur-lg border-b border-slate-200/60"
           : "bg-transparent",
       ].join(" ")}
     >
@@ -147,11 +147,9 @@ export function Header() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="relative px-4 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 group"
+                  className="relative px-4 py-2 text-sm font-medium text-slate-600 rounded-md transition-all duration-200 hover:text-slate-900 hover:bg-slate-100"
                 >
                   {item.label}
-                  {/* 호버 시 하단 밑줄 슬라이드 효과 */}
-                  <span className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left" />
                 </Link>
               </li>
             ))}
@@ -188,13 +186,13 @@ export function Header() {
                   <button
                     type="button"
                     onClick={() => void signOut({ callbackUrl: publicLogoutUrl() })}
-                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-slate-600 rounded-md transition-all duration-200 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     로그아웃
                   </button>
                   <Link
                     href={HEADER_BUTTONS.primary.href}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-xl shadow-sm shadow-primary/20 transition-all duration-150 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-md shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
                   >
                     {HEADER_BUTTONS.primary.label}
                   </Link>
@@ -203,14 +201,14 @@ export function Header() {
                 <>
                   <Link
                     href={HEADER_BUTTONS.login.href}
-                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-150 hover:text-foreground hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-slate-600 rounded-md transition-all duration-200 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {HEADER_BUTTONS.login.label}
                   </Link>
 
                   <Link
                     href={HEADER_BUTTONS.primary.href}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-xl shadow-sm shadow-primary/20 transition-all duration-150 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-primary rounded-md shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0"
                   >
                     {HEADER_BUTTONS.primary.label}
                   </Link>
