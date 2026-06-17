@@ -88,7 +88,7 @@ export default function ConceptsPage() {
 
         {/* Concept 3 */}
         <section className="space-y-4">
-          <h2 className="text-xl font-semibold">컨셉 3: 미니멀 3D 'Core' (Isometric Core)</h2>
+          <h2 className="text-xl font-semibold">컨셉 3: 미니멀 3D &apos;Core&apos; (Isometric Core)</h2>
           <p className="text-sm text-slate-500">안정적이고 강력한 AI 엔진(Core)을 은유적으로 표현한 3D 입체 디자인입니다.</p>
           <div className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-2xl shadow-2xl shadow-primary/10 ring-1 ring-slate-200 bg-slate-50 flex items-center justify-center">
             {/* Isometric CSS Cube representing CoreDXI */}
