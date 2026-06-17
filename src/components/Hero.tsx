@@ -83,7 +83,7 @@ const HERO_CONTENT = {
    * 3. 이미지가 없으면 null로 설정하면 플레이스홀더가 표시됩니다.
    *    예: null
    */
-  imageSrc: "/hero_dashboard_mockup.png" as string | null,
+  imageSrc: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1600&q=80" as string | null,
 
   /** [홍보팀] 이미지의 내용을 설명하는 대체 텍스트입니다 (접근성, SEO에 중요). */
   imageAlt: "CoreDXI 서비스 화면 예시",
