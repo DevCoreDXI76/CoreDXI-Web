@@ -12,6 +12,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/AuthProvider";
+import { SITE_URL } from "@/lib/seo";
 
 /* 구글 폰트: Geist (모던하고 가독성 높은 산세리프 폰트) */
 const geistSans = Geist({
@@ -30,14 +31,27 @@ const geistMono = Geist_Mono({
  * description: 구글 검색 결과에 표시되는 설명 문구
  */
 export const metadata: Metadata = {
-  title: "CoreDXI — 비즈니스의 중심을 AI로 깨우다",
+  title: {
+    default: "CoreDXI — 비즈니스의 중심을 AI로 깨우다",
+    template: "%s | CoreDXI",
+  },
   description:
     "복잡한 협업은 심플하게, 변화는 단단하게. B2B 회의 예약 및 AX 전환 솔루션을 제공하는 당신의 AI 코어 파트너, CoreDXI.",
-  metadataBase: new URL("https://www.coredxi.com"),
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: SITE_URL,
+  },
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://www.coredxi.com",
+    url: SITE_URL,
     siteName: "CoreDXI",
     title: "CoreDXI — 비즈니스의 중심을 AI로 깨우다",
     description:
@@ -81,8 +95,8 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "CoreDXI",
-    url: "https://www.coredxi.com",
-    logo: "https://www.coredxi.com/brand/logo.png",
+    url: SITE_URL,
+    logo: `${SITE_URL}/brand/logo.png`,
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",

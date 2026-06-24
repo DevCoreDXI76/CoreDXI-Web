@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
+import { SITE_URL } from "@/lib/seo";
 
-const BASE_URL = "https://www.coredxi.com";
+const BASE_URL = SITE_URL;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -17,9 +18,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let blogRoutes: MetadataRoute.Sitemap = [];
   let caseRoutes: MetadataRoute.Sitemap = [];
+  let categoryRoutes: MetadataRoute.Sitemap = [];
 
   try {
-    const [posts, cases] = await Promise.all([
+    const [posts, cases, categories] = await Promise.all([
       prisma.blogPost.findMany({
         where: { status: "PUBLISHED" },
         select: { slug: true, updatedAt: true },
@@ -28,6 +30,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       prisma.portfolio.findMany({
         select: { id: true, updatedAt: true },
         orderBy: { createdAt: "desc" },
+      }),
+      prisma.blogCategory.findMany({
+        select: { slug: true, updatedAt: true },
+        orderBy: { sortOrder: "asc" },
       }),
     ]);
 
@@ -44,9 +50,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.6,
     }));
+
+    categoryRoutes = categories.map((category) => ({
+      url: `${BASE_URL}/blog/category/${category.slug}`,
+      lastModified: category.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
   } catch (e) {
     console.error("[sitemap] DB query failed:", e);
   }
 
-  return [...staticRoutes, ...blogRoutes, ...caseRoutes];
+  return [...staticRoutes, ...blogRoutes, ...caseRoutes, ...categoryRoutes];
 }

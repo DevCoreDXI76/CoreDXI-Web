@@ -1,4 +1,11 @@
 import React from "react";
+import type { Metadata } from "next";
+import { NOINDEX_METADATA } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  ...NOINDEX_METADATA,
+  title: "디자인 컨셉",
+};
 
 export default function ConceptsPage() {
   return (

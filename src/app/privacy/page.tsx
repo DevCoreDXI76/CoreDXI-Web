@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
-export const metadata: Metadata = {
-  title: "개인정보처리방침 — CoreDXI",
+export const metadata: Metadata = pageMetadata({
+  title: "개인정보처리방침",
   description: "CoreDXI 개인정보처리방침입니다.",
-};
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

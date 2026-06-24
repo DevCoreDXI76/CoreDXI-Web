@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { BlogPostGrid } from "@/components/blog/BlogPostGrid";
@@ -9,10 +10,11 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "블로그 — CoreDXI",
+export const metadata: Metadata = pageMetadata({
+  title: "블로그",
   description: "CoreDXI 소식·인사이트·고객 사례를 만나보세요.",
-};
+  path: "/blog",
+});
 
 async function getPublishedPosts(): Promise<BlogPostCard[]> {
   return prisma.blogPost.findMany({

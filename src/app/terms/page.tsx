@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
-export const metadata: Metadata = {
-  title: "이용약관 — CoreDXI",
+export const metadata: Metadata = pageMetadata({
+  title: "이용약관",
   description: "CoreDXI 서비스 이용약관입니다.",
-};
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

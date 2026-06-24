@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight, Target, Users, Zap, Shield } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
-export const metadata: Metadata = {
-  title: "회사 소개 — CoreDXI",
+export const metadata: Metadata = pageMetadata({
+  title: "회사 소개",
   description:
     "CoreDXI는 기업의 비즈니스 핵심을 AI로 깨우는 AX 전환 전문 파트너입니다. 복잡한 협업을 심플하게, 변화는 단단하게 설계합니다.",
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (
