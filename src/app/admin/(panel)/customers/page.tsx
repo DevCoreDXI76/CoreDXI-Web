@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CustomerTableRow } from "./CustomerTableRow";
+import { formatKstDate } from "@/lib/format-kst-date";
 import { CustomerActionsCell } from "./CustomerActionsCell";
 import { CustomerDeleteButton } from "./customer-delete-button";
 import { getSignupMethodLabels } from "./signup-method";
@@ -94,7 +95,7 @@ export default async function AdminCustomersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-sm text-gray-500">
-                    {user.createdAt.toLocaleDateString("ko-KR")}
+                    {formatKstDate(user.createdAt)}
                   </TableCell>
                   {isSuperAdmin ? (
                     <CustomerActionsCell>

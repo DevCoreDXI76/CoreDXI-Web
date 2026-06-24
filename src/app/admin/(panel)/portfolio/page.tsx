@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PortfolioDeleteButton } from "./portfolio-delete-button";
+import { formatKstDate } from "@/lib/format-kst-date";
 
 export default async function AdminPortfolioPage() {
   const items = await prisma.portfolio.findMany({
@@ -79,7 +80,7 @@ export default async function AdminPortfolioPage() {
                     {item.metrics}
                   </TableCell>
                   <TableCell className="text-right text-sm text-gray-500">
-                    {item.createdAt.toLocaleDateString("ko-KR")}
+                    {formatKstDate(item.createdAt)}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">

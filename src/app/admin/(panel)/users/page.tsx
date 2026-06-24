@@ -32,6 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { RoleSelect } from "./RoleSelect";
 import { Role } from "@/generated/prisma/client";
+import { formatKstDate } from "@/lib/format-kst-date";
 
 // 권한별 Badge 스타일 정의
 function RoleBadge({ role }: { role: Role }) {
@@ -145,7 +146,7 @@ export default async function AdminUsersPage() {
 
                   {/* 등록일 */}
                   <TableCell className="text-right text-gray-500 text-sm">
-                    {user.createdAt.toLocaleDateString("ko-KR")}
+                    {formatKstDate(user.createdAt)}
                   </TableCell>
                 </TableRow>
               ))

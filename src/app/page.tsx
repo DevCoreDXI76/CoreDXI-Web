@@ -10,6 +10,7 @@ import {
   mapBlogPostToListCard,
   type BlogListCard,
 } from "@/components/blog/types";
+import { formatKstDateLong } from "@/lib/format-kst-date";
 
 export const dynamic = "force-dynamic";
 
@@ -102,7 +103,7 @@ export default async function HomePage() {
                         </span>
                         <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                           <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                          {featured.createdAt.toLocaleDateString("ko-KR")}
+                          {formatKstDateLong(featured.createdAt)}
                         </div>
                       </div>
 
@@ -180,7 +181,7 @@ export default async function HomePage() {
                             </span>
                             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
                               <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-                              {post.createdAt.toLocaleDateString("ko-KR")}
+                              {formatKstDateLong(post.createdAt)}
                             </span>
                           </div>
 

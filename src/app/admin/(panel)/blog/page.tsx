@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatKstDate } from "@/lib/format-kst-date";
 
 export const dynamic = "force-dynamic";
 
@@ -81,7 +82,7 @@ export default async function AdminBlogListPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-600">
-                    {p.updatedAt.toLocaleDateString("ko-KR")}
+                    {formatKstDate(p.updatedAt)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
