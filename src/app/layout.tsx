@@ -41,13 +41,14 @@ export const metadata: Metadata = {
   alternates: {
     canonical: SITE_URL,
   },
-  ...(process.env.GOOGLE_SITE_VERIFICATION
-    ? {
-        verification: {
-          google: process.env.GOOGLE_SITE_VERIFICATION,
-        },
-      }
-    : {}),
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+      : {}),
+    other: {
+      "naver-site-verification": "875becbd46b223c2a689b9154f11335a6326f85d",
+    },
+  },
   openGraph: {
     type: "website",
     locale: "ko_KR",
