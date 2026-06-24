@@ -15,7 +15,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/AuthProvider";
 import { SITE_URL } from "@/lib/seo";
 
-const GA_MEASUREMENT_ID = "G-GSDND226WG";
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 /* 구글 폰트: Geist (모던하고 가독성 높은 산세리프 폰트) */
 const geistSans = Geist({
@@ -111,19 +111,23 @@ export default function RootLayout({
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
     <html lang="ko">
       <head>
-        {/* [홍보팀] Google Analytics(구글 애널리틱스) 방문자 추적 코드입니다. 측정 ID는 GA_MEASUREMENT_ID 상수를 수정하세요. */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="beforeInteractive"
-        />
-        <Script id="google-analytics" strategy="beforeInteractive">
-          {`
+        {/* [홍보팀] Google Analytics(구글 애널리틱스) 방문자 추적 코드입니다. .env의 NEXT_PUBLIC_GA_MEASUREMENT_ID 값을 수정하세요. */}
+        {gaMeasurementId ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+              strategy="beforeInteractive"
+            />
+            <Script id="google-analytics" strategy="beforeInteractive">
+              {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
+            gtag('config', '${gaMeasurementId}');
           `}
-        </Script>
+            </Script>
+          </>
+        ) : null}
         {/* [홍보팀] 네이버 서치어드바이저 사이트 소유 확인용 메타 태그입니다. 등록 건마다 코드가 다를 수 있습니다. */}
         <meta
           name="naver-site-verification"

@@ -1,5 +1,6 @@
 import { ActivityLogTable } from "./ActivityLogTable";
 import { DashboardStatsGrid } from "./DashboardStatsGrid";
+import { Ga4AnalyticsPanel } from "./Ga4AnalyticsPanel";
 import { QuickActionsGrid } from "./QuickActionsGrid";
 
 export function AdminDashboard() {
@@ -14,6 +15,7 @@ export function AdminDashboard() {
       </header>
 
       <DashboardStatsGrid />
+      <Ga4AnalyticsPanel />
       <QuickActionsGrid />
       <ActivityLogTable />
     </div>
