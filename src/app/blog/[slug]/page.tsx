@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BlogPostReader } from "@/components/editor/BlogPostReader";
 import { prisma } from "@/lib/prisma";
+import { siteUrl } from "@/lib/seo";
 import { normalizeBlogContent } from "@/types/blocknote";
 
 export const dynamic = "force-dynamic";
@@ -15,14 +16,41 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await prisma.blogPost.findFirst({
     where: { slug, status: "PUBLISHED" },
-    select: { title: true, excerpt: true },
+    select: {
+      title: true,
+      excerpt: true,
+      coverImageUrl: true,
+      publishedAt: true,
+    },
   });
+
   if (!post) {
-    return { title: "글을 찾을 수 없습니다 — CoreDXI" };
+    return { title: "글을 찾을 수 없습니다" };
   }
+
+  const description = post.excerpt ?? post.title;
+  const canonical = siteUrl(`/blog/${slug}`);
+
   return {
-    title: `${post.title} — CoreDXI 블로그`,
-    description: post.excerpt ?? post.title,
+    title: post.title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "article",
+      locale: "ko_KR",
+      siteName: "CoreDXI",
+      title: post.title,
+      description,
+      url: canonical,
+      publishedTime: post.publishedAt?.toISOString(),
+      images: post.coverImageUrl ? [{ url: post.coverImageUrl }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description,
+      images: post.coverImageUrl ? [post.coverImageUrl] : undefined,
+    },
   };
 }
 
@@ -35,9 +63,41 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) notFound();
 
   const content = normalizeBlogContent(post.content);
+  const postUrl = siteUrl(`/blog/${slug}`);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt ?? post.title,
+    image: post.coverImageUrl ?? `${siteUrl()}/brand/logo.png`,
+    datePublished: post.publishedAt?.toISOString(),
+    dateModified: post.updatedAt.toISOString(),
+    author: {
+      "@type": "Organization",
+      name: "CoreDXI",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "CoreDXI",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl()}/brand/logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": postUrl,
+    },
+    url: postUrl,
+  };
 
   return (
     <article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link
         href={`/blog/category/${post.category.slug}`}
         className="text-sm font-medium text-[#1E4E8C] hover:underline"

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { getPortfolioById } from "@/lib/portfolio";
+import { siteUrl } from "@/lib/seo";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +17,30 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const item = await getPortfolioById(id);
-  if (!item) return { title: "성공사례 — CoreDXI" };
+  if (!item) return { title: "성공사례" };
+
+  const description = `${item.clientName} · ${item.metrics}`;
+  const canonical = siteUrl(`/cases/${id}`);
 
   return {
-    title: `${item.title} — CoreDXI 성공사례`,
-    description: `${item.clientName} · ${item.metrics}`,
+    title: item.title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "article",
+      locale: "ko_KR",
+      siteName: "CoreDXI",
+      title: item.title,
+      description,
+      url: canonical,
+      images: item.thumbnailUrl ? [{ url: item.thumbnailUrl }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description,
+      images: item.thumbnailUrl ? [item.thumbnailUrl] : undefined,
+    },
   };
 }
 

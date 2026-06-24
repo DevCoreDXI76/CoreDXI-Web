@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getPortfolios } from "@/lib/portfolio";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "성공사례 — CoreDXI",
-  description:
-    "CoreDXI와 함께한 고객사의 AX 전환 성공사례를 확인하세요.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "성공사례",
+  description: "CoreDXI와 함께한 고객사의 AX 전환 성공사례를 확인하세요.",
+  path: "/cases",
+});
 
 export default async function CasesPage() {
   const items = await getPortfolios();

@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 import { ArrowRight, BrainCircuit, BarChart3, Network, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
-export const metadata: Metadata = {
-  title: "솔루션 — CoreDXI",
+export const metadata: Metadata = pageMetadata({
+  title: "솔루션",
   description:
     "CoreDXI의 AI 기반 AX 전환 솔루션을 소개합니다. AI 협업 자동화, AX 전환 컨설팅, 엔터프라이즈 AI 플랫폼으로 비즈니스 핵심을 강화하세요.",
-};
+  path: "/solutions",
+});
 
 const SOLUTIONS = [
   {

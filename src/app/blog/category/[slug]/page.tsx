@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getBlogCategoryBySlug } from "@/lib/blog-categories";
 import { prisma } from "@/lib/prisma";
+import { siteUrl } from "@/lib/seo";
 import { BlogPostGrid } from "@/components/blog/BlogPostGrid";
 import {
   mapBlogPostToListCard,
@@ -18,10 +19,28 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const category = await getBlogCategoryBySlug(slug);
-  if (!category) return { title: "주제를 찾을 수 없습니다 — CoreDXI" };
+  if (!category) return { title: "주제를 찾을 수 없습니다" };
+
+  const description = category.description ?? category.name;
+  const canonical = siteUrl(`/blog/category/${slug}`);
+
   return {
-    title: `${category.name} — CoreDXI 블로그`,
-    description: category.description ?? category.name,
+    title: category.name,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      locale: "ko_KR",
+      siteName: "CoreDXI",
+      title: category.name,
+      description,
+      url: canonical,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: category.name,
+      description,
+    },
   };
 }
 
