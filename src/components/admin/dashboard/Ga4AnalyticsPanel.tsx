@@ -7,21 +7,18 @@
 
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { formatKstDateTime } from "@/lib/format-kst-date";
 import { getGa4DashboardMetrics } from "@/lib/ga4/get-dashboard-metrics";
 import { Ga4StatsGrid } from "./Ga4StatsGrid";
 import { Ga4TopPagesTable } from "./Ga4TopPagesTable";
-
-function formatFetchedAt(iso: string): string {
-  return new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
 
 export async function Ga4AnalyticsPanel() {
   const result = await getGa4DashboardMetrics();
 
   if (!result.ok) {
+    const isApiDisabled = result.message.includes("analyticsdata.googleapis.com");
+    const isNotConfigured = result.reason === "not_configured";
+
     return (
       <section
         className="rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm"
@@ -31,23 +28,48 @@ export async function Ga4AnalyticsPanel() {
           id="ga4-setup-heading"
           className="text-base font-semibold text-amber-950"
         >
-          GA4 연동 설정 필요
+          {isNotConfigured ? "GA4 연동 설정 필요" : "GA4 데이터를 불러올 수 없습니다"}
         </h2>
         <p className="mt-2 text-sm text-amber-900/90">{result.message}</p>
-        <ul className="mt-4 list-inside list-disc space-y-1 text-sm text-amber-900/80">
-          <li>
-            {/* [홍보팀] GA4 속성 ID는 Analytics 관리 → 속성 설정에서 확인합니다. */}
-            `.env`에 `GA4_PROPERTY_ID`(숫자 속성 ID)를 추가하세요.
-          </li>
-          <li>
-            서비스 계정 JSON은 `GA4_SERVICE_ACCOUNT_JSON`(한 줄) 또는
-            `GA4_SERVICE_ACCOUNT_PATH`(로컬 파일 경로)로 설정하세요.
-          </li>
-          <li>
-            서비스 계정 이메일을 GA4 → 관리 → 속성 액세스 관리에서{" "}
-            <strong>뷰어</strong> 권한으로 초대하세요.
-          </li>
-        </ul>
+        {isApiDisabled ? (
+          <ul className="mt-4 list-inside list-disc space-y-1 text-sm text-amber-900/80">
+            <li>
+              Google Cloud 프로젝트 <strong>coredxi-web</strong>에서{" "}
+              <strong>Google Analytics Data API</strong>를 사용 설정하세요.
+            </li>
+            <li>
+              <Link
+                href="https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com?project=coredxi-web"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary underline underline-offset-2"
+              >
+                Analytics Data API 활성화 페이지 열기
+              </Link>
+            </li>
+            <li>활성화 후 2~5분 기다린 뒤 대시보드를 새로고침하세요.</li>
+            <li>
+              GA4 → 관리 → 속성 액세스 관리에서{" "}
+              <strong>coredxi@coredxi-web.iam.gserviceaccount.com</strong>을
+              뷰어로 추가했는지도 확인하세요.
+            </li>
+          </ul>
+        ) : isNotConfigured ? (
+          <ul className="mt-4 list-inside list-disc space-y-1 text-sm text-amber-900/80">
+            <li>
+              {/* [홍보팀] GA4 속성 ID는 Analytics 관리 → 속성 설정에서 확인합니다. */}
+              `.env`에 `GA4_PROPERTY_ID`(숫자 속성 ID)를 추가하세요.
+            </li>
+            <li>
+              서비스 계정 JSON은 `GA4_SERVICE_ACCOUNT_JSON`(한 줄) 또는
+              `GA4_SERVICE_ACCOUNT_PATH`(로컬 파일 경로)로 설정하세요.
+            </li>
+            <li>
+              서비스 계정 이메일을 GA4 → 관리 → 속성 액세스 관리에서{" "}
+              <strong>뷰어</strong> 권한으로 초대하세요.
+            </li>
+          </ul>
+        ) : null}
       </section>
     );
   }
@@ -67,7 +89,7 @@ export async function Ga4AnalyticsPanel() {
           <p className="mt-1 text-sm text-slate-500">
             {/* [홍보팀] 아래 수치는 GA4에서 자동으로 불러온 방문자 통계입니다. */}
             사이트 방문자 통계 · 마지막 갱신{" "}
-            {formatFetchedAt(data.fetchedAt)}
+            {formatKstDateTime(data.fetchedAt)}
           </p>
         </div>
         <Link

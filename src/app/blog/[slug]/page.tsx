@@ -5,6 +5,7 @@ import { BlogPostReader } from "@/components/editor/BlogPostReader";
 import { prisma } from "@/lib/prisma";
 import { siteUrl } from "@/lib/seo";
 import { normalizeBlogContent } from "@/types/blocknote";
+import { formatKstDateLong } from "@/lib/format-kst-date";
 
 export const dynamic = "force-dynamic";
 
@@ -112,7 +113,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       ) : null}
       {post.publishedAt ? (
         <p className="mt-4 text-sm text-gray-400">
-          {post.publishedAt.toLocaleDateString("ko-KR")}
+          {formatKstDateLong(post.publishedAt)}
         </p>
       ) : null}
 

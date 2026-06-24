@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { CustomerDeleteButton } from "../customer-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { formatSignupMethods, getSignupMethodLabels } from "../signup-method";
+import { formatKstDateTime } from "@/lib/format-kst-date";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -90,7 +91,7 @@ export default async function AdminCustomerDetailPage({ params }: PageProps) {
             <dt className="text-sm text-gray-500">이메일 인증</dt>
             <dd className="mt-0.5 text-gray-900">
               {user.emailVerified
-                ? user.emailVerified.toLocaleString("ko-KR")
+                ? formatKstDateTime(user.emailVerified)
                 : "미인증"}
             </dd>
           </div>
@@ -114,13 +115,13 @@ export default async function AdminCustomerDetailPage({ params }: PageProps) {
           <div>
             <dt className="text-sm text-gray-500">등록일</dt>
             <dd className="mt-0.5 text-gray-900">
-              {user.createdAt.toLocaleString("ko-KR")}
+              {formatKstDateTime(user.createdAt)}
             </dd>
           </div>
           <div>
             <dt className="text-sm text-gray-500">최종 수정</dt>
             <dd className="mt-0.5 text-gray-900">
-              {user.updatedAt.toLocaleString("ko-KR")}
+              {formatKstDateTime(user.updatedAt)}
             </dd>
           </div>
         </dl>

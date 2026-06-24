@@ -1,3 +1,5 @@
+import { formatKstDateLong } from "@/lib/format-kst-date";
+
 export type BlogPostCard = {
   slug: string;
   title: string;
@@ -30,23 +32,15 @@ const COVER_IMAGES = [
   "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1600&q=80",
 ];
 
-function formatBlogDate(date: Date): string {
-  return date.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
 export function formatBlogMeta(
   createdAt: Date,
   updatedAt: Date,
   author: string
 ): string {
-  const created = formatBlogDate(createdAt);
+  const created = formatKstDateLong(createdAt);
   const updated =
     updatedAt.getTime() !== createdAt.getTime()
-      ? ` (수정: ${formatBlogDate(updatedAt)})`
+      ? ` (수정: ${formatKstDateLong(updatedAt)})`
       : "";
   return `${created}${updated} · ${author}`;
 }

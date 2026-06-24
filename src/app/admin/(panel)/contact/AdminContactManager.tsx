@@ -13,6 +13,7 @@ import {
   getContactStatusLabel,
   normalizeContactStatus,
 } from "@/lib/contact-status";
+import { formatKstDate } from "@/lib/format-kst-date";
 import {
   FileText,
   Mail,
@@ -46,14 +47,6 @@ function templateKeyFromType(type: string): TemplateKey {
 }
 
 const DEFAULT_REPLY_SUBJECT = "[CoreDXI] 문의하신 내용에 대한 답변입니다.";
-
-function formatContactDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-}
 
 function ContactStatusBadge({ status }: { status: string }) {
   const normalized = normalizeContactStatus(status);
@@ -323,7 +316,7 @@ export function AdminContactManager({
                       }`}
                     >
                       <td className="px-4 py-3 text-slate-600">
-                        {formatContactDate(contact.created_at)}
+                        {formatKstDate(contact.created_at)}
                       </td>
                       <td className="px-4 py-3 font-medium text-slate-900">
                         {contact.name}
@@ -417,7 +410,7 @@ export function AdminContactManager({
             </div>
 
             <div className="text-right text-xs text-slate-400">
-              접수 일시: {formatContactDate(selectedContact.created_at)}
+              접수 일시: {formatKstDate(selectedContact.created_at)}
             </div>
           </div>
 
