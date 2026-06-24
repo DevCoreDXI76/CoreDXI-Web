@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# GA4 서비스 계정 키 (GitHub에 올리지 않음)
+secrets/*
+!secrets/.gitkeep
+*-service-account*.json
+coredxi-web-*.json
+
 # vercel
 .vercel
 
