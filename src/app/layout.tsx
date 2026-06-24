@@ -45,9 +45,6 @@ export const metadata: Metadata = {
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? { google: process.env.GOOGLE_SITE_VERIFICATION }
       : {}),
-    other: {
-      "naver-site-verification": "62def37bfa19ead530193e944ae227af1667048c",
-    },
   },
   openGraph: {
     type: "website",
@@ -111,6 +108,15 @@ export default function RootLayout({
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
     <html lang="ko">
       <head>
+        {/* [홍보팀] 네이버 서치어드바이저 사이트 소유 확인용 메타 태그입니다. 등록 건마다 코드가 다를 수 있습니다. */}
+        <meta
+          name="naver-site-verification"
+          content="875becbd46b223c2a689b9154f11335a6326f85d"
+        />
+        <meta
+          name="naver-site-verification"
+          content="62def37bfa19ead530193e944ae227af1667048c"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
