@@ -1,0 +1,16 @@
+#!/bin/sh
+# Git post-commit: 커밋 완료 시 Notion Tasks DB에 자동 기록
+# 실패해도 git commit 자체는 성공 상태를 유지합니다.
+
+ROOT="$(git rev-parse --show-toplevel)" || exit 0
+cd "$ROOT" || exit 0
+
+if command -v py >/dev/null 2>&1; then
+  py "$ROOT/scripts/notion_post_commit.py" || true
+elif command -v python3 >/dev/null 2>&1; then
+  python3 "$ROOT/scripts/notion_post_commit.py" || true
+elif command -v python >/dev/null 2>&1; then
+  python "$ROOT/scripts/notion_post_commit.py" || true
+fi
+
+exit 0
