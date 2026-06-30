@@ -37,11 +37,75 @@ TASKS_DB = os.getenv("NOTION_TASKS_DB_ID", "")
 PROJECT_PAGE_ID = os.getenv("NOTION_PROJECT_PAGE_ID", "")
 
 PREFIXES = ["feat", "fix", "refactor", "chore", "docs", "style", "test", "perf", "build"]
+VALID_TOOLS = ("Claude Code", "Cursor", "기타")
+SIMULTANEOUS_THRESHOLD_SEC = 60  # 1분 이내 차이면 구분 불가 → 기타
 NOTION_HEADERS = {
     "Authorization": f"Bearer {NOTION_TOKEN}",
     "Notion-Version": "2022-06-28",
     "Content-Type": "application/json",
 }
+
+
+def folder_latest_mtime(folder: Path) -> float | None:
+    """폴더 내 파일 중 가장 최근 수정 시각(Unix timestamp). 없으면 None."""
+    if not folder.is_dir():
+        return None
+    latest: float | None = None
+    try:
+        for path in folder.rglob("*"):
+            if not path.is_file():
+                continue
+            try:
+                mtime = path.stat().st_mtime
+                latest = mtime if latest is None else max(latest, mtime)
+            except OSError:
+                continue
+    except OSError:
+        return None
+    return latest
+
+
+def detect_coding_tool() -> str:
+    """
+    VIBE_CODING_TOOL 환경변수가 있으면 최우선.
+    없으면 .claude / .cursor 폴더(프로젝트 + 홈) 최근 수정 시각으로 추정.
+    """
+    manual = os.getenv("VIBE_CODING_TOOL", "").strip()
+    if manual:
+        return manual if manual in VALID_TOOLS else "기타"
+
+    home = Path.home()
+    search_roots = [ROOT, home]
+
+    claude_times: list[float] = []
+    cursor_times: list[float] = []
+
+    for base in search_roots:
+        t = folder_latest_mtime(base / ".claude")
+        if t is not None:
+            claude_times.append(t)
+        t = folder_latest_mtime(base / ".cursor")
+        if t is not None:
+            cursor_times.append(t)
+
+    claude_latest = max(claude_times) if claude_times else None
+    cursor_latest = max(cursor_times) if cursor_times else None
+
+    if claude_latest is None and cursor_latest is None:
+        return "기타"
+    if claude_latest is not None and cursor_latest is None:
+        return "Claude Code"
+    if cursor_latest is not None and claude_latest is None:
+        return "Cursor"
+
+    diff = abs(claude_latest - cursor_latest)
+    if diff <= SIMULTANEOUS_THRESHOLD_SEC:
+        return "기타"
+    return "Claude Code" if claude_latest > cursor_latest else "Cursor"
+
+
+def normalize_tool(tool: str) -> str:
+    return tool if tool in VALID_TOOLS else "기타"
 
 
 def git(args: list[str]) -> str:
@@ -108,7 +172,7 @@ def create_notion_task(
         "Task명": {"title": [{"text": {"content": task_name}}]},
         "프로젝트": {"relation": [{"id": PROJECT_PAGE_ID}]},
         "상태": {"select": {"name": "완료"}},
-        "사용 도구": {"select": {"name": tool if tool in ("Claude Code", "Cursor", "기타") else "기타"}},
+        "사용 도구": {"select": {"name": normalize_tool(tool)}},
         "커밋 링크": {"url": commit_url or None},
         "변경 파일": {"rich_text": to_rich_text(files[:900])},
         "완료 시각": {"date": {"start": completed_at[:10]}},
@@ -145,11 +209,11 @@ def main() -> int:
 
     task_name, work_type, _ = parse_commit_message(full_message)
     commit_url = build_commit_url(commit_hash)
-    tool = os.getenv("VIBE_CODING_TOOL", "기타")
+    tool = detect_coding_tool()
 
     try:
         create_notion_task(task_name, work_type, commit_url, files, commit_time, tool)
-        print(f"✅ Notion Tasks에 기록되었습니다: {task_name}")
+        print(f"✅ Notion Tasks에 기록되었습니다: {task_name} (사용 도구: {tool})")
     except Exception as e:
         print(f"[Notion 훅] 기록 실패 (커밋은 정상 완료됨): {e}")
 

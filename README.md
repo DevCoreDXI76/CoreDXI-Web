@@ -165,7 +165,8 @@ docs: 작업 제목
 ```
 
 - prefix 없이 커밋해도 Tasks에는 기록되지만, **작업 유형** 필드는 비워집니다.
-- `.env`에 `VIBE_CODING_TOOL=Cursor` (또는 `Claude Code`)를 설정하면 **사용 도구** 필드에 반영됩니다.
+- **사용 도구**는 `.claude` / `.cursor` 폴더의 최근 수정 시각으로 자동 추정됩니다 (Cursor / Claude Code / 기타).
+- 수동 지정이 필요하면 `.env`에 `VIBE_CODING_TOOL=Cursor` (또는 `Claude Code`)를 설정하면 자동 감지보다 우선합니다.
 
 > **참고:** 훅 파일(`.git/hooks/post-commit`)은 Git으로 추적되지 않습니다. 다른 PC나 새 clone에서는 `scripts/notion_post_commit.py`와 `.env` 설정 후 훅을 다시 설치해야 합니다.
 
