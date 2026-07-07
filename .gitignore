@@ -58,6 +58,11 @@ dev.db
 # Sentry Config File
 .env.sentry-build-plugin
 
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
 # 쿠키/세션 덤프 (실제 인증 쿠키가 포함될 수 있어 절대 커밋 금지)
 cookies.txt
 cookies-local.txt

@@ -9,20 +9,7 @@ import {
 } from "@/lib/blog-image-storage";
 import { requireBlogEditor } from "@/lib/require-blog-editor";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-
-function isBlockedHost(hostname: string): boolean {
-  const h = hostname.toLowerCase();
-  return (
-    h === "localhost" ||
-    h === "127.0.0.1" ||
-    h === "::1" ||
-    h.startsWith("192.168.") ||
-    h.startsWith("10.") ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
-    h.endsWith(".internal") ||
-    h.endsWith(".local")
-  );
-}
+import { isBlockedHost } from "@/lib/url-safety";
 
 /** 붙여넣기 HTML 등 외부 이미지 URL — 서버에서 받아 blog-images에 저장 (CORS 회피) */
 export async function POST(req: Request) {
