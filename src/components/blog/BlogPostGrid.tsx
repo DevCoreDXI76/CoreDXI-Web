@@ -2,28 +2,73 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatBlogMeta, type BlogListCard } from "./types";
 
 type Props = {
   posts: BlogListCard[];
+  categorySlug?: string;
 };
 
-export function BlogPostGrid({ posts }: Props) {
+function parseListCards(raw: BlogListCard[]): BlogListCard[] {
+  return raw.map((post) => ({
+    ...post,
+    createdAt: new Date(post.createdAt),
+    updatedAt: new Date(post.updatedAt),
+  }));
+}
+
+export function BlogPostGrid({ posts, categorySlug }: Props) {
   const searchParams = useSearchParams();
-  const q = (searchParams.get("q") ?? "").trim().toLowerCase();
+  const q = (searchParams.get("q") ?? "").trim();
 
-  const filtered = useMemo(() => {
-    if (!q) return posts;
-    return posts.filter((p) => {
-      const hay =
-        `${p.title} ${p.subCategory} ${p.tag} ${p.author} ${p.category.name}`.toLowerCase();
-      return hay.includes(q);
-    });
-  }, [posts, q]);
+  const [searchResults, setSearchResults] = useState<BlogListCard[] | null>(
+    null
+  );
+  const [isSearching, setIsSearching] = useState(false);
 
-  if (filtered.length === 0) {
+  useEffect(() => {
+    if (!q) {
+      setSearchResults(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsSearching(true);
+
+    const params = new URLSearchParams({ q });
+    if (categorySlug) params.set("category", categorySlug);
+
+    fetch(`/api/blog/search?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data: { posts: BlogListCard[] }) => {
+        if (cancelled) return;
+        setSearchResults(parseListCards(data.posts ?? []));
+      })
+      .catch(() => {
+        if (!cancelled) setSearchResults([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsSearching(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [q, categorySlug]);
+
+  const displayed = q ? (searchResults ?? []) : posts;
+
+  if (q && isSearching && searchResults === null) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center text-slate-500">
+        검색 중…
+      </div>
+    );
+  }
+
+  if (displayed.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center text-slate-500">
         {q ? "검색 결과가 없습니다." : "아직 공개된 글이 없습니다."}
@@ -33,7 +78,7 @@ export function BlogPostGrid({ posts }: Props) {
 
   return (
     <ul className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {filtered.map((post) => (
+      {displayed.map((post) => (
         <li key={post.slug}>
           <Link
             href={post.href}

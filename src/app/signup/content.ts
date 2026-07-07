@@ -1,0 +1,23 @@
+export const SIGNUP_CONTENT = {
+  step1Title: "첫 CoreDXI를 몇 초 만에 시작하세요",
+  workEmailLabel: "업무용 이메일",
+  googleButton: "Google 계정으로 등록",
+  orLabel: "또는",
+  continueText: "계속",
+  step2Title: "코드를 이메일로 보냈습니다",
+  step2Desc: "설정을 완료하려면 다음 주소로 보내드린 코드를 입력하세요.",
+  confirmOtp: "확인",
+  resendText: "이메일을 받지 못하셨습니까?",
+  resendLink: "이메일 다시 보내기",
+  step3Title: "이름이 무엇입니까?",
+  step3Desc: "프로필에 표시될 이름입니다.",
+  fullNameLabel: "전체 이름",
+  fullNamePlaceholder: "이름을 입력하세요",
+  passwordLabel: "비밀번호",
+  passwordPlaceholder: "비밀번호를 입력하세요",
+  passwordHint: "비밀번호는 최소 8자여야 합니다.",
+  loginPrompt: "이미 계정이 있습니까?",
+  loginLink: "로그인",
+  terms:
+    "가입하면 CoreDXI 이용 약관에 동의하고 개인정보 보호정책을 인정한 것으로 간주됩니다.",
+} as const;

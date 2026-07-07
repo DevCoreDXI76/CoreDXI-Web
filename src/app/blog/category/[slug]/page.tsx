@@ -80,7 +80,7 @@ export default async function BlogCategoryPage({ params }: PageProps) {
           <div className="py-12 text-center text-sm text-slate-500">불러오는 중…</div>
         }
       >
-        <BlogPostGrid posts={posts} />
+        <BlogPostGrid posts={posts} categorySlug={category.slug} />
       </Suspense>
     </>
   );
