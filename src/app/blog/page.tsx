@@ -8,7 +8,7 @@ import {
   type BlogPostCard,
 } from "@/components/blog/types";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = pageMetadata({
   title: "블로그",

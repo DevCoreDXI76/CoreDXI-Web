@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { CaseCard } from "@/components/cases/CaseCard";
 import { getPortfolios } from "@/lib/portfolio";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = pageMetadata({
   title: "성공사례",

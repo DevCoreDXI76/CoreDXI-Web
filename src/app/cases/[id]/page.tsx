@@ -6,7 +6,7 @@ import { getPortfolioById } from "@/lib/portfolio";
 import { siteUrl } from "@/lib/seo";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type PageProps = {
   params: Promise<{ id: string }>;

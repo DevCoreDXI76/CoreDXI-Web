@@ -1,7 +1,7 @@
 import { listBlogCategories } from "@/lib/blog-categories";
 import { BlogShell } from "@/components/blog/BlogShell";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function BlogLayout({
   children,

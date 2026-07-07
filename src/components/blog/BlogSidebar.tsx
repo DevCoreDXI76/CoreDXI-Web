@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 import type { BlogCategoryItem } from "@/lib/blog-categories";
 import { BlogSearch } from "./BlogSearch";
@@ -41,7 +42,9 @@ export function BlogSidebar({ categories }: Props) {
           );
         })}
       </nav>
-      <BlogSearch />
+      <Suspense fallback={<div className="mt-auto h-10 pt-6" />}>
+        <BlogSearch />
+      </Suspense>
     </aside>
   );
 }
