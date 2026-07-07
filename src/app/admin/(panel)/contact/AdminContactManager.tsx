@@ -1,6 +1,5 @@
 "use client";
 
-import type { ContactRecord } from "@/actions/contact";
 import {
   updateContactNotificationEmail,
   updateContactStatus,
@@ -13,6 +12,7 @@ import {
   getContactStatusLabel,
   normalizeContactStatus,
 } from "@/lib/contact-status";
+import type { ContactRecord } from "@/lib/contact-types";
 import { formatKstDate } from "@/lib/format-kst-date";
 import {
   FileText,

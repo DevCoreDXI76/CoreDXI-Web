@@ -2,54 +2,23 @@
 
 import { auth } from "@/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-import {
-  type ContactStatus,
-  isContactStatus,
-} from "@/lib/contact-status";
+import { isContactStatus, type ContactStatus } from "@/lib/contact-status";
+import type {
+  ContactFormInput,
+  ContactListResult,
+  ContactRecord,
+  ContactSubmitResult,
+  UpdateContactNotificationEmailResult,
+  UpdateContactStatusResult,
+} from "@/lib/contact-types";
 import { sendResendEmail } from "@/lib/resend";
 import { revalidatePath } from "next/cache";
-
-export type { ContactStatus } from "@/lib/contact-status";
-
-export type ContactRecord = {
-  id: string;
-  name: string;
-  email: string;
-  type: string;
-  message: string;
-  status: ContactStatus;
-  created_at: string;
-};
-
-export type ContactFormInput = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  type: string;
-  message: string;
-};
-
-export type ContactSubmitResult =
-  | { success: true }
-  | { success: false; error: string };
-
-export type ContactListResult =
-  | { success: true; data: ContactRecord[] }
-  | { success: false; error: string };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DEFAULT_CONTACT_NOTIFICATION_EMAIL = "contact@coredxi.com";
 
 const NOTIFICATION_EMAIL_KEY = "notification_email";
-
-export type UpdateContactNotificationEmailResult =
-  | { success: true; email: string }
-  | { success: false; error: string };
-
-export type UpdateContactStatusResult =
-  | { success: true }
-  | { success: false; error: string };
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
