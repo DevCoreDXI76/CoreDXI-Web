@@ -27,6 +27,8 @@ export default async function AdminPortfolioEditPage({ params }: PageProps) {
           videoUrl: item.videoUrl ?? "",
           content: item.content,
           metrics: item.metrics,
+          industry: item.industry ?? "",
+          solutionType: item.solutionType ?? "",
         }}
       />
     </div>

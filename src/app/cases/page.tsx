@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
-import { CaseCard } from "@/components/cases/CaseCard";
+import { CaseFilterGrid } from "@/components/cases/CaseFilterGrid";
 import { getPortfolios } from "@/lib/portfolio";
 
 export const revalidate = 60;
@@ -34,11 +34,7 @@ export default async function CasesPage() {
               등록된 성공사례가 없습니다.
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
-                <CaseCard key={item.id} item={item} />
-              ))}
-            </div>
+            <CaseFilterGrid initialItems={items} />
           )}
         </div>
       </main>

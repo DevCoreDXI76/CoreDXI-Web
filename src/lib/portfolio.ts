@@ -8,6 +8,8 @@ export type PortfolioPublic = {
   videoUrl: string | null;
   content: string;
   metrics: string;
+  industry: string | null;
+  solutionType: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -20,12 +22,25 @@ const portfolioSelect = {
   videoUrl: true,
   content: true,
   metrics: true,
+  industry: true,
+  solutionType: true,
   createdAt: true,
   updatedAt: true,
 } as const;
 
-export async function getPortfolios(): Promise<PortfolioPublic[]> {
+export type PortfolioFilter = {
+  industry?: string;
+  solutionType?: string;
+};
+
+export async function getPortfolios(
+  filter?: PortfolioFilter
+): Promise<PortfolioPublic[]> {
   return prisma.portfolio.findMany({
+    where: {
+      ...(filter?.industry ? { industry: filter.industry } : {}),
+      ...(filter?.solutionType ? { solutionType: filter.solutionType } : {}),
+    },
     orderBy: { createdAt: "desc" },
     select: portfolioSelect,
   });

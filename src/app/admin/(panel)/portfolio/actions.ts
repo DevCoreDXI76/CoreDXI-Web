@@ -8,6 +8,8 @@
  * - videoUrl: 유튜브·비메오 동영상 주소 (선택)
  * - content: 상세 설명 본문
  * - metrics: 성과 수치 (예: "업무 효율 30% 증대")
+ * - industry: 업종 (선택, /cases 필터에 사용)
+ * - solutionType: 솔루션 유형 (선택, /cases 필터에 사용)
  */
 
 import { revalidatePath } from "next/cache";
@@ -20,6 +22,8 @@ export type PortfolioFormData = {
   videoUrl: string;
   content: string;
   metrics: string;
+  industry: string;
+  solutionType: string;
 };
 
 function validate(data: PortfolioFormData): string | null {
@@ -39,6 +43,8 @@ function normalize(data: PortfolioFormData) {
     videoUrl: data.videoUrl.trim() || null,
     content: data.content.trim(),
     metrics: data.metrics.trim(),
+    industry: data.industry.trim() || null,
+    solutionType: data.solutionType.trim() || null,
   };
 }
 

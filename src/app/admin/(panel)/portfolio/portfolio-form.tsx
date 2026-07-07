@@ -10,6 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  INDUSTRY_OPTIONS,
+  SOLUTION_TYPE_OPTIONS,
+} from "@/lib/portfolio-taxonomy";
+import {
   createPortfolio,
   updatePortfolio,
   type PortfolioFormData,
@@ -29,6 +40,8 @@ const emptyValues: PortfolioFormValues = {
   videoUrl: "",
   content: "",
   metrics: "",
+  industry: "",
+  solutionType: "",
 };
 
 export function PortfolioForm({ mode, initial }: PortfolioFormProps) {
@@ -59,6 +72,8 @@ export function PortfolioForm({ mode, initial }: PortfolioFormProps) {
         videoUrl: values.videoUrl,
         content: values.content,
         metrics: values.metrics,
+        industry: values.industry,
+        solutionType: values.solutionType,
       };
 
       const result =
@@ -125,6 +140,49 @@ export function PortfolioForm({ mode, initial }: PortfolioFormProps) {
             placeholder='예: "업무 효율 30% 증대"'
             disabled={pending}
           />
+        </div>
+
+        {/* [홍보팀] /cases 페이지의 업종·솔루션 유형 필터에 사용됩니다 (선택). */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="portfolio-industry">업종 (선택)</Label>
+            <Select
+              value={values.industry || undefined}
+              onValueChange={(v) => updateField("industry", v ?? "")}
+            >
+              <SelectTrigger id="portfolio-industry" className="w-full bg-white">
+                <SelectValue placeholder="선택 안 함" />
+              </SelectTrigger>
+              <SelectContent>
+                {INDUSTRY_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="portfolio-solution-type">솔루션 유형 (선택)</Label>
+            <Select
+              value={values.solutionType || undefined}
+              onValueChange={(v) => updateField("solutionType", v ?? "")}
+            >
+              <SelectTrigger
+                id="portfolio-solution-type"
+                className="w-full bg-white"
+              >
+                <SelectValue placeholder="선택 안 함" />
+              </SelectTrigger>
+              <SelectContent>
+                {SOLUTION_TYPE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* [홍보팀] 썸네일: 드래그 UI는 미리보기용이며, 실제 저장은 아래 URL 입력란 값이 사용됩니다. */}

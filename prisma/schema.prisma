@@ -108,8 +108,13 @@ model Portfolio {
   videoUrl     String?
   content      String   @db.Text
   metrics      String
+  industry     String?
+  solutionType String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([industry])
+  @@index([solutionType])
 }
 
 // =====================================================
