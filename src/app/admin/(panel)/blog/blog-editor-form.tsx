@@ -1,22 +1,21 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useId, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { isBlockNoteContent } from "@/types/blocknote";
+import type { TiptapBlogContent } from "@/types/blocknote";
+import { EMPTY_BLOG_DOC } from "@/types/blocknote";
+import type { BlogCategoryItem } from "@/lib/blog-categories";
+import { BlogEditorToolbar } from "./BlogEditorToolbar";
+import { BlogEditorCoverUpload } from "./BlogEditorCoverUpload";
+import { useBlogEditorForm } from "./useBlogEditorForm";
+import type { BlogEditorInitial } from "./editor-types";
+
+export type { BlogEditorInitial } from "./editor-types";
+
 function EditorLoadingFallback() {
   return (
     <div className="p-10 text-center text-gray-500">
@@ -40,35 +39,6 @@ const BlockNoteReader = dynamic(
     })),
   { ssr: false, loading: EditorLoadingFallback }
 );
-import {
-  importBlogImageFromUrl,
-  uploadBlogImageFile,
-} from "@/lib/blog-image-client";
-import {
-  countBrokenImages,
-  stripUnpersistedImages,
-} from "@/lib/tiptap-content";
-import {
-  EMPTY_BLOG_DOC,
-  isBlockNoteContent,
-  isTiptapDocument,
-  normalizeBlogContent,
-  type BlogPostContent,
-  type TiptapBlogContent,
-} from "@/types/blocknote";
-import type { TiptapEditorHandle } from "@/components/editor/TiptapEditor";
-import { deleteBlogPost, saveBlogPost } from "./actions";
-import type { BlogCategoryItem } from "@/lib/blog-categories";
-
-export type BlogEditorInitial = {
-  id: string;
-  title: string;
-  categoryId: string;
-  excerpt: string;
-  coverImageUrl?: string | null;
-  content: BlogPostContent | unknown;
-  status: "DRAFT" | "PUBLISHED";
-};
 
 type Props = {
   mode: "create" | "edit";
@@ -77,236 +47,27 @@ type Props = {
 };
 
 export function BlogEditorForm({ mode, categories, initial }: Props) {
-  const router = useRouter();
-  const reactId = useId();
-  const draftKey = useMemo(
-    () => reactId.replace(/:/g, "").replace(/^-+|-+$/g, "") || "draft",
-    [reactId]
-  );
-
-  const [postId, setPostId] = useState<string | undefined>(initial?.id);
-  const [title, setTitle] = useState(initial?.title ?? "");
-  const [categoryId, setCategoryId] = useState(
-    initial?.categoryId ?? categories[0]?.id ?? ""
-  );
-  const selectedCategoryName = useMemo(
-    () => categories.find((c) => c.id === categoryId)?.name,
-    [categories, categoryId]
-  );
-  const [excerpt, setExcerpt] = useState(initial?.excerpt ?? "");
-  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(
-    initial?.coverImageUrl ?? null
-  );
-  const [coverUploading, setCoverUploading] = useState(false);
-  const [coverUrlInput, setCoverUrlInput] = useState("");
-  const [documentJson, setDocumentJson] = useState<BlogPostContent>(() =>
-    normalizeBlogContent(initial?.content)
-  );
-  const [pending, setPending] = useState(false);
-  const editorRef = useRef<TiptapEditorHandle>(null);
-  const coverFileInputRef = useRef<HTMLInputElement>(null);
-
-  const storageKey = useMemo(
-    () => postId ?? `new-${draftKey}`,
-    [postId, draftKey]
-  );
-
-  const uploadPrefix = postId ?? draftKey;
-  const coverUploadPrefix = `${uploadPrefix}/cover`;
-
-  const uploadFile = useMemo(
-    () => (file: File) => uploadBlogImageFile(file, uploadPrefix),
-    [uploadPrefix]
-  );
-
-  const uploadCoverFile = useMemo(
-    () => (file: File) => uploadBlogImageFile(file, coverUploadPrefix),
-    [coverUploadPrefix]
-  );
-
-  const importRemoteImage = useMemo(
-    () => (url: string) => importBlogImageFromUrl(url, uploadPrefix),
-    [uploadPrefix]
-  );
-
-  const importCoverFromUrl = useMemo(
-    () => (url: string) => importBlogImageFromUrl(url, coverUploadPrefix),
-    [coverUploadPrefix]
-  );
-
-  async function handleCoverFileChange(file: File | undefined) {
-    if (!file || coverUploading || pending) return;
-    setCoverUploading(true);
-    try {
-      const url = await uploadCoverFile(file);
-      setCoverImageUrl(url);
-      toast.success("썸네일이 업로드되었습니다.");
-    } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : "썸네일 업로드에 실패했습니다."
-      );
-    } finally {
-      setCoverUploading(false);
-      if (coverFileInputRef.current) coverFileInputRef.current.value = "";
-    }
-  }
-
-  async function handleCoverUrlImport() {
-    const url = coverUrlInput.trim();
-    if (!url || coverUploading || pending) return;
-    setCoverUploading(true);
-    try {
-      const hosted = await importCoverFromUrl(url);
-      setCoverImageUrl(hosted);
-      setCoverUrlInput("");
-      toast.success("썸네일이 등록되었습니다.");
-    } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : "썸네일을 가져오지 못했습니다."
-      );
-    } finally {
-      setCoverUploading(false);
-    }
-  }
-
-  async function submit(status: "DRAFT" | "PUBLISHED") {
-    if (pending) return;
-    setPending(true);
-    try {
-      let contentToSave: BlogPostContent = documentJson;
-      const latest = editorRef.current?.getDocument();
-      if (latest && isTiptapDocument(latest)) {
-        contentToSave = stripUnpersistedImages(latest);
-        const broken = countBrokenImages(latest);
-        if (broken > 0) {
-          toast.warning(
-            `본문에 서버에 저장되지 않은 이미지가 ${broken}개 있습니다. 「이미지」 버튼으로 다시 넣어 주세요.`
-          );
-        }
-        setDocumentJson(contentToSave);
-      }
-
-      const result = await saveBlogPost({
-        id: postId,
-        title,
-        categoryId,
-        excerpt,
-        coverImageUrl,
-        content: contentToSave,
-        status,
-      });
-
-      if (!result.success) {
-        toast.error(result.message);
-        return;
-      }
-
-      if (!postId && result.id) {
-        setPostId(result.id);
-      }
-
-      toast.success(result.message);
-
-      if (mode === "create" && !initial?.id && result.id) {
-        router.replace(`/admin/blog/${result.id}/edit`);
-      }
-      router.refresh();
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function removePost() {
-    if (pending) return;
-    if (!postId || mode !== "edit") return;
-    const ok = window.confirm(
-      "정말 삭제할까요? 이 작업은 되돌릴 수 없습니다."
-    );
-    if (!ok) return;
-
-    setPending(true);
-    try {
-      const result = await deleteBlogPost(postId);
-      if (!result.success) {
-        toast.error(result.message);
-        return;
-      }
-      toast.success(result.message);
-      router.replace("/admin/blog");
-      router.refresh();
-    } finally {
-      setPending(false);
-    }
-  }
+  const form = useBlogEditorForm({ mode, categories, initial });
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] max-h-[calc(100dvh-4rem)] flex-col gap-4 overflow-hidden lg:h-[calc(100dvh-5rem)] lg:max-h-[calc(100dvh-5rem)]">
-      <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-gray-50/80">
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href="/admin/blog"
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-          >
-            목록
-          </Link>
-          <div className="flex items-center gap-2">
-            <Label htmlFor="blog-category" className="sr-only">
-              주제
-            </Label>
-            <Select
-              value={categoryId}
-              onValueChange={(v) => {
-                if (v) setCategoryId(v);
-              }}
-            >
-              <SelectTrigger id="blog-category" className="w-[200px] bg-white">
-                <SelectValue placeholder="주제">
-                  {selectedCategoryName}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {mode === "edit" && postId ? (
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={pending}
-              onClick={() => void removePost()}
-            >
-              삭제
-            </Button>
-          ) : null}
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={pending}
-            onClick={() => void submit("DRAFT")}
-          >
-            임시저장
-          </Button>
-          <Button
-            type="button"
-            disabled={pending}
-            onClick={() => void submit("PUBLISHED")}
-          >
-            발행하기
-          </Button>
-        </div>
-      </div>
+      <BlogEditorToolbar
+        mode={mode}
+        hasPostId={Boolean(form.postId)}
+        categories={categories}
+        categoryId={form.categoryId}
+        selectedCategoryName={form.selectedCategoryName}
+        onCategoryChange={form.setCategoryId}
+        pending={form.pending}
+        onSaveDraft={() => void form.submit("DRAFT")}
+        onPublish={() => void form.submit("PUBLISHED")}
+        onDelete={() => void form.removePost()}
+      />
 
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-5 min-h-0 overflow-y-auto px-1 pb-6">
         <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={form.title}
+          onChange={(e) => form.setTitle(e.target.value)}
           placeholder="제목을 입력하세요"
           className="shrink-0 border-0 px-0 py-2 text-3xl font-semibold leading-tight shadow-none focus-visible:ring-0 min-h-[3.25rem] md:text-4xl"
           aria-label="제목"
@@ -316,101 +77,40 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
           <Label htmlFor="blog-excerpt">요약 (선택)</Label>
           <Textarea
             id="blog-excerpt"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
+            value={form.excerpt}
+            onChange={(e) => form.setExcerpt(e.target.value)}
             placeholder="목록·검색 미리보기에 쓰일 짧은 요약"
             rows={2}
             className="resize-y bg-white"
           />
         </div>
 
-        <div className="shrink-0 space-y-3 rounded-lg border border-gray-200 bg-white p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Label htmlFor="blog-cover-url">썸네일 (선택)</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={pending || coverUploading}
-                onClick={() => coverFileInputRef.current?.click()}
-              >
-                {coverUploading ? "업로드 중…" : "이미지 선택"}
-              </Button>
-              {coverImageUrl ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={pending || coverUploading}
-                  onClick={() => setCoverImageUrl(null)}
-                >
-                  삭제
-                </Button>
-              ) : null}
-            </div>
-          </div>
-          <input
-            ref={coverFileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => void handleCoverFileChange(e.target.files?.[0])}
-          />
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              id="blog-cover-url"
-              value={coverUrlInput}
-              onChange={(e) => setCoverUrlInput(e.target.value)}
-              placeholder="이미지 URL 붙여넣기 (선택)"
-              disabled={pending || coverUploading}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  void handleCoverUrlImport();
-                }
-              }}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="shrink-0"
-              disabled={pending || coverUploading || !coverUrlInput.trim()}
-              onClick={() => void handleCoverUrlImport()}
-            >
-              URL 가져오기
-            </Button>
-          </div>
-          {coverImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={coverImageUrl}
-              alt="썸네일 미리보기"
-              className="aspect-[16/10] w-full max-w-md rounded-lg border object-cover"
-            />
-          ) : (
-            <p className="text-sm text-gray-500">
-              목록 카드에 표시될 대표 이미지입니다. 미설정 시 기본 이미지가
-              사용됩니다.
-            </p>
-          )}
-        </div>
+        <BlogEditorCoverUpload
+          coverImageUrl={form.coverImageUrl}
+          onCoverImageCleared={() => form.setCoverImageUrl(null)}
+          coverUploading={form.coverUploading}
+          pending={form.pending}
+          coverFileInputRef={form.coverFileInputRef}
+          onCoverFileChange={form.handleCoverFileChange}
+          coverUrlInput={form.coverUrlInput}
+          onCoverUrlInputChange={form.setCoverUrlInput}
+          onCoverUrlImport={form.handleCoverUrlImport}
+        />
 
-        {isBlockNoteContent(documentJson) ? (
+        {isBlockNoteContent(form.documentJson) ? (
           <div className="space-y-4 rounded-lg border border-amber-200 bg-amber-50/80 p-4">
             <p className="text-sm text-amber-950">
               이 글은 BlockNote 형식으로 저장되어 있습니다. 아래는 읽기 전용
               미리보기입니다. Tiptap 에디터로 새로 작성하려면 버튼을 누르세요.
               (공개 페이지에는 기존 본문이 그대로 표시됩니다.)
             </p>
-            <BlockNoteReader blocks={documentJson} />
+            <BlockNoteReader blocks={form.documentJson} />
             <Button
               type="button"
               variant="outline"
               size="sm"
               className="bg-white"
-              onClick={() => setDocumentJson(EMPTY_BLOG_DOC)}
+              onClick={() => form.setDocumentJson(EMPTY_BLOG_DOC)}
             >
               Tiptap 에디터로 새로 작성
             </Button>
@@ -418,14 +118,16 @@ export function BlogEditorForm({ mode, categories, initial }: Props) {
         ) : (
           <div className="flex h-[min(55vh,40rem)] min-h-[24rem] shrink-0 flex-col">
             <TiptapEditor
-              ref={editorRef}
-              key={storageKey}
-              storageKey={storageKey}
+              ref={form.editorRef}
+              key={form.storageKey}
+              storageKey={form.storageKey}
               className="h-full min-h-0"
-              initialContent={documentJson}
-              onChangeDocument={(doc: TiptapBlogContent) => setDocumentJson(doc)}
-              uploadFile={uploadFile}
-              importRemoteImage={importRemoteImage}
+              initialContent={form.documentJson}
+              onChangeDocument={(doc: TiptapBlogContent) =>
+                form.setDocumentJson(doc)
+              }
+              uploadFile={form.uploadFile}
+              importRemoteImage={form.importRemoteImage}
               editable
             />
           </div>

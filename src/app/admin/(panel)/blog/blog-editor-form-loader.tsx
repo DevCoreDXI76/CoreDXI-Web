@@ -2,7 +2,7 @@
 
 import type { BlogCategoryItem } from "@/lib/blog-categories";
 import { BlogEditorForm } from "./blog-editor-form";
-import type { BlogEditorInitial } from "./blog-editor-form";
+import type { BlogEditorInitial } from "./editor-types";
 
 type Props = {
   mode: "create" | "edit";

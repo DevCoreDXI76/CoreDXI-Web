@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { BlogCategoryItem } from "@/lib/blog-categories";
-import type { BlogEditorInitial } from "../../blog-editor-form";
+import type { BlogEditorInitial } from "../../editor-types";
 
 function EditorLoadingFallback() {
   return (
