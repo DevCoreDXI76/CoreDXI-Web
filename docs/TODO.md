@@ -1,7 +1,7 @@
 # CoreDXI-Web TODO
 
-> 최종 업데이트: 2026-06-30
-> 코드베이스 분석 기반 — 실제 구현 상태를 반영합니다.
+> 최종 업데이트: 2026-07-07
+> 코드베이스 분석 기반 — 실제 구현 상태를 반영합니다. (2026-06-30 → 2026-07-07 종합 고도화 세션 반영)
 
 ---
 
@@ -21,22 +21,22 @@
 
 ### 공개 마케팅 페이지
 
-- ✅ 홈 페이지 (`/`) — 히어로, 성공사례 미리보기, 최신 블로그, Mini About CTA
-- ✅ 회사 소개 (`/about`) — 미션·핵심가치·KPI 수치·CTA, SEO 메타데이터
-- ✅ 솔루션 소개 (`/solutions`) — 솔루션 3종 카드, 4단계 도입 프로세스
-- ✅ 성공사례 목록 (`/cases`) — Prisma DB 기반 카드 그리드
-- ✅ 성공사례 상세 (`/cases/[id]`) — 동영상 embed, 동적 SEO 메타데이터
-- ✅ 블로그 목록 (`/blog`) — 발행 글 목록, URL 검색 필터(`?q=`)
-- ✅ 블로그 상세 (`/blog/[slug]`) — Tiptap/BlockNote 본문 렌더, JSON-LD
-- ✅ 블로그 카테고리 (`/blog/category/[slug]`) — 카테고리별 필터링
-- ✅ 문의하기 (`/contact`) — 폼 제출, Supabase 저장, Resend 알림 이메일
+- ✅ 홈 페이지 (`/`) — 히어로, 성공사례 미리보기, 최신 블로그, Mini About CTA (ISR, revalidate=60)
+- ✅ 회사 소개 (`/about`) — 미션·핵심가치·KPI 수치·CTA, SEO 메타데이터, **CMS 연동 완료** (ISR)
+- ✅ 솔루션 소개 (`/solutions`) — 솔루션 3종 카드, 4단계 도입 프로세스, **CMS 연동 완료** (ISR)
+- ✅ 성공사례 목록 (`/cases`) — Prisma DB 기반 카드 그리드, **업종·솔루션 유형 필터** (ISR + 클라이언트 필터)
+- ✅ 성공사례 상세 (`/cases/[id]`) — 동영상 embed, 동적 SEO 메타데이터 (ISR)
+- ✅ 블로그 목록 (`/blog`) — 발행 글 목록, **서버사이드 검색**(`/api/blog/search`, 제목·요약·카테고리 ILIKE) (ISR)
+- ✅ 블로그 상세 (`/blog/[slug]`) — Tiptap/BlockNote 본문 렌더, JSON-LD, `generateStaticParams()`로 사전 빌드
+- ✅ 블로그 카테고리 (`/blog/category/[slug]`) — 카테고리별 필터링 + 카테고리 스코프 검색 (ISR)
+- ✅ 문의하기 (`/contact`) — 폼 제출, Supabase 저장, Resend 알림 이메일, **IP당 1시간 5회 rate limit**
 - ✅ 이용약관 (`/terms`), 개인정보처리방침 (`/privacy`)
 
 ### 인증 시스템
 
-- ✅ 일반 회원 로그인 (`/login`) — Google·Kakao·Naver OAuth, 이메일 2단계
-- ✅ 회원가입 (`/signup`) — 이메일 OTP 인증(6자리, 5분 만료) 3단계 플로우
-- ✅ 관리자 로그인 (`/admin/login`) — Credentials 인증
+- ✅ 일반 회원 로그인 (`/login`) — Google·Kakao·Naver OAuth, 이메일 2단계 (훅/단계별 컴포넌트로 리팩토링)
+- ✅ 회원가입 (`/signup`) — 이메일 OTP 인증(6자리, 5분 만료) 3단계 플로우 (훅/단계별 컴포넌트로 리팩토링)
+- ✅ 관리자 로그인 (`/admin/login`) — Credentials 인증, **이메일당 15분 5회 rate limit**
 - ✅ 최초 관리자 설정 (`/setup`) — DB Admin 없을 때만 접근
 - ✅ OAuth 리다이렉트 URI 안내 컴포넌트 (`OAuthRedirectHelp`)
 - ✅ 잘못된 쿠키 초기화 API (`/api/auth/reset`)
@@ -44,11 +44,14 @@
 
 ### 관리자 CMS 패널
 
-- ✅ 대시보드 (`/admin/dashboard`) — 통계 카드, GA4 분석 패널, 퀵액션, 활동 로그
-- ✅ 성공사례 관리 (`/admin/portfolio`) — 목록·신규 등록·수정·삭제
-- ✅ 블로그 관리 (`/admin/blog`) — 글 목록·신규 작성·수정·발행 상태 관리
+- ✅ 대시보드 (`/admin/dashboard`) — 통계 카드, GA4 분석 패널, 퀵액션, **활동 로그 실 DB 연동**(블로그+문의 통합)
+- ✅ **메인 화면 관리** (`/admin/main`) — 히어로 문구·버튼·이미지·신뢰지표 편집 (PageContent 테이블)
+- ✅ **회사소개 관리** (`/admin/about`) — 히어로·미션·핵심가치·지표·CTA 문구 편집 (PageContent 테이블)
+- ✅ **솔루션 관리** (`/admin/solutions`) — 히어로·솔루션 카드 3종·프로세스 4단계·CTA 문구 편집 (PageContent 테이블)
+- ✅ 성공사례 관리 (`/admin/portfolio`) — 목록·신규 등록·수정·삭제, **업종·솔루션 유형 필드 추가**
+- ✅ 블로그 관리 (`/admin/blog`) — 글 목록·신규 작성·수정·발행 상태 관리 (훅/서브컴포넌트로 리팩토링)
 - ✅ 블로그 주제 관리 (`/admin/blog/topics`) — 카테고리 CRUD
-- ✅ 문의 관리 (`/admin/contact`) — 문의 목록·상태 변경·알림 이메일 설정
+- ✅ 문의 관리 (`/admin/contact`) — 문의 목록·상태 변경·알림 이메일 설정 (목록/답장패널/템플릿으로 리팩토링)
 - ✅ 관리자 계정 관리 (`/admin/users`) — 목록·Role 변경(SUPER_ADMIN/EDITOR/VIEWER)
 - ✅ 관리자 등록 (`/admin/register`)
 - ✅ 고객(일반 회원) 관리 (`/admin/customers`) — 목록·상세·수정·삭제
@@ -56,81 +59,59 @@
 
 ### 인프라 & 품질
 
-- ✅ Next.js 미들웨어 기반 관리자 라우트 Role 보호 (`src/middleware.ts`)
-- ✅ Sentry 에러 모니터링 연동 (`withSentryConfig`, `instrumentation.ts`)
+- ✅ Next.js 미들웨어 기반 관리자 라우트 Role 보호 (`src/middleware.ts`), `/concepts` 프로덕션 접근 차단
+- ✅ Sentry 에러 모니터링 연동, **트레이스 샘플링 100%→20% 축소**(에러 캡처는 영향 없음)
 - ✅ GA4 Data API 연동 (관리자 대시보드 실시간 지표)
-- ✅ Supabase Storage 블로그 이미지 업로드·외부 URL import (SSRF 방지 포함)
+- ✅ Supabase Storage 블로그 이미지 업로드·외부 URL import (SSRF 방지, `src/lib/url-safety.ts`로 분리·테스트)
 - ✅ `sitemap.ts`, `robots.ts` 자동 생성
 - ✅ OG 이미지 자동 생성 (`opengraph-image.tsx`) — 루트·블로그·성공사례
 - ✅ `coredxi.com` → `www.coredxi.com` 301 리다이렉트
 - ✅ Tiptap / BlockNote 듀얼 포맷 지원 (신규: Tiptap, 레거시: BlockNote 호환 렌더)
 - ✅ 비개발자용 `CONTENT_GUIDE.md` 작성 (홍보팀 가이드)
 - ✅ 브랜드 컬러·디자인 시스템 (`globals.css`, `--primary: #1E4E8C`)
+- ✅ **Vitest 유닛 테스트 69개** (OTP, SSRF 가드, 문의 액션, SEO, rate-limit, 답장 템플릿, blog/cases 검색, page-content, CMS 액션)
+- ✅ **Playwright E2E 골든패스 4개** (문의 제출, 관리자 로그인 성공/실패, 블로그 발행 — 관리자 테스트는 `E2E_ADMIN_EMAIL/PASSWORD` 없으면 자동 skip)
+- ✅ CI(`ci.yml`)에 lint + typecheck + test 스텝 추가 (기존엔 build만 실행)
+- ✅ `.env.example` 생성, README 전면 현행화 (npm/포트3100/Turbopack/Supabase/Sentry/GA4/테스트 반영)
+- ✅ **관리자 로그인·문의 폼 rate limiting** (Prisma `RateLimitHit` 테이블 기반)
+- ✅ **보안 헤더** (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, HSTS) — CSP는 의도적 제외(아래 알려진 이슈 참고)
+- ✅ **프로덕션 TLS 검증 정상화** — `NODE_TLS_REJECT_UNAUTHORIZED="0"` 제거, Supabase 루트 CA 명시 신뢰로 교체
+- ✅ **git 히스토리 보안 정리** — 커밋돼 있던 실제 인증 쿠키 파일(ck.txt 등) 완전 제거, `.gitignore` 추가
 
 ---
 
-## 2. 미구현 / 플레이스홀더 ⬜
-
-> 관리자 패널 메뉴는 존재하지만 실제 기능은 `AdminPlaceholder` 컴포넌트로 대체된 항목들입니다.
-
-- ⬜ **홈 페이지 CMS** (`/admin/main`) — 히어로 섹션 텍스트·이미지 관리자 편집 기능
-  - 현재: `Hero.tsx`의 `HERO_CONTENT` 객체를 코드에서 직접 수정해야 함
-- ⬜ **회사소개 CMS** (`/admin/about`) — About 페이지 콘텐츠 DB 연동 편집
-  - 현재: `src/app/about/page.tsx` 내 정적 하드코딩
-- ⬜ **솔루션 CMS** (`/admin/solutions`) — Solutions 페이지 카드·텍스트 관리자 편집
-  - 현재: `src/app/solutions/page.tsx` 내 정적 하드코딩
-- ⬜ **Notion API 실제 연동** — 환경변수 7개(`NOTION_*_DB_ID`) 존재하지만 앱 내 실제 사용처 미확인
-  - `NOTION_PROJECTS_DB_ID`, `NOTION_DOCUMENTS_DB_ID`, `NOTION_TASKS_DB_ID` 등
-
----
-
-## 3. 개선이 필요한 항목 🔧
+## 2. 개선이 필요한 항목 🔧
 
 ### 보안
 
-- 🔧 `.env` 파일 보안 점검 — 프로덕션 키가 평문 저장되어 있어 Git 커밋 여부 재확인 필요 (`.gitignore` 검토)
-- 🔧 Supabase Service Role Key 서버 전용 사용 확인 — 클라이언트에 노출되지 않도록 주의
+- 🔧 CSP(Content-Security-Policy) 미적용 — script-src/connect-src를 잘못 설정하면 OAuth·GA4·Sentry·영상임베드가 조용히 깨질 위험이 있어 보류. 브라우저로 직접 검증 가능한 환경에서 재검토 필요
 - 🔧 OTP 코드 사용 후 즉시 무효화 로직 재검토
-
-### 문서화
-
-- 🔧 `README.md` 현행화 — 현재 `npm` 기준 문서이나 실제 프로젝트는 `pnpm`, Turbopack, 포트 3100, Supabase, Sentry, GA4 등으로 크게 확장됨
-- 🔧 `README.md` 기술 스택 표 업데이트 (Next.js 15.5, React 19, Prisma 7, NextAuth v5 등)
-- 🔧 환경변수 설명 문서화 (`.env.example` 파일 생성 — 실제 값 없이 키 이름만 기록)
+- 🔧 일반 회원 로그인(`user-credentials`)에는 rate limiting 미적용 (관리자 로그인만 적용됨)
 
 ### 코드 품질
 
-- 🔧 `mock-data.ts` (`src/components/admin/dashboard/mock-data.ts`) — 실제 데이터 조회로 교체 여부 확인
-- 🔧 BlockNote 레거시 에디터 의존성 정리 계획 수립 — 장기적으로 Tiptap 단일화 고려
+- 🔧 BlockNote 레거시 에디터 의존성 정리 계획 수립 — 장기적으로 Tiptap 단일화 고려 (아래 4번 참고)
 - 🔧 `/admin/inquiries` → `/admin/contact` 구 경로 리다이렉트는 일정 기간 후 제거 가능
-- 🔧 `/concepts` 페이지 (`noindex`) — 내부 디자인 시안 페이지, 프로덕션 배포 전 제거 또는 접근 제한 검토
 
-### UX·성능
+---
 
-- 🔧 홈 페이지(`/`) `force-dynamic` 적용 — 필요시 ISR(Incremental Static Regeneration)으로 전환하여 성능 개선
-- 🔧 블로그 상세 페이지 `generateStaticParams()` 적용 검토 (발행 글 사전 빌드)
-- 🔧 GA4 대시보드 패널 로딩 상태 처리 개선
+## 3. 결정 완료 (재검토 불필요)
+
+- **Notion API 연동**: 앱 기능으로 확장하지 않고 현 상태(git post-commit 훅을 통한 개발 워크플로 기록용) 유지하기로 결정 (2026-07-07)
+- **블로그 검색**: Postgres full-text search(tsvector)는 한국어(띄어쓰기 기반이 아닌 언어)에 부적합하다고 판단, 서버사이드 ILIKE 부분 문자열 검색으로 구현
+- **CMS 편집 범위**: 홈/소개/솔루션 페이지는 텍스트만 편집 가능하도록 구현 — 카드 개수·아이콘·레이아웃 구조는 고정 (구조 편집까지 지원하려면 재설계 필요)
 
 ---
 
 ## 4. 향후 계획 💡
 
-### 단기 (1~2개월)
-
-- 💡 **홈·소개·솔루션 CMS 구현** — `AdminPlaceholder` 세 페이지에 실제 DB 연동 편집 기능 추가
-- 💡 **`.env.example` 파일 생성** — 신규 개발자 온보딩 편의성 향상
-- 💡 **`README.md` 전면 개정** — 현재 구현 상태 반영
-- 💡 **Notion API 활용 계획 수립** — 환경변수로만 존재하는 Notion 연동의 실제 사용처 정의 (예: 프로젝트 관리 대시보드, 배포 로그)
-
 ### 중기 (3~6개월)
 
-- 💡 **검색 기능 고도화** — 블로그 전문 검색 (현재는 제목 필터만 제공), Algolia 또는 Postgres full-text search 연동
-- 💡 **성공사례 필터링** — 업종·솔루션 유형별 필터 추가
 - 💡 **뉴스레터 구독** — 블로그 독자 이메일 구독 기능 (Resend Audiences 활용)
 - 💡 **댓글/반응 기능** — 블로그 글에 좋아요 또는 댓글 기능
 - 💡 **소셜 메타태그 강화** — 블로그·성공사례별 Twitter Card 커스텀 이미지
-- 💡 **관리자 활동 로그 DB 연동** — 현재 `mock-data.ts` 기반인 활동 로그를 실제 DB 기록으로 전환
 - 💡 **다크 모드 완성** — `globals.css`에 `.dark` 변수 정의되어 있으나 토글 UI 미제공
+- 💡 **CSP 도입** — 실제 브라우저 검증 가능한 환경에서 OAuth/GA4/Sentry/영상임베드 허용 목록을 확정한 뒤 적용
 
 ### 장기 (6개월+)
 
@@ -138,8 +119,7 @@
 - 💡 **예약/미팅 시스템** — AX 컨설팅 상담 예약 기능 (Calendly 연동 또는 자체 구현)
 - 💡 **다국어(i18n) 지원** — 영문 버전 추가 (글로벌 B2B 확장 대비)
 - 💡 **BlockNote → Tiptap 완전 마이그레이션** — 레거시 에디터 의존성 제거
-- 💡 **CI/CD 파이프라인 강화** — GitHub Actions lint/test/build 자동화
-- 💡 **E2E 테스트 추가** — Playwright 기반 주요 유저 플로우(문의 제출, 관리자 로그인 등) 자동화
+- 💡 **CMS 구조 편집 확장** — 필요 시 홈/소개/솔루션 카드 개수·순서까지 관리자가 조정 가능하도록 재설계
 
 ---
 
@@ -147,16 +127,16 @@
 
 | 이슈 | 설명 | 우선순위 |
 |------|------|----------|
-| README 버전 불일치 | README가 `npm` + 포트 8080 기준이나 실제는 `pnpm` + 포트 3100 + Turbopack | 낮음 |
-| `/concepts` 노출 | noindex이지만 URL 직접 접근 가능 — 내부 시안 페이지 | 낮음 |
-| 홈 `force-dynamic` | SSG/ISR 미활용으로 인한 불필요한 서버 렌더링 | 중간 |
-| Notion 환경변수 미사용 | 7개 Notion DB ID 환경변수가 존재하나 앱 내 활용 코드 없음 | 낮음 |
-| `mock-data.ts` | 대시보드 활동 로그가 목업 데이터 | 중간 |
+| CSP 미적용 | 안전하게 검증할 방법이 없어 보류 — 위 개선 항목 참고 | 중간 |
+| **Prisma 마이그레이션 주의** | `DATABASE_URL`이 개발/프로덕션 분리 없이 단일 Supabase 프로젝트를 가리킴. `prisma migrate dev`는 `contacts`/`contact_settings`(Supabase 직접 생성 테이블) 때문에 드리프트 감지→스키마 전체 리셋을 유도함. **반드시 수동 `migration.sql` 작성 + `prisma migrate deploy`만 사용할 것** | 높음 (데이터 손실 위험) |
+| BlockNote 레거시 | 신규 글은 Tiptap만 사용하나 과거 글 호환을 위해 두 에디터 스택 공존 | 낮음 |
+| next-auth beta | `5.0.0-beta.31` — 2026-07-07 기준 아직 stable 미출시, 조치 불필요 | 낮음 |
+| 일반 회원 로그인 rate limit 없음 | 관리자 로그인만 rate limit 적용됨 | 낮음 |
 
 ---
 
 ## 6. 의존성 관리 메모
 
 - `@tiptap/*` 패키지는 `package.json` `overrides`로 `3.13.0`에 고정 (버전 충돌 방지) — 업그레이드 시 주의
-- `next-auth`는 `5.0.0-beta.31` 베타 버전 — 정식 출시 시 마이그레이션 검토
-- `prisma`는 `7.x` — 주요 버전 업 시 마이그레이션 스크립트 필요
+- `next-auth`는 `5.0.0-beta.31` 베타 버전 — 2026-07-07 기준 최신도 여전히 beta, stable 출시 시 마이그레이션 검토
+- `prisma`는 `7.x` — 주요 버전 업 시 마이그레이션 스크립트 필요. **스키마 변경은 위 "알려진 이슈"의 Prisma 마이그레이션 주의사항을 반드시 따를 것**
