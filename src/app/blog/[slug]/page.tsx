@@ -12,11 +12,18 @@ export const revalidate = 60;
 type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
-  const posts = await prisma.blogPost.findMany({
-    where: { status: "PUBLISHED" },
-    select: { slug: true },
-  });
-  return posts.map((post) => ({ slug: post.slug }));
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true },
+    });
+    return posts.map((post) => ({ slug: post.slug }));
+  } catch (e) {
+    // 빌드 환경에서 DB 연결이 일시적으로 실패해도 전체 빌드가 죽지 않도록 함.
+    // dynamicParams(기본 true)로 인해 각 글은 첫 요청 시 온디맨드로 렌더된다.
+    console.error("[blog/[slug]] generateStaticParams DB query failed:", e);
+    return [];
+  }
 }
 
 export async function generateMetadata({
