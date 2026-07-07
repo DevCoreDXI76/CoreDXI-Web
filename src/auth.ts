@@ -18,6 +18,7 @@ import {
   resolveAuthSecretForNextAuth,
 } from "@/lib/auth-env";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const secret = resolveAuthSecretForNextAuth();
 
@@ -67,6 +68,13 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const email = credentials?.email;
         const password = credentials?.password;
         if (!email || !password || typeof email !== "string") return null;
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const rateLimit = await checkRateLimit(`admin-login:${normalizedEmail}`, {
+          max: 5,
+          windowMs: 15 * 60 * 1000,
+        });
+        if (!rateLimit.allowed) return null;
 
         const admin = await prisma.admin.findUnique({
           where: { email: email.trim() },

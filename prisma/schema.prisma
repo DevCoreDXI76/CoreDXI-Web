@@ -160,3 +160,14 @@ model OtpCode {
 
   @@index([email])
 }
+
+// =====================================================
+// RateLimitHit — 관리자 로그인·문의 폼 등 요청 빈도 제한용 기록
+// =====================================================
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}

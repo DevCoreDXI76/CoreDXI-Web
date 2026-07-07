@@ -12,6 +12,8 @@ import type {
   UpdateContactStatusResult,
 } from "@/lib/contact-types";
 import { sendResendEmail } from "@/lib/resend";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/client-ip";
 import { revalidatePath } from "next/cache";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -215,6 +217,18 @@ export async function submitContactForm(
   }
   if (!message) {
     return { success: false, error: "문의 내용을 입력해 주세요." };
+  }
+
+  const clientIp = await getClientIp();
+  const rateLimit = await checkRateLimit(`contact-form:${clientIp}`, {
+    max: 5,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rateLimit.allowed) {
+    return {
+      success: false,
+      error: `너무 많은 문의를 접수했습니다. ${rateLimit.retryAfterSeconds}초 후 다시 시도해 주세요.`,
+    };
   }
 
   const supabase = createSupabaseAdmin();

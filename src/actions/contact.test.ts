@@ -11,6 +11,14 @@ vi.mock("@/lib/resend", () => ({
   sendResendEmail: (...args: unknown[]) => sendResendEmailMock(...args),
 }));
 
+const checkRateLimitMock = vi.fn();
+vi.mock("@/lib/rate-limit", () => ({
+  checkRateLimit: (...args: unknown[]) => checkRateLimitMock(...args),
+}));
+vi.mock("@/lib/client-ip", () => ({
+  getClientIp: vi.fn().mockResolvedValue("127.0.0.1"),
+}));
+
 type SupabaseMock = {
   from: ReturnType<typeof vi.fn>;
 };
@@ -21,6 +29,10 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 const { submitContactForm } = await import("./contact");
+
+beforeEach(() => {
+  checkRateLimitMock.mockReset().mockResolvedValue({ allowed: true });
+});
 
 function validInput() {
   return {
@@ -81,6 +93,22 @@ describe("submitContactForm with Supabase unavailable", () => {
     expect(result).toEqual({
       success: false,
       error: "문의 저장 설정이 완료되지 않았습니다.",
+    });
+  });
+});
+
+describe("submitContactForm rate limiting", () => {
+  it("rejects submission once the IP rate limit is hit", async () => {
+    checkRateLimitMock.mockResolvedValue({
+      allowed: false,
+      retryAfterSeconds: 42,
+    });
+
+    const result = await submitContactForm(validInput());
+
+    expect(result).toEqual({
+      success: false,
+      error: "너무 많은 문의를 접수했습니다. 42초 후 다시 시도해 주세요.",
     });
   });
 });
