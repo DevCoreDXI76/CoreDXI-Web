@@ -2,18 +2,15 @@
  * src/lib/prisma.ts — Prisma 클라이언트 싱글턴
  *
  * Prisma 7.x + @prisma/adapter-pg 패턴.
- * Supabase pgbouncer(자체 서명 인증서)에서 TLS 연결을 위해
- * Node.js 레벨 + pg 드라이버 레벨 양쪽에서 인증서 검증을 비활성화합니다.
+ * Supabase pgbouncer(Supavisor)는 Supabase 자체 루트 CA로 서명된 인증서를 사용합니다.
+ * 이 루트는 공인 트러스트 스토어에 없으므로, TLS 검증을 끄는 대신
+ * `SUPABASE_CA_CERT`를 신뢰 CA로 추가해 정상적으로 인증서 검증을 수행합니다.
  */
-
-// Supabase pgbouncer 자체 서명 인증서 허용 (Node.js 전역)
-if (process.env.NODE_ENV === "production") {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-}
 
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
+import { SUPABASE_CA_CERT } from "@/lib/supabase-ca";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -32,7 +29,7 @@ function createPrismaClient() {
     max: process.env.VERCEL ? 1 : 10,
     idleTimeoutMillis: process.env.VERCEL ? 20_000 : 30_000,
     connectionTimeoutMillis: 15_000,
-    ssl: { rejectUnauthorized: false },
+    ssl: { ca: SUPABASE_CA_CERT, rejectUnauthorized: true },
   });
 
   const adapter = new PrismaPg(pool);
