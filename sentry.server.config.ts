@@ -8,7 +8,7 @@ Sentry.init({
   dsn: "https://147c8e107c240b779b838482a427caed@o4511620256235520.ingest.us.sentry.io/4511620266393600",
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
+  tracesSampleRate: 0.2,
 
   // Enable sending user PII (Personally Identifiable Information)
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii

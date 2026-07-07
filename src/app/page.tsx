@@ -12,7 +12,7 @@ import {
 } from "@/components/blog/types";
 import { formatKstDateLong } from "@/lib/format-kst-date";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 async function getHomeBlogPosts(): Promise<BlogListCard[]> {
   try {

@@ -7,9 +7,17 @@ import { siteUrl } from "@/lib/seo";
 import { normalizeBlogContent } from "@/types/blocknote";
 import { formatKstDateLong } from "@/lib/format-kst-date";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type PageProps = { params: Promise<{ slug: string }> };
+
+export async function generateStaticParams() {
+  const posts = await prisma.blogPost.findMany({
+    where: { status: "PUBLISHED" },
+    select: { slug: true },
+  });
+  return posts.map((post) => ({ slug: post.slug }));
+}
 
 export async function generateMetadata({
   params,
