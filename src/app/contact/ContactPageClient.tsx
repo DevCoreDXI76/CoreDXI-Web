@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Check,
-  Clock,
-  Mail,
-  MessageCircle,
-  Send,
-  X,
-} from "lucide-react";
+import { Check, Clock, Mail } from "lucide-react";
 import { useMemo, useState } from "react";
 import { submitContactForm } from "@/actions/contact";
 import { Header } from "@/components/Header";
@@ -37,80 +30,6 @@ const MARKETING_POINTS = [
   "PoC·파일럿 프로젝트 설계까지 함께합니다.",
   "엔터프라이즈 보안·컴플라이언스 요건을 반영합니다.",
 ];
-
-function FloatingChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-
-  function handleSend() {
-    if (!chatInput.trim()) return;
-    setChatInput("");
-  }
-
-  return (
-    <>
-      {isOpen ? (
-        <div className="fixed bottom-24 right-6 z-50 w-[min(100vw-3rem,360px)]">
-          <div className="flex h-[420px] flex-col overflow-hidden rounded-xl bg-white shadow-lg">
-            <div className="flex items-center justify-between border-b border-slate-100 bg-blue-600 px-4 py-3 text-white">
-              <span className="font-semibold">CoreDXI 챗봇</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 text-white hover:bg-white/20 hover:text-white"
-                aria-label="챗봇 닫기"
-                onClick={() => setIsOpen(false)}
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto bg-slate-50 p-4">
-              <div className="max-w-[85%] rounded-xl rounded-tl-sm bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
-                안녕하세요! CoreDXI AI 챗봇입니다. 무엇을 도와드릴까요?
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 border-t border-slate-100 p-3">
-              <Input
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder="메시지를 입력하세요"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                size="icon"
-                className="shrink-0 bg-blue-600 text-white hover:bg-blue-700"
-                aria-label="메시지 전송"
-                onClick={handleSend}
-              >
-                <Send className="size-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      <Button
-        type="button"
-        size="icon"
-        className="fixed bottom-6 right-6 z-50 size-14 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700"
-        aria-label={isOpen ? "챗봇 닫기" : "챗봇 열기"}
-        onClick={() => setIsOpen((prev) => !prev)}
-      >
-        <MessageCircle className="size-6" />
-      </Button>
-    </>
-  );
-}
 
 type Props = {
   notificationEmail: string;
@@ -312,8 +231,6 @@ export function ContactPageClient({ notificationEmail }: Props) {
           </div>
         </div>
       </main>
-
-      <FloatingChatbot />
     </>
   );
 }

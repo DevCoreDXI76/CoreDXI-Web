@@ -5,6 +5,13 @@ import { NextResponse } from "next/server";
 const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
+  if (
+    req.nextUrl.pathname.startsWith("/concepts") &&
+    process.env.NODE_ENV === "production"
+  ) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
   if (!req.nextUrl.pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
@@ -33,5 +40,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/concepts", "/concepts/:path*"],
 };
