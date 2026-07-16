@@ -1,0 +1,33 @@
+# CoreDXI
+
+> B2B AX·AI 전환 솔루션 — 회의·협업을 심플하게, 변화는 단단하게.
+
+CoreDXI(코어디엑스아이)는 B2B 기업의 AX 전환을 돕는 AI 코어 파트너입니다.
+
+## 주요 페이지
+
+- [홈](https://www.coredxi.com/): 서비스 소개 및 최신 인사이트
+- [회사 소개](https://www.coredxi.com/about): CoreDXI 비전·팀 소개
+- [솔루션](https://www.coredxi.com/solutions): AX·AI 제품·서비스
+- [성공사례](https://www.coredxi.com/cases): 고객 도입 사례
+- [블로그](https://www.coredxi.com/blog): 기술 인사이트·제품 업데이트
+- [문의하기](https://www.coredxi.com/contact): 도입 상담·견적 문의
+
+## 검색
+
+- 블로그 검색: https://www.coredxi.com/blog?q={검색어}
+
+## 연락처
+
+- 이메일: contact@coredxi.com
+- 문의: https://www.coredxi.com/contact
+
+## 정책
+
+- [이용약관](https://www.coredxi.com/terms)
+- [개인정보처리방침](https://www.coredxi.com/privacy)
+
+## 크롤링
+
+- robots.txt: https://www.coredxi.com/robots.txt
+- sitemap: https://www.coredxi.com/sitemap.xml
