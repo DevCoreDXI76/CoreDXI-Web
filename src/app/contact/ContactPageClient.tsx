@@ -4,6 +4,8 @@ import { Check, Clock, Mail } from "lucide-react";
 import { useMemo, useState } from "react";
 import { submitContactForm } from "@/actions/contact";
 import { Header } from "@/components/Header";
+import { ContactFaqSection } from "@/components/contact/ContactFaqSection";
+import type { ContactFaqItem } from "@/lib/contact-faq";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,9 +35,10 @@ const MARKETING_POINTS = [
 
 type Props = {
   notificationEmail: string;
+  faqItems: ContactFaqItem[];
 };
 
-export function ContactPageClient({ notificationEmail }: Props) {
+export function ContactPageClient({ notificationEmail, faqItems }: Props) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -229,6 +232,8 @@ export function ContactPageClient({ notificationEmail }: Props) {
               </div>
             </section>
           </div>
+
+          <ContactFaqSection items={faqItems} />
         </div>
       </main>
     </>

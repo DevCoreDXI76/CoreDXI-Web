@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
+import { buildFaqJsonLd } from "@/lib/seo-jsonld";
+import { CONTACT_FAQ_ITEMS } from "@/lib/contact-faq";
 import { getContactNotificationEmail } from "@/actions/contact";
 import { ContactPageClient } from "./ContactPageClient";
 
@@ -14,6 +16,18 @@ export const dynamic = "force-dynamic";
 
 export default async function ContactPage() {
   const notificationEmail = await getContactNotificationEmail();
+  const faqJsonLd = buildFaqJsonLd(CONTACT_FAQ_ITEMS);
 
-  return <ContactPageClient notificationEmail={notificationEmail} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <ContactPageClient
+        notificationEmail={notificationEmail}
+        faqItems={CONTACT_FAQ_ITEMS}
+      />
+    </>
+  );
 }

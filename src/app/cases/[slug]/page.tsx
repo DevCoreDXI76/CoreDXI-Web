@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { getPortfolioBySlugOrId } from "@/lib/portfolio";
-import { buildBreadcrumbJsonLd } from "@/lib/seo-jsonld";
+import { buildBreadcrumbJsonLd, buildCaseStudyJsonLd } from "@/lib/seo-jsonld";
 import { siteUrl } from "@/lib/seo";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 
@@ -60,6 +60,15 @@ export default async function CaseDetailPage({ params }: PageProps) {
     { name: "성공사례", path: "/cases" },
     { name: item.title, path: `/cases/${item.slug}` },
   ]);
+  const caseStudyJsonLd = buildCaseStudyJsonLd({
+    title: item.title,
+    description: `${item.clientName} · ${item.metrics}`,
+    url: siteUrl(`/cases/${item.slug}`),
+    image: item.thumbnailUrl,
+    clientName: item.clientName,
+    datePublished: item.createdAt.toISOString(),
+    dateModified: item.updatedAt.toISOString(),
+  });
 
   return (
     <>
@@ -67,6 +76,12 @@ export default async function CaseDetailPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbJsonLd),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(caseStudyJsonLd),
         }}
       />
       <Header />

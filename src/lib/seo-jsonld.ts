@@ -37,7 +37,7 @@ export function buildSiteJsonLd(
     organization.sameAs = sameAs;
   }
 
-  const website = {
+  const website: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "CoreDXI",
@@ -51,9 +51,78 @@ export function buildSiteJsonLd(
       },
     },
     inLanguage: "ko-KR",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${SITE_URL}/blog?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
   };
 
   return [organization, website];
+}
+
+type FaqItem = {
+  question: string;
+  answer: string;
+};
+
+/** FAQPage 구조화 데이터 */
+export function buildFaqJsonLd(items: FaqItem[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+/** 성공사례 상세 CaseStudy 구조화 데이터 */
+export function buildCaseStudyJsonLd(input: {
+  title: string;
+  description: string;
+  url: string;
+  image: string;
+  clientName: string;
+  datePublished: string;
+  dateModified: string;
+}): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": input.url,
+    headline: input.title,
+    description: input.description,
+    image: input.image,
+    url: input.url,
+    datePublished: input.datePublished,
+    dateModified: input.dateModified,
+    author: {
+      "@type": "Organization",
+      name: "CoreDXI",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "CoreDXI",
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/brand/logo.png`,
+      },
+    },
+    about: {
+      "@type": "Organization",
+      name: input.clientName,
+    },
+    articleSection: "성공사례",
+  };
 }
 
 /** 페이지 경로 기반 BreadcrumbList JSON-LD */
