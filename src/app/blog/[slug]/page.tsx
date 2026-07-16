@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BlogPostReader } from "@/components/editor/BlogPostReader";
+import { BlogPostContentServer } from "@/components/editor/BlogPostContentServer";
 import { prisma } from "@/lib/prisma";
+import { buildBreadcrumbJsonLd } from "@/lib/seo-jsonld";
 import { siteUrl } from "@/lib/seo";
 import { normalizeBlogContent } from "@/types/blocknote";
 import { formatKstDateLong } from "@/lib/format-kst-date";
@@ -108,11 +109,26 @@ export default async function BlogPostPage({ params }: PageProps) {
     url: postUrl,
   };
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "블로그", path: "/blog" },
+    {
+      name: post.category.name,
+      path: `/blog/category/${post.category.slug}`,
+    },
+    { name: post.title, path: `/blog/${slug}` },
+  ]);
+
   return (
     <article>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd),
+        }}
       />
       <Link
         href={`/blog/category/${post.category.slug}`}
@@ -133,7 +149,7 @@ export default async function BlogPostPage({ params }: PageProps) {
       ) : null}
 
       <div className="mt-10 rounded-xl border border-gray-100 bg-white p-4 shadow-sm md:p-8">
-        <BlogPostReader storageKey={post.id} content={content} />
+        <BlogPostContentServer content={content} />
       </div>
     </article>
   );

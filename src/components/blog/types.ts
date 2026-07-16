@@ -13,6 +13,7 @@ export type BlogPostCard = {
 export type BlogListCard = {
   slug: string;
   title: string;
+  excerpt: string | null;
   href: string;
   tag: string;
   subCategory: string;
@@ -60,6 +61,7 @@ export function mapBlogPostToListCard(post: BlogPostCard): BlogListCard {
   return {
     slug: post.slug,
     title: post.title,
+    excerpt: post.excerpt,
     href: `/blog/${post.slug}`,
     tag: post.category.name,
     subCategory: post.category.name,

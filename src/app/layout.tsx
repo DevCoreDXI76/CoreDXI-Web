@@ -13,6 +13,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/AuthProvider";
+import { buildSiteJsonLd } from "@/lib/seo-jsonld";
 import { SITE_URL } from "@/lib/seo";
 
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -92,20 +93,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "CoreDXI",
-    url: SITE_URL,
-    logo: `${SITE_URL}/brand/logo.png`,
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "customer service",
-      email: "contact@coredxi.com",
-      availableLanguage: "Korean",
-    },
-    sameAs: [],
-  };
+  const siteJsonLd = buildSiteJsonLd();
 
   return (
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
@@ -116,9 +104,9 @@ export default function RootLayout({
           <>
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-              strategy="beforeInteractive"
+              strategy="afterInteractive"
             />
-            <Script id="google-analytics" strategy="beforeInteractive">
+            <Script id="google-analytics" strategy="afterInteractive">
               {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -137,10 +125,13 @@ export default function RootLayout({
           name="naver-site-verification"
           content="62def37bfa19ead530193e944ae227af1667048c"
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        {siteJsonLd.map((schema) => (
+          <script
+            key={schema["@type"] as string}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          />
+        ))}
         <link
           rel="icon"
           type="image/png"

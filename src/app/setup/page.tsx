@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isInitialSetupAvailable } from "@/lib/is-initial-setup-available";
+import { NOINDEX_METADATA } from "@/lib/seo";
 import { InitialSetupForm } from "./setup-form";
 import { SetupDbError } from "./setup-db-error";
+
+export const metadata: Metadata = NOINDEX_METADATA;
 
 /** 빌드 시 DB 조회(온보딩 가능 여부)를 하지 않도록 요청 시에만 렌더 */
 export const dynamic = "force-dynamic";

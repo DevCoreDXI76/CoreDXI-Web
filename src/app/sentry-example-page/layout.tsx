@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { NOINDEX_METADATA } from "@/lib/seo";
 
-export const metadata: Metadata = NOINDEX_METADATA;
+export const metadata: Metadata = {
+  ...NOINDEX_METADATA,
+  title: "Sentry Example",
+};
 
-export default function AdminLayout({
+export default function SentryExampleLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { PortfolioPublic } from "@/lib/portfolio";
 
@@ -15,11 +16,12 @@ export function CaseCard({ item }: CaseCardProps) {
       className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={item.thumbnailUrl}
           alt={item.title}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
         />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">

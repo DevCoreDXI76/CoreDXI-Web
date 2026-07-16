@@ -5,7 +5,15 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/api/", "/setup/", "/login", "/signup", "/concepts"],
+      disallow: [
+        "/admin/",
+        "/api/",
+        "/setup/",
+        "/login",
+        "/signup",
+        "/concepts",
+        "/sentry-example-page",
+      ],
     },
     sitemap: "https://www.coredxi.com/sitemap.xml",
   };

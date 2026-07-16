@@ -86,7 +86,7 @@ export default async function HomePage() {
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100 lg:aspect-auto lg:col-span-3 lg:min-h-[360px]">
                       <Image
                         src={featured.coverImageUrl}
-                        alt=""
+                        alt={featured.title}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                         sizes="(min-width: 1024px) 60vw, 100vw"
@@ -113,11 +113,11 @@ export default async function HomePage() {
                             {featured.title}
                           </Link>
                         </h3>
-                        {featured.slug && (
+                        {featured.excerpt ? (
                           <p className="text-sm leading-relaxed text-slate-600 line-clamp-3">
-                            {/* excerpt는 BlogListCard에 없으므로 빈 상태 허용 */}
+                            {featured.excerpt}
                           </p>
-                        )}
+                        ) : null}
                       </div>
 
                       <div className="mt-auto">
@@ -166,7 +166,7 @@ export default async function HomePage() {
                         <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
                           <Image
                             src={post.coverImageUrl}
-                            alt=""
+                            alt={post.title}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"

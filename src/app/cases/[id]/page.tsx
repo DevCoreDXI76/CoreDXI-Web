@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { getPortfolioById } from "@/lib/portfolio";
+import { buildBreadcrumbJsonLd } from "@/lib/seo-jsonld";
 import { siteUrl } from "@/lib/seo";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 
@@ -50,9 +52,19 @@ export default async function CaseDetailPage({ params }: PageProps) {
   if (!item) notFound();
 
   const embedUrl = item.videoUrl ? getVideoEmbedUrl(item.videoUrl) : null;
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "성공사례", path: "/cases" },
+    { name: item.title, path: `/cases/${id}` },
+  ]);
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd),
+        }}
+      />
       <Header />
       <main className="min-h-screen bg-gray-50 pt-24 pb-16">
         <article className="mx-auto max-w-3xl px-6">
@@ -65,11 +77,13 @@ export default async function CaseDetailPage({ params }: PageProps) {
 
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div className="relative aspect-[16/9] bg-gray-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={item.thumbnailUrl}
                 alt={item.title}
-                className="h-full w-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(min-width: 768px) 768px, 100vw"
+                priority
               />
             </div>
 
