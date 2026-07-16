@@ -9,6 +9,15 @@ export function siteUrl(path = ""): string {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+function ogImageToUrl(
+  img: string | URL | { url: string | URL }
+): string | undefined {
+  if (typeof img === "string") return img;
+  if (img instanceof URL) return img.toString();
+  const url = img.url;
+  return typeof url === "string" ? url : url.toString();
+}
+
 export function pageMetadata(input: {
   title: string;
   description: string;
@@ -16,7 +25,10 @@ export function pageMetadata(input: {
   openGraph?: Metadata["openGraph"];
 }): Metadata {
   const canonical = siteUrl(input.path);
-  const ogImage = input.openGraph?.images ?? [{ url: DEFAULT_OG_IMAGE }];
+  const ogImages = input.openGraph?.images ?? [{ url: DEFAULT_OG_IMAGE }];
+  const twitterImages = (Array.isArray(ogImages) ? ogImages : [ogImages])
+    .map((img) => ogImageToUrl(img))
+    .filter((url): url is string => Boolean(url));
 
   return {
     title: input.title,
@@ -29,16 +41,14 @@ export function pageMetadata(input: {
       title: input.title,
       description: input.description,
       url: canonical,
-      images: ogImage,
       ...input.openGraph,
+      images: ogImages,
     },
     twitter: {
       card: "summary_large_image",
       title: input.title,
       description: input.description,
-      images: ogImage.map((img) =>
-        typeof img === "string" ? img : img.url
-      ),
+      images: twitterImages.length > 0 ? twitterImages : [DEFAULT_OG_IMAGE],
     },
   };
 }

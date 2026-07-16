@@ -67,14 +67,18 @@ function renderInlineNodes(nodes: unknown): string {
     .join("");
 }
 
-function blockTextContent(block: PartialBlock): string {
-  if (Array.isArray(block.content)) {
-    return renderInlineNodes(block.content);
+function extractTextContent(content: unknown): string {
+  if (Array.isArray(content)) {
+    return renderInlineNodes(content);
   }
-  if (typeof block.content === "string") {
-    return escapeHtml(block.content);
+  if (typeof content === "string") {
+    return escapeHtml(content);
   }
   return "";
+}
+
+function blockTextContent(block: PartialBlock): string {
+  return extractTextContent(block.content);
 }
 
 function renderBlockNoteListItem(block: PartialBlock): string {
@@ -86,7 +90,7 @@ function renderBlockNoteListItem(block: PartialBlock): string {
 }
 
 function renderBlockNoteBlock(block: PartialBlock): string {
-  const type = block.type ?? "paragraph";
+  const type = String(block.type ?? "paragraph");
   const text = blockTextContent(block);
   const children = Array.isArray(block.children)
     ? blockNoteBlocksToHtml(block.children as BlockNoteContent)
@@ -118,7 +122,7 @@ function renderBlockNoteBlock(block: PartialBlock): string {
     case "codeBlock": {
       const language =
         (block.props as { language?: string } | undefined)?.language ?? "";
-      const code = text || blockTextContent({ ...block, content: block.content });
+      const code = text || extractTextContent(block.content);
       const langAttr = language ? ` class="language-${escapeAttr(language)}"` : "";
       return `<pre><code${langAttr}>${code}</code></pre>${children}`;
     }
