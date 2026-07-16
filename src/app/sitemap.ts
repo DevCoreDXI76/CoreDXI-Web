@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         orderBy: { publishedAt: "desc" },
       }),
       prisma.portfolio.findMany({
-        select: { id: true, updatedAt: true },
+        select: { slug: true, updatedAt: true },
         orderBy: { createdAt: "desc" },
       }),
       prisma.blogCategory.findMany({
@@ -45,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     caseRoutes = cases.map((item) => ({
-      url: `${BASE_URL}/cases/${item.id}`,
+      url: `${BASE_URL}/cases/${item.slug}`,
       lastModified: item.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.6,

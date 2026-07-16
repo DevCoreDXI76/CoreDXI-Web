@@ -5,14 +5,14 @@ import type { PortfolioPublic } from "@/lib/portfolio";
 type CaseCardProps = {
   item: Pick<
     PortfolioPublic,
-    "id" | "title" | "clientName" | "thumbnailUrl" | "metrics"
+    "id" | "slug" | "title" | "clientName" | "thumbnailUrl" | "metrics"
   >;
 };
 
 export function CaseCard({ item }: CaseCardProps) {
   return (
     <Link
-      href={`/cases/${item.id}`}
+      href={`/cases/${item.slug}`}
       className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">

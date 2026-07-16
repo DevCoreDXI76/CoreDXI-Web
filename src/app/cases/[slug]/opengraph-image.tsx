@@ -1,4 +1,4 @@
-import { getPortfolioById } from "@/lib/portfolio";
+import { getPortfolioBySlugOrId } from "@/lib/portfolio";
 import {
   createOgImageResponse,
   OG_CONTENT_TYPE,
@@ -10,11 +10,11 @@ export const alt = "CoreDXI 성공사례";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = { params: Promise<{ slug: string }> };
 
 export default async function OpenGraphImage({ params }: PageProps) {
-  const { id } = await params;
-  const item = await getPortfolioById(id);
+  const { slug: param } = await params;
+  const item = await getPortfolioBySlugOrId(param);
 
   return createOgImageResponse({
     badge: "성공사례",

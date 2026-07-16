@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NOINDEX_METADATA, pageMetadata, siteUrl, SITE_URL } from "./seo";
+import { NOINDEX_METADATA, pageMetadata, siteUrl, SITE_URL, DEFAULT_OG_IMAGE } from "./seo";
 
 describe("siteUrl", () => {
   it("returns the bare site url for empty/root path", () => {
@@ -32,11 +32,13 @@ describe("pageMetadata", () => {
       title: "제목",
       description: "설명",
       url: `${SITE_URL}/about`,
+      images: [{ url: DEFAULT_OG_IMAGE }],
     });
     expect(metadata.twitter).toMatchObject({
       card: "summary_large_image",
       title: "제목",
       description: "설명",
+      images: [DEFAULT_OG_IMAGE],
     });
   });
 

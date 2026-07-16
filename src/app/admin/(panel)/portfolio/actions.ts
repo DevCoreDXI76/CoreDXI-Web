@@ -14,6 +14,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { uniquePortfolioSlug } from "@/lib/portfolio-slug";
 
 export type PortfolioFormData = {
   title: string;
@@ -48,10 +49,20 @@ function normalize(data: PortfolioFormData) {
   };
 }
 
-function revalidatePublicPortfolio(id?: string) {
+function revalidatePublicPortfolio(slug?: string) {
   revalidatePath("/cases");
   revalidatePath("/");
-  if (id) revalidatePath(`/cases/${id}`);
+  if (slug) revalidatePath(`/cases/${slug}`);
+}
+
+async function resolvePortfolioSlug(title: string): Promise<string> {
+  return uniquePortfolioSlug(title, async (candidate) => {
+    const existing = await prisma.portfolio.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    });
+    return Boolean(existing);
+  });
 }
 
 export async function createPortfolio(
@@ -61,11 +72,12 @@ export async function createPortfolio(
   if (error) return { success: false, message: error };
 
   try {
+    const slug = await resolvePortfolioSlug(data.title);
     const created = await prisma.portfolio.create({
-      data: normalize(data),
+      data: { ...normalize(data), slug },
     });
     revalidatePath("/admin/portfolio");
-    revalidatePublicPortfolio(created.id);
+    revalidatePublicPortfolio(created.slug);
     return { success: true, message: "성공사례가 등록되었습니다.", id: created.id };
   } catch (e) {
     console.error("[createPortfolio]", e);
@@ -81,13 +93,21 @@ export async function updatePortfolio(
   if (error) return { success: false, message: error };
 
   try {
+    const existing = await prisma.portfolio.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+    if (!existing) {
+      return { success: false, message: "성공사례를 찾을 수 없습니다." };
+    }
+
     await prisma.portfolio.update({
       where: { id },
       data: normalize(data),
     });
     revalidatePath("/admin/portfolio");
     revalidatePath(`/admin/portfolio/${id}/edit`);
-    revalidatePublicPortfolio(id);
+    revalidatePublicPortfolio(existing.slug);
     return { success: true, message: "성공사례가 수정되었습니다." };
   } catch (e) {
     console.error("[updatePortfolio]", e);
@@ -99,9 +119,13 @@ export async function deletePortfolio(
   id: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    const existing = await prisma.portfolio.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
     await prisma.portfolio.delete({ where: { id } });
     revalidatePath("/admin/portfolio");
-    revalidatePublicPortfolio(id);
+    if (existing) revalidatePublicPortfolio(existing.slug);
     return { success: true, message: "성공사례가 삭제되었습니다." };
   } catch (e) {
     console.error("[deletePortfolio]", e);

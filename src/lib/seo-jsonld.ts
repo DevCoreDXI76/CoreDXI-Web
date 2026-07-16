@@ -5,9 +5,21 @@ type BreadcrumbItem = {
   path: string;
 };
 
+function parseSameAsUrls(raw: string | undefined): string[] {
+  if (!raw?.trim()) return [];
+  return raw
+    .split(",")
+    .map((url) => url.trim())
+    .filter((url) => url.startsWith("http"));
+}
+
 /** Organization + WebSite 구조화 데이터 */
-export function buildSiteJsonLd(): Record<string, unknown>[] {
-  const organization = {
+export function buildSiteJsonLd(
+  sameAsEnv = process.env.ORGANIZATION_SAME_AS_URLS
+): Record<string, unknown>[] {
+  const sameAs = parseSameAsUrls(sameAsEnv);
+
+  const organization: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "CoreDXI",
@@ -20,6 +32,10 @@ export function buildSiteJsonLd(): Record<string, unknown>[] {
       availableLanguage: "Korean",
     },
   };
+
+  if (sameAs.length > 0) {
+    organization.sameAs = sameAs;
+  }
 
   const website = {
     "@context": "https://schema.org",

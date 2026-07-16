@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/Header";
-import { getPortfolioById } from "@/lib/portfolio";
+import { getPortfolioBySlugOrId } from "@/lib/portfolio";
 import { buildBreadcrumbJsonLd } from "@/lib/seo-jsonld";
 import { siteUrl } from "@/lib/seo";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
@@ -11,18 +11,18 @@ import { getVideoEmbedUrl } from "@/lib/video-embed";
 export const revalidate = 60;
 
 type PageProps = {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const item = await getPortfolioById(id);
+  const { slug: param } = await params;
+  const item = await getPortfolioBySlugOrId(param);
   if (!item) return { title: "성공사례" };
 
   const description = `${item.clientName} · ${item.metrics}`;
-  const canonical = siteUrl(`/cases/${id}`);
+  const canonical = siteUrl(`/cases/${item.slug}`);
 
   return {
     title: item.title,
@@ -47,14 +47,18 @@ export async function generateMetadata({
 }
 
 export default async function CaseDetailPage({ params }: PageProps) {
-  const { id } = await params;
-  const item = await getPortfolioById(id);
+  const { slug: param } = await params;
+  const item = await getPortfolioBySlugOrId(param);
   if (!item) notFound();
+
+  if (param !== item.slug) {
+    redirect(`/cases/${item.slug}`);
+  }
 
   const embedUrl = item.videoUrl ? getVideoEmbedUrl(item.videoUrl) : null;
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: "성공사례", path: "/cases" },
-    { name: item.title, path: `/cases/${id}` },
+    { name: item.title, path: `/cases/${item.slug}` },
   ]);
 
   return (

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export type PortfolioPublic = {
   id: string;
+  slug: string;
   title: string;
   clientName: string;
   thumbnailUrl: string;
@@ -16,6 +17,7 @@ export type PortfolioPublic = {
 
 const portfolioSelect = {
   id: true,
+  slug: true,
   title: true,
   clientName: true,
   thumbnailUrl: true,
@@ -53,4 +55,22 @@ export async function getPortfolioById(
     where: { id },
     select: portfolioSelect,
   });
+}
+
+export async function getPortfolioBySlug(
+  slug: string
+): Promise<PortfolioPublic | null> {
+  return prisma.portfolio.findUnique({
+    where: { slug },
+    select: portfolioSelect,
+  });
+}
+
+/** slug 우선 조회, 없으면 레거시 id(cuid)로 조회 */
+export async function getPortfolioBySlugOrId(
+  identifier: string
+): Promise<PortfolioPublic | null> {
+  const bySlug = await getPortfolioBySlug(identifier);
+  if (bySlug) return bySlug;
+  return getPortfolioById(identifier);
 }

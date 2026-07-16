@@ -102,6 +102,7 @@ model VerificationToken {
 // =====================================================
 model Portfolio {
   id           String   @id @default(cuid())
+  slug         String   @unique
   title        String
   clientName   String
   thumbnailUrl String
