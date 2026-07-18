@@ -10,7 +10,11 @@ export type RateLimitResult =
  */
 export async function checkRateLimit(
   key: string,
-  { max, windowMs }: { max: number; windowMs: number }
+  {
+    max,
+    windowMs,
+    recordOnAllowed = true,
+  }: { max: number; windowMs: number; recordOnAllowed?: boolean }
 ): Promise<RateLimitResult> {
   const windowStart = new Date(Date.now() - windowMs);
 
@@ -37,6 +41,17 @@ export async function checkRateLimit(
     };
   }
 
-  await prisma.rateLimitHit.create({ data: { key } });
+  if (recordOnAllowed) {
+    await prisma.rateLimitHit.create({ data: { key } });
+  }
   return { allowed: true };
+}
+
+/**
+ * 판정은 checkRateLimit(recordOnAllowed: false)로 미리 해두고, 실패가
+ * 확정된 시점에만 히트를 기록하고 싶을 때 쓴다 (예: 로그인 성공 시도는
+ * 카운트에서 빼고 실패 시도만 카운트하는 경우).
+ */
+export async function recordRateLimitHit(key: string): Promise<void> {
+  await prisma.rateLimitHit.create({ data: { key } });
 }
