@@ -52,7 +52,7 @@ export default async function SolutionsPage() {
               </Link>
               <Link
                 href="/cases"
-                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-white px-8 py-4 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-card px-8 py-4 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
               >
                 성공사례 보기
               </Link>
@@ -61,7 +61,7 @@ export default async function SolutionsPage() {
         </section>
 
         {/* ── 솔루션 카드 ──────────────────────────────────────── */}
-        <section className="bg-white px-6 py-20">
+        <section className="bg-card px-6 py-20">
           <div className="mx-auto max-w-6xl">
             <div className="mb-12 text-center">
               <p className="text-sm font-semibold text-primary">
@@ -139,7 +139,7 @@ export default async function SolutionsPage() {
               {content.processSteps.map((step, i) => (
                 <div
                   key={step.title}
-                  className="relative rounded-2xl border border-border bg-white p-6 shadow-sm"
+                  className="relative rounded-2xl border border-border bg-card p-6 shadow-sm"
                 >
                   <span className="text-5xl font-black text-primary/15">
                     {PROCESS_STEP_NUMBERS[i] ?? String(i + 1).padStart(2, "0")}

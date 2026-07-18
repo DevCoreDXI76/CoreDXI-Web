@@ -46,7 +46,7 @@ export default async function AboutPage() {
         </section>
 
         {/* ── 미션 ─────────────────────────────────────────────── */}
-        <section className="bg-white px-6 py-20">
+        <section className="bg-card px-6 py-20">
           <div className="mx-auto max-w-5xl">
             <div className="grid gap-12 md:grid-cols-2 md:items-center">
               <div>
@@ -105,7 +105,7 @@ export default async function AboutPage() {
               {content.values.map((v, i) => (
                 <div
                   key={v.title}
-                  className="rounded-2xl border border-border bg-white p-8 shadow-sm"
+                  className="rounded-2xl border border-border bg-card p-8 shadow-sm"
                 >
                   <span className="text-4xl font-black text-primary/20">
                     {VALUE_NUMBERS[i] ?? "0" + (i + 1)}
@@ -155,7 +155,7 @@ export default async function AboutPage() {
               </Link>
               <Link
                 href="/solutions"
-                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-white px-8 py-4 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-card px-8 py-4 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
               >
                 솔루션 보기
               </Link>
