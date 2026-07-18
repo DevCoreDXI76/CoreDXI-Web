@@ -25,7 +25,7 @@ export function CaseCard({ item }: CaseCardProps) {
         />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
-        <span className="inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+        <span className="inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary dark:text-blue-300">
           {item.metrics}
         </span>
         <h2 className="text-lg font-semibold text-foreground group-hover:text-primary dark:group-hover:text-blue-300">

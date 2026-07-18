@@ -108,7 +108,7 @@ export default async function CaseDetailPage({ params }: PageProps) {
 
             <div className="space-y-6 p-6 md:p-8">
               <div>
-                <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary dark:text-blue-300">
                   {item.metrics}
                 </span>
                 <h1 className="mt-3 text-2xl font-bold text-foreground md:text-3xl">
