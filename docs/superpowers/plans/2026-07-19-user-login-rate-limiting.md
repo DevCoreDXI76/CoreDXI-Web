@@ -246,19 +246,23 @@ import { getClientIp } from "@/lib/client-ip";
         });
         if (!ipLimit.allowed) return null;
 
+        const recordFailure = () =>
+          Promise.all([
+            recordRateLimitHit(emailKey),
+            recordRateLimitHit(ipKey),
+          ]);
+
         const user = await prisma.user.findUnique({
           where: { email: email.trim() },
         });
         if (!user?.password) {
-          await recordRateLimitHit(emailKey);
-          await recordRateLimitHit(ipKey);
+          await recordFailure();
           return null;
         }
 
         const valid = await bcrypt.compare(String(password), user.password);
         if (!valid) {
-          await recordRateLimitHit(emailKey);
-          await recordRateLimitHit(ipKey);
+          await recordFailure();
           return null;
         }
 
