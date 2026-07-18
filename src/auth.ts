@@ -19,6 +19,7 @@ import {
 } from "@/lib/auth-env";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { checkUserLoginRateLimit } from "@/lib/user-login-rate-limit";
 
 const secret = resolveAuthSecretForNextAuth();
 
@@ -40,13 +41,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const password = credentials?.password;
         if (!email || !password || typeof email !== "string") return null;
 
+        const rateLimit = await checkUserLoginRateLimit(email);
+        if (!rateLimit.allowed) return null;
+
         const user = await prisma.user.findUnique({
           where: { email: email.trim() },
         });
-        if (!user?.password) return null;
+        if (!user?.password) {
+          await rateLimit.recordFailure();
+          return null;
+        }
 
         const valid = await bcrypt.compare(String(password), user.password);
-        if (!valid) return null;
+        if (!valid) {
+          await rateLimit.recordFailure();
+          return null;
+        }
 
         return {
           id: user.id,

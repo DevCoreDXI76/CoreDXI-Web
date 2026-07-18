@@ -16,7 +16,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-const { checkRateLimit } = await import("./rate-limit");
+const { checkRateLimit, recordRateLimitHit } = await import("./rate-limit");
 
 describe("checkRateLimit", () => {
   beforeEach(() => {
@@ -59,5 +59,30 @@ describe("checkRateLimit", () => {
         where: expect.objectContaining({ key: "test-key" }),
       })
     );
+  });
+
+  it("does not record a hit when allowed but recordOnAllowed is false", async () => {
+    count.mockResolvedValue(2);
+
+    const result = await checkRateLimit("test-key", {
+      max: 5,
+      windowMs: 60_000,
+      recordOnAllowed: false,
+    });
+
+    expect(result).toEqual({ allowed: true });
+    expect(create).not.toHaveBeenCalled();
+  });
+});
+
+describe("recordRateLimitHit", () => {
+  beforeEach(() => {
+    create.mockReset().mockResolvedValue({});
+  });
+
+  it("records a hit for the given key", async () => {
+    await recordRateLimitHit("test-key");
+
+    expect(create).toHaveBeenCalledWith({ data: { key: "test-key" } });
   });
 });
