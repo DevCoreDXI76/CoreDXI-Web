@@ -16,12 +16,12 @@ function CopyRow({ label, value }: { label: string; value: string }) {
     <li className="space-y-0.5">
       <span className="font-medium text-amber-950 dark:text-amber-100">{label}</span>
       <div className="flex items-start gap-2">
-        <code className="block flex-1 break-all rounded bg-white/80 px-2 py-1 text-[11px] text-amber-950 dark:bg-black/20 dark:text-amber-100">
+        <code className="block flex-1 break-all rounded bg-amber-100/80 px-2 py-1 text-[11px] text-amber-950 dark:bg-black/20 dark:text-amber-100">
           {value}
         </code>
         <button
           type="button"
-          className="shrink-0 rounded border border-amber-300 bg-white px-2 py-1 text-[11px] font-medium hover:bg-amber-100 dark:border-amber-700/50 dark:bg-transparent dark:hover:bg-amber-900/30"
+          className="shrink-0 rounded border border-amber-300 bg-amber-50/80 px-2 py-1 text-[11px] font-medium hover:bg-amber-100 dark:border-amber-700/50 dark:bg-transparent dark:hover:bg-amber-900/30"
           onClick={() => {
             void navigator.clipboard.writeText(value);
           }}

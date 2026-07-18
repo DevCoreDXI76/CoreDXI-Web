@@ -121,7 +121,7 @@ export function LoginSocialPanel({
           disabled={!canGoogle}
           onClick={() => handleProviderClick("google")}
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:bg-muted",
+            "flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted transition-colors hover:bg-accent",
             !canGoogle && "cursor-not-allowed opacity-50"
           )}
           aria-label="Google로 로그인"
