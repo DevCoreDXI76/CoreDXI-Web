@@ -155,7 +155,7 @@ export default async function AboutPage() {
               </Link>
               <Link
                 href="/solutions"
-                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-card px-8 py-4 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-card px-8 py-4 text-sm font-semibold text-primary dark:text-blue-300 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
               >
                 솔루션 보기
               </Link>

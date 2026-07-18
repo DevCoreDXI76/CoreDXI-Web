@@ -52,7 +52,7 @@ export default async function SolutionsPage() {
               </Link>
               <Link
                 href="/cases"
-                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-card px-8 py-4 text-sm font-semibold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-card px-8 py-4 text-sm font-semibold text-primary dark:text-blue-300 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/5"
               >
                 성공사례 보기
               </Link>
@@ -61,7 +61,7 @@ export default async function SolutionsPage() {
         </section>
 
         {/* ── 솔루션 카드 ──────────────────────────────────────── */}
-        <section className="bg-card px-6 py-20">
+        <section className="bg-muted px-6 py-20">
           <div className="mx-auto max-w-6xl">
             <div className="mb-12 text-center">
               <p className="text-sm font-semibold text-primary">
@@ -77,7 +77,7 @@ export default async function SolutionsPage() {
                 return (
                   <div
                     key={solution.title}
-                    className="flex flex-col rounded-2xl border border-border bg-background p-8 shadow-sm transition-shadow hover:shadow-md"
+                    className="flex flex-col rounded-2xl border border-border bg-card p-8 shadow-sm transition-shadow hover:shadow-md"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
