@@ -46,7 +46,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-white px-4 py-10">
+    <div className="flex min-h-screen flex-col items-center bg-background px-4 py-10">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
         <Logo
           size={36}
@@ -65,7 +65,7 @@ export default function LoginPage() {
         </div>
 
         {authError && (
-          <div className="w-full space-y-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700">
+          <div className="w-full space-y-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
             <p role="alert">{authError}</p>
             <p>
               <button
@@ -90,22 +90,22 @@ export default function LoginPage() {
           </div>
         )}
 
-        <Card className="w-full max-w-md border border-gray-200 shadow-md ring-0">
+        <Card className="w-full max-w-md border border-border shadow-md ring-0">
           <CardContent className="p-8 sm:p-10">
             <Tabs defaultValue="individual">
               <TabsList
                 variant="line"
-                className="mb-6 h-auto w-full rounded-none border-b border-gray-200 bg-transparent p-0"
+                className="mb-6 h-auto w-full rounded-none border-b border-border bg-transparent p-0"
               >
                 <TabsTrigger
                   value="individual"
-                  className="flex-1 rounded-none pb-3 text-sm font-medium text-gray-500 data-active:font-bold data-active:text-foreground"
+                  className="flex-1 rounded-none pb-3 text-sm font-medium text-muted-foreground data-active:font-bold data-active:text-foreground"
                 >
                   개인 회원
                 </TabsTrigger>
                 <TabsTrigger
                   value="business"
-                  className="flex-1 rounded-none pb-3 text-sm font-medium text-gray-500 data-active:font-bold data-active:text-foreground"
+                  className="flex-1 rounded-none pb-3 text-sm font-medium text-muted-foreground data-active:font-bold data-active:text-foreground"
                 >
                   기업·사업자 회원
                   <Badge className="bg-teal-500 px-1.5 py-0.5 text-[10px] font-semibold lowercase text-white">
@@ -130,12 +130,12 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-muted-foreground">
           이미 CoreDXI 회원이신가요?{" "}
           <button
             type="button"
             onClick={() => setShowEmailLogin((v) => !v)}
-            className="font-medium text-gray-700 underline underline-offset-2 hover:text-black"
+            className="font-medium text-foreground underline underline-offset-2 hover:text-black dark:hover:text-white"
           >
             로그인
           </button>

@@ -21,10 +21,10 @@ export default function NotFound() {
       <main className="flex min-h-[60vh] flex-col items-center justify-center bg-background px-4 py-24 text-center">
         {/* [홍보팀] 404 화면에 보이는 제목과 안내 문구입니다. */}
         <p className="text-sm font-semibold text-primary">404</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
           페이지를 찾을 수 없습니다
         </h1>
-        <p className="mt-4 max-w-md text-base leading-relaxed text-slate-600">
+        <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
           요청하신 주소가 변경되었거나 삭제되었을 수 있습니다. 홈으로 돌아가서
           다시 탐색해 보세요.
         </p>

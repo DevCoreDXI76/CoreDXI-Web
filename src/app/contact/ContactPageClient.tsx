@@ -93,14 +93,14 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-slate-50 pt-24 pb-24">
+      <main className="min-h-screen bg-background pt-24 pb-24">
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:items-start">
-            <section className="rounded-xl bg-white p-8 shadow-lg">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+            <section className="rounded-xl bg-card p-8 shadow-lg">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
                 이야기 나눠봐요
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600 md:text-base">
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground md:text-base">
                 CoreDXI 도입·상담이 필요하시면 아래 양식을 작성해 주세요. 담당
                 영업팀이 빠르게 연락드리겠습니다.
               </p>
@@ -149,7 +149,7 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
                       if (v) setInquiryType(v);
                     }}
                   >
-                    <SelectTrigger id="inquiry-type" className="w-full bg-white">
+                    <SelectTrigger id="inquiry-type" className="w-full">
                       <SelectValue placeholder="선택해 주세요">
                         {selectedInquiryTypeLabel}
                       </SelectValue>
@@ -187,10 +187,10 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
             </section>
 
             <section className="md:pt-8">
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+              <h2 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">
                 영업팀과 상담하세요
               </h2>
-              <p className="mt-3 text-base leading-relaxed text-slate-600">
+              <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                 CoreDXI는 B2B AX·AI 전환을 위한 회의·협업 솔루션입니다. 도입
                 목적에 맞는 기능 구성과 PoC 설계까지 전문 컨설턴트가
                 안내합니다.
@@ -202,28 +202,28 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
                     <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                       <Check className="size-4" aria-hidden="true" />
                     </span>
-                    <span className="text-sm leading-relaxed text-slate-700 md:text-base">
+                    <span className="text-sm leading-relaxed text-foreground md:text-base">
                       {point}
                     </span>
                   </li>
                 ))}
               </ul>
 
-              <div className="mt-10 space-y-3 rounded-xl border border-slate-200 bg-white/60 p-5">
-                <p className="flex items-center gap-2 text-sm text-slate-700">
-                  <Mail className="size-4 shrink-0 text-blue-600" aria-hidden="true" />
+              <div className="mt-10 space-y-3 rounded-xl border border-border bg-card/60 p-5">
+                <p className="flex items-center gap-2 text-sm text-foreground">
+                  <Mail className="size-4 shrink-0 text-primary dark:text-blue-300" aria-hidden="true" />
                   <span>
                     <span className="font-medium">이메일</span>{" "}
                     <a
                       href={`mailto:${notificationEmail}`}
-                      className="font-mono text-slate-800 hover:text-blue-600 hover:underline"
+                      className="font-mono text-foreground hover:text-primary hover:underline dark:hover:text-blue-300"
                     >
                       {notificationEmail}
                     </a>
                   </span>
                 </p>
-                <p className="flex items-center gap-2 text-sm text-slate-700">
-                  <Clock className="size-4 shrink-0 text-blue-600" aria-hidden="true" />
+                <p className="flex items-center gap-2 text-sm text-foreground">
+                  <Clock className="size-4 shrink-0 text-primary dark:text-blue-300" aria-hidden="true" />
                   <span>
                     <span className="font-medium">응답 시간</span> 영업일 기준
                     1~2일

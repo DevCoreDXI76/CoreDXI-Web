@@ -107,13 +107,13 @@ export function LoginSocialPanel({
           type="button"
           variant="outline"
           onClick={() => router.push("/signup")}
-          className="h-12 w-full rounded-md border-gray-300 bg-white text-sm font-semibold text-black hover:bg-gray-50"
+          className="h-12 w-full rounded-md text-sm font-semibold"
         >
           이메일로 시작하기
         </Button>
       </div>
 
-      <Separator className="my-6 bg-gray-200" />
+      <Separator className="my-6" />
 
       <div className="flex justify-center gap-3">
         <button
@@ -121,7 +121,7 @@ export function LoginSocialPanel({
           disabled={!canGoogle}
           onClick={() => handleProviderClick("google")}
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white transition-colors hover:bg-gray-50",
+            "flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:bg-muted",
             !canGoogle && "cursor-not-allowed opacity-50"
           )}
           aria-label="Google로 로그인"
