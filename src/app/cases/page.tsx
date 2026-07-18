@@ -18,19 +18,19 @@ export default async function CasesPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50 pt-24 pb-16">
+      <main className="min-h-screen bg-background pt-24 pb-16">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-10">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               성공사례
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-muted-foreground">
               고객사와 함께 만든 DX·AX 전환의 성과를 소개합니다.
             </p>
           </div>
 
           {items.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-500">
+            <div className="rounded-xl border border-dashed border-border bg-card py-16 text-center text-muted-foreground">
               등록된 성공사례가 없습니다.
             </div>
           ) : (
