@@ -83,7 +83,7 @@ export default async function SolutionsPage() {
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                         <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
                       </div>
-                      <span className="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-semibold text-primary">
+                      <span className="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-semibold text-primary dark:text-blue-300">
                         {solution.badge}
                       </span>
                     </div>

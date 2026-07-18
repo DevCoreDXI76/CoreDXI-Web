@@ -50,7 +50,7 @@ export default async function AboutPage() {
           <div className="mx-auto max-w-5xl">
             <div className="grid gap-12 md:grid-cols-2 md:items-center">
               <div>
-                <p className="text-sm font-semibold text-primary">
+                <p className="text-sm font-semibold text-primary dark:text-blue-300">
                   {content.missionLabel}
                 </p>
                 <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground">

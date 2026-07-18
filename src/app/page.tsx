@@ -175,7 +175,7 @@ export default async function HomePage() {
 
                         <div className="flex flex-col gap-4 p-5">
                           <div className="flex flex-wrap items-center justify-between gap-3">
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:text-blue-300">
                               <TagIcon className="h-3.5 w-3.5" aria-hidden="true" />
                               {post.tag}
                             </span>
@@ -212,7 +212,7 @@ export default async function HomePage() {
           <div className="rounded-3xl border border-border bg-card px-6 py-10 shadow-sm sm:px-10">
             <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-primary">CoreDXI</p>
+                <p className="text-sm font-semibold text-primary dark:text-blue-300">CoreDXI</p>
                 <p className="text-2xl font-bold tracking-tight text-foreground">
                   우리는 지식을 공유하며 함께 성장하는 IT 전문가 집단,
                   CoreDXI입니다.

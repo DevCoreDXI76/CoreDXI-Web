@@ -199,7 +199,7 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
               <ul className="mt-8 space-y-4">
                 {MARKETING_POINTS.map((point) => (
                   <li key={point} className="flex items-start gap-3">
-                    <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
                       <Check className="size-4" aria-hidden="true" />
                     </span>
                     <span className="text-sm leading-relaxed text-foreground md:text-base">
