@@ -16,22 +16,22 @@ export async function Hero() {
 
   return (
     <section
-      className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center overflow-hidden bg-white px-6 pt-28 pb-16 text-center"
+      className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center overflow-hidden bg-background px-6 pt-28 pb-16 text-center"
       aria-labelledby="hero-title"
     >
       {/* 배경 장식: 미세한 그리드 패턴 */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
-        <div className="absolute inset-0 bg-white [mask-image:linear-gradient(180deg,transparent,rgba(255,255,255,0.9)_80%)]"></div>
+        <div className="absolute inset-0 bg-background [mask-image:linear-gradient(180deg,transparent,rgba(255,255,255,0.9)_80%)]"></div>
       </div>
 
       <div className="mx-auto w-full max-w-5xl space-y-8">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-transparent px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm">
+        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-transparent px-4 py-1.5 text-sm font-semibold text-muted-foreground shadow-sm">
           {content.badge}
         </div>
 
         <h1
           id="hero-title"
-          className="text-5xl font-extrabold leading-[1.05] tracking-tighter text-slate-900 sm:text-6xl lg:text-7xl xl:text-8xl"
+          className="text-5xl font-extrabold leading-[1.05] tracking-tighter text-foreground sm:text-6xl lg:text-7xl xl:text-8xl"
         >
           {titleLines.map((line, i) => (
             <span key={i} className="block">
@@ -46,7 +46,7 @@ export async function Hero() {
           ))}
         </h1>
 
-        <p className="mx-auto max-w-2xl whitespace-pre-line text-lg leading-relaxed text-slate-500 sm:text-xl lg:text-2xl">
+        <p className="mx-auto max-w-2xl whitespace-pre-line text-lg leading-relaxed text-muted-foreground sm:text-xl lg:text-2xl">
           {content.subtitle}
         </p>
 
@@ -63,7 +63,7 @@ export async function Hero() {
 
           <a
             href={content.secondaryCtaHref}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-8 py-4 text-base font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-8 py-4 text-base font-semibold text-foreground shadow-sm transition-all duration-200 hover:bg-accent hover:border-border hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:translate-y-0 sm:w-auto"
           >
             {content.secondaryCtaText}
           </a>
@@ -89,7 +89,7 @@ export async function Hero() {
             >
               <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
-              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-white shadow-sm">
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-card shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/50" aria-hidden="true">
                   <rect width="18" height="18" x="3" y="3" rx="2" />
                   <path d="m9 9 5 12 1.774-5.226L21 14 9 9z" />
@@ -118,7 +118,7 @@ export async function Hero() {
           {content.stats.map((stat, i) => (
             <div key={stat.label} className="flex items-center gap-6 sm:contents">
               {i > 0 && (
-                <div className="hidden h-8 w-px bg-slate-200 sm:block" aria-hidden="true" />
+                <div className="hidden h-8 w-px bg-border sm:block" aria-hidden="true" />
               )}
               <div className="flex flex-col items-center gap-1">
                 <span className="text-2xl font-bold text-foreground">{stat.value}</span>
