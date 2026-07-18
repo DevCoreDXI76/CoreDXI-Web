@@ -167,7 +167,7 @@ export default async function SolutionsPage() {
             </p>
             <Link
               href="/contact"
-              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-sm font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-sm font-semibold text-primary shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl dark:text-blue-300"
             >
               무료 도입 상담 신청
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
