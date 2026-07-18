@@ -18,7 +18,8 @@ import {
   resolveAuthSecretForNextAuth,
 } from "@/lib/auth-env";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, recordRateLimitHit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/client-ip";
 
 const secret = resolveAuthSecretForNextAuth();
 
@@ -40,13 +41,45 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const password = credentials?.password;
         if (!email || !password || typeof email !== "string") return null;
 
+        const normalizedEmail = email.trim().toLowerCase();
+        const clientIp = await getClientIp();
+        const emailKey = `user-login:${normalizedEmail}`;
+        const ipKey = `user-login-ip:${clientIp}`;
+        const windowMs = 15 * 60 * 1000;
+
+        const emailLimit = await checkRateLimit(emailKey, {
+          max: 5,
+          windowMs,
+          recordOnAllowed: false,
+        });
+        if (!emailLimit.allowed) return null;
+
+        const ipLimit = await checkRateLimit(ipKey, {
+          max: 20,
+          windowMs,
+          recordOnAllowed: false,
+        });
+        if (!ipLimit.allowed) return null;
+
+        const recordFailure = () =>
+          Promise.all([
+            recordRateLimitHit(emailKey),
+            recordRateLimitHit(ipKey),
+          ]);
+
         const user = await prisma.user.findUnique({
           where: { email: email.trim() },
         });
-        if (!user?.password) return null;
+        if (!user?.password) {
+          await recordFailure();
+          return null;
+        }
 
         const valid = await bcrypt.compare(String(password), user.password);
-        if (!valid) return null;
+        if (!valid) {
+          await recordFailure();
+          return null;
+        }
 
         return {
           id: user.id,
