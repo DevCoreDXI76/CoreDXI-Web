@@ -39,7 +39,7 @@ export default async function BlogIndexPage() {
   return (
     <Suspense
       fallback={
-        <div className="py-12 text-center text-sm text-slate-500">불러오는 중…</div>
+        <div className="py-12 text-center text-sm text-muted-foreground">불러오는 중…</div>
       }
     >
       <BlogPostGrid posts={posts} />
