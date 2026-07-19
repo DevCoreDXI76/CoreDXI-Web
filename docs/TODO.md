@@ -1,7 +1,7 @@
 # CoreDXI-Web TODO
 
-> 최종 업데이트: 2026-07-07
-> 코드베이스 분석 기반 — 실제 구현 상태를 반영합니다. (2026-06-30 → 2026-07-07 종합 고도화 세션 반영)
+> 최종 업데이트: 2026-07-19
+> 코드베이스 분석 기반 — 실제 구현 상태를 반영합니다. (2026-06-30 → 2026-07-07 종합 고도화 세션, 2026-07-19 rate limiting·다크모드 세션 반영)
 
 ---
 
@@ -70,7 +70,7 @@
 - ✅ Tiptap / BlockNote 듀얼 포맷 지원 (신규: Tiptap, 레거시: BlockNote 호환 렌더)
 - ✅ 비개발자용 `CONTENT_GUIDE.md` 작성 (홍보팀 가이드)
 - ✅ 브랜드 컬러·디자인 시스템 (`globals.css`, `--primary: #1E4E8C`)
-- ✅ **Vitest 유닛 테스트 69개** (OTP, SSRF 가드, 문의 액션, SEO, rate-limit, 답장 템플릿, blog/cases 검색, page-content, CMS 액션)
+- ✅ **Vitest 유닛 테스트 86개** (OTP, SSRF 가드, 문의 액션, SEO, rate-limit, 답장 템플릿, blog/cases 검색, page-content, CMS 액션, 일반 회원 로그인 rate limiting)
 - ✅ **Playwright E2E 골든패스 4개** (문의 제출, 관리자 로그인 성공/실패, 블로그 발행 — 관리자 테스트는 `E2E_ADMIN_EMAIL/PASSWORD` 없으면 자동 skip)
 - ✅ CI(`ci.yml`)에 lint + typecheck + test 스텝 추가 (기존엔 build만 실행)
 - ✅ `.env.example` 생성, README 전면 현행화 (npm/포트3100/Turbopack/Supabase/Sentry/GA4/테스트 반영)
@@ -78,6 +78,7 @@
 - ✅ **보안 헤더** (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, HSTS) — CSP는 의도적 제외(아래 알려진 이슈 참고)
 - ✅ **프로덕션 TLS 검증 정상화** — `NODE_TLS_REJECT_UNAUTHORIZED="0"` 제거, Supabase 루트 CA 명시 신뢰로 교체
 - ✅ **git 히스토리 보안 정리** — 커밋돼 있던 실제 인증 쿠키 파일(ck.txt 등) 완전 제거, `.gitignore` 추가
+- ✅ **공개 페이지 다크모드** — `next-themes` `ThemeProvider` 연결(기본값 라이트, 사용자가 직접 전환), Header에 토글 버튼 추가. 홈/소개/솔루션/성공사례/블로그/문의/로그인/회원가입/404 등 공개 페이지 24개 파일 색상 토큰화(`bg-background`/`bg-card`/`text-foreground` 등). WCAG AA 대비 기준 검증 포함. 관리자 패널(`/admin/**`)은 의도적으로 범위 제외(아래 4번 참고)
 
 ---
 
@@ -110,7 +111,7 @@
 - 💡 **뉴스레터 구독** — 블로그 독자 이메일 구독 기능 (Resend Audiences 활용)
 - 💡 **댓글/반응 기능** — 블로그 글에 좋아요 또는 댓글 기능
 - 💡 **소셜 메타태그 강화** — 블로그·성공사례별 Twitter Card 커스텀 이미지
-- 💡 **다크 모드 완성** — `globals.css`에 `.dark` 변수 정의되어 있으나 토글 UI 미제공
+- 💡 **관리자 패널 다크모드** — 공개 페이지는 완료(위 1번 참고), `/admin/**`은 범위 밖으로 남겨둠
 - 💡 **CSP 도입** — 실제 브라우저 검증 가능한 환경에서 OAuth/GA4/Sentry/영상임베드 허용 목록을 확정한 뒤 적용
 
 ### 장기 (6개월+)
