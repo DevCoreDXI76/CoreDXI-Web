@@ -8,6 +8,7 @@
  */
 
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -89,12 +90,13 @@ export const metadata: Metadata = {
  * 루트 레이아웃 컴포넌트
  * 모든 페이지를 감싸는 공통 HTML 구조입니다.
  */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const siteJsonLd = buildSiteJsonLd();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
@@ -106,8 +108,9 @@ export default function RootLayout({
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
               strategy="afterInteractive"
+              nonce={nonce}
             />
-            <Script id="google-analytics" strategy="afterInteractive">
+            <Script id="google-analytics" strategy="afterInteractive" nonce={nonce}>
               {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -130,6 +133,7 @@ export default function RootLayout({
           <script
             key={schema["@type"] as string}
             type="application/ld+json"
+            nonce={nonce}
             dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
           />
         ))}
