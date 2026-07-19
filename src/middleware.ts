@@ -11,6 +11,7 @@ export default auth((req) => {
 
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy-Report-Only", csp);
 
   const withCsp = (response: NextResponse): NextResponse => {
     response.headers.set("Content-Security-Policy-Report-Only", csp);
