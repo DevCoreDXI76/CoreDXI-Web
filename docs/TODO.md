@@ -75,18 +75,17 @@
 - ✅ CI(`ci.yml`)에 lint + typecheck + test 스텝 추가 (기존엔 build만 실행)
 - ✅ `.env.example` 생성, README 전면 현행화 (npm/포트3100/Turbopack/Supabase/Sentry/GA4/테스트 반영)
 - ✅ **관리자 로그인·문의 폼·회원가입 OTP 인증 rate limiting** (Prisma `RateLimitHit` 테이블 기반)
-- ✅ **보안 헤더** (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, HSTS) — CSP는 의도적 제외(아래 알려진 이슈 참고)
+- ✅ **보안 헤더** (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, HSTS)
 - ✅ **프로덕션 TLS 검증 정상화** — `NODE_TLS_REJECT_UNAUTHORIZED="0"` 제거, Supabase 루트 CA 명시 신뢰로 교체
 - ✅ **git 히스토리 보안 정리** — 커밋돼 있던 실제 인증 쿠키 파일(ck.txt 등) 완전 제거, `.gitignore` 추가
 - ✅ **공개 페이지 다크모드** — `next-themes` `ThemeProvider` 연결(기본값 라이트, 사용자가 직접 전환), Header에 토글 버튼 추가. 홈/소개/솔루션/성공사례/블로그/문의/로그인/회원가입/404 등 공개 페이지 24개 파일 색상 토큰화(`bg-background`/`bg-card`/`text-foreground` 등). WCAG AA 대비 기준 검증 포함. 관리자 패널(`/admin/**`)은 의도적으로 범위 제외(아래 4번 참고)
+- ✅ **CSP(Content-Security-Policy) Report-Only 도입** — nonce 기반(`src/lib/csp.ts`), GA4/영상임베드/OAuth 허용 목록 확정, 위반 리포트 Sentry 연동(`/api/csp-report`). 1주 프로덕션 모니터링 후 enforcing 전환 예정(`docs/superpowers/specs/2026-07-19-csp-design.md` 참고)
 
 ---
 
 ## 2. 개선이 필요한 항목 🔧
 
-### 보안
-
-- 🔧 CSP(Content-Security-Policy) 미적용 — script-src/connect-src를 잘못 설정하면 OAuth·GA4·Sentry·영상임베드가 조용히 깨질 위험이 있어 보류. 브라우저로 직접 검증 가능한 환경에서 재검토 필요
+현재 없음 — 이전에 추적하던 항목(CSP 미적용, OTP 무효화 재검토, BlockNote 레거시 정리, `/admin/inquiries` 구 리다이렉트 제거)이 모두 해결되었습니다.
 
 ---
 
@@ -106,7 +105,6 @@
 - 💡 **댓글/반응 기능** — 블로그 글에 좋아요 또는 댓글 기능
 - 💡 **소셜 메타태그 강화** — 블로그·성공사례별 Twitter Card 커스텀 이미지
 - 💡 **관리자 패널 다크모드** — 공개 페이지는 완료(위 1번 참고), `/admin/**`은 범위 밖으로 남겨둠
-- 💡 **CSP 도입** — 실제 브라우저 검증 가능한 환경에서 OAuth/GA4/Sentry/영상임베드 허용 목록을 확정한 뒤 적용
 
 ### 장기 (6개월+)
 
@@ -121,7 +119,6 @@
 
 | 이슈 | 설명 | 우선순위 |
 |------|------|----------|
-| CSP 미적용 | 안전하게 검증할 방법이 없어 보류 — 위 개선 항목 참고 | 중간 |
 | **Prisma 마이그레이션 주의** | `DATABASE_URL`이 개발/프로덕션 분리 없이 단일 Supabase 프로젝트를 가리킴. `prisma migrate dev`는 `contacts`/`contact_settings`(Supabase 직접 생성 테이블) 때문에 드리프트 감지→스키마 전체 리셋을 유도함. **반드시 수동 `migration.sql` 작성 + `prisma migrate deploy`만 사용할 것** | 높음 (데이터 손실 위험) |
 | next-auth beta | `5.0.0-beta.31` — 2026-07-07 기준 아직 stable 미출시, 조치 불필요 | 낮음 |
 
