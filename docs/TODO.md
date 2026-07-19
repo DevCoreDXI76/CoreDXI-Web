@@ -67,7 +67,7 @@
 - ✅ `sitemap.ts`, `robots.ts` 자동 생성
 - ✅ OG 이미지 자동 생성 (`opengraph-image.tsx`) — 루트·블로그·성공사례
 - ✅ `coredxi.com` → `www.coredxi.com` 301 리다이렉트
-- ✅ Tiptap / BlockNote 듀얼 포맷 지원 (신규: Tiptap, 레거시: BlockNote 호환 렌더)
+- ✅ **Tiptap 단일화** — BlockNote 완전 제거(에디터·리더·`@blocknote/*` 의존성 4개). 실 DB 확인 결과 BlockNote 포맷 글 0건이라 안전하게 제거, 전체 글 Tiptap 포맷
 - ✅ 비개발자용 `CONTENT_GUIDE.md` 작성 (홍보팀 가이드)
 - ✅ 브랜드 컬러·디자인 시스템 (`globals.css`, `--primary: #1E4E8C`)
 - ✅ **Vitest 유닛 테스트 86개** (OTP, SSRF 가드, 문의 액션, SEO, rate-limit, 답장 템플릿, blog/cases 검색, page-content, CMS 액션, 일반 회원 로그인 rate limiting)
@@ -88,10 +88,6 @@
 
 - 🔧 CSP(Content-Security-Policy) 미적용 — script-src/connect-src를 잘못 설정하면 OAuth·GA4·Sentry·영상임베드가 조용히 깨질 위험이 있어 보류. 브라우저로 직접 검증 가능한 환경에서 재검토 필요
 - 🔧 OTP 코드 사용 후 즉시 무효화 로직 재검토
-
-### 코드 품질
-
-- 🔧 BlockNote 레거시 에디터 의존성 정리 계획 수립 — 장기적으로 Tiptap 단일화 고려 (아래 4번 참고)
 
 ---
 
@@ -118,7 +114,6 @@
 - 💡 **회원 전용 콘텐츠 영역** — 로그인 회원에게만 공개되는 심화 자료·리포트 페이지
 - 💡 **예약/미팅 시스템** — AX 컨설팅 상담 예약 기능 (Calendly 연동 또는 자체 구현)
 - 💡 **다국어(i18n) 지원** — 영문 버전 추가 (글로벌 B2B 확장 대비)
-- 💡 **BlockNote → Tiptap 완전 마이그레이션** — 레거시 에디터 의존성 제거
 - 💡 **CMS 구조 편집 확장** — 필요 시 홈/소개/솔루션 카드 개수·순서까지 관리자가 조정 가능하도록 재설계
 
 ---
@@ -129,7 +124,6 @@
 |------|------|----------|
 | CSP 미적용 | 안전하게 검증할 방법이 없어 보류 — 위 개선 항목 참고 | 중간 |
 | **Prisma 마이그레이션 주의** | `DATABASE_URL`이 개발/프로덕션 분리 없이 단일 Supabase 프로젝트를 가리킴. `prisma migrate dev`는 `contacts`/`contact_settings`(Supabase 직접 생성 테이블) 때문에 드리프트 감지→스키마 전체 리셋을 유도함. **반드시 수동 `migration.sql` 작성 + `prisma migrate deploy`만 사용할 것** | 높음 (데이터 손실 위험) |
-| BlockNote 레거시 | 신규 글은 Tiptap만 사용하나 과거 글 호환을 위해 두 에디터 스택 공존 | 낮음 |
 | next-auth beta | `5.0.0-beta.31` — 2026-07-07 기준 아직 stable 미출시, 조치 불필요 | 낮음 |
 
 ---

@@ -3,59 +3,72 @@ import {
   blogContentToHtml,
   blogContentToPlainText,
 } from "./blog-content-html";
-import type { BlockNoteContent, TiptapBlogContent } from "@/types/blocknote";
+import type { TiptapBlogContent } from "@/types/blocknote";
 
 describe("blogContentToHtml", () => {
-  it("renders BlockNote paragraphs and headings", () => {
-    const blocks: BlockNoteContent = [
-      {
-        id: "h1",
-        type: "heading",
-        props: { level: 2 },
-        content: [{ type: "text", text: "소제목", styles: {} }],
-      },
-      {
-        id: "p1",
-        type: "paragraph",
-        content: [{ type: "text", text: "본문 내용", styles: {} }],
-      },
-    ];
+  it("renders Tiptap headings and paragraphs", () => {
+    const doc: TiptapBlogContent = {
+      type: "doc",
+      content: [
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "소제목" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "본문 내용" }],
+        },
+      ],
+    };
 
-    const html = blogContentToHtml(blocks);
+    const html = blogContentToHtml(doc);
     expect(html).toContain("<h2>소제목</h2>");
     expect(html).toContain("<p>본문 내용</p>");
   });
 
-  it("renders BlockNote bullet lists", () => {
-    const blocks: BlockNoteContent = [
-      {
-        id: "b1",
-        type: "bulletListItem",
-        content: [{ type: "text", text: "항목 1", styles: {} }],
-      },
-      {
-        id: "b2",
-        type: "bulletListItem",
-        content: [{ type: "text", text: "항목 2", styles: {} }],
-      },
-    ];
+  it("renders Tiptap bullet lists", () => {
+    const doc: TiptapBlogContent = {
+      type: "doc",
+      content: [
+        {
+          type: "bulletList",
+          content: [
+            {
+              type: "listItem",
+              content: [
+                { type: "paragraph", content: [{ type: "text", text: "항목 1" }] },
+              ],
+            },
+            {
+              type: "listItem",
+              content: [
+                { type: "paragraph", content: [{ type: "text", text: "항목 2" }] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
 
-    const html = blogContentToHtml(blocks);
+    const html = blogContentToHtml(doc);
     expect(html).toContain("<ul>");
-    expect(html).toContain("<li>항목 1</li>");
-    expect(html).toContain("<li>항목 2</li>");
+    expect(html).toContain("<li><p>항목 1</p></li>");
+    expect(html).toContain("<li><p>항목 2</p></li>");
   });
 
   it("escapes HTML in text nodes", () => {
-    const blocks: BlockNoteContent = [
-      {
-        id: "p1",
-        type: "paragraph",
-        content: [{ type: "text", text: "<script>alert(1)</script>", styles: {} }],
-      },
-    ];
+    const doc: TiptapBlogContent = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "<script>alert(1)</script>" }],
+        },
+      ],
+    };
 
-    const html = blogContentToHtml(blocks);
+    const html = blogContentToHtml(doc);
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
   });
@@ -78,19 +91,20 @@ describe("blogContentToHtml", () => {
 
 describe("blogContentToPlainText", () => {
   it("strips tags and collapses whitespace", () => {
-    const blocks: BlockNoteContent = [
-      {
-        id: "p1",
-        type: "paragraph",
-        content: [{ type: "text", text: "첫 문장", styles: {} }],
-      },
-      {
-        id: "p2",
-        type: "paragraph",
-        content: [{ type: "text", text: "둘째 문장", styles: {} }],
-      },
-    ];
+    const doc: TiptapBlogContent = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "첫 문장" }],
+        },
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "둘째 문장" }],
+        },
+      ],
+    };
 
-    expect(blogContentToPlainText(blocks)).toBe("첫 문장 둘째 문장");
+    expect(blogContentToPlainText(doc)).toBe("첫 문장 둘째 문장");
   });
 });
