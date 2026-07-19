@@ -35,7 +35,7 @@
 ### 인증 시스템
 
 - ✅ 일반 회원 로그인 (`/login`) — Google·Kakao·Naver OAuth, 이메일 2단계 (훅/단계별 컴포넌트로 리팩토링)
-- ✅ 회원가입 (`/signup`) — 이메일 OTP 인증(6자리, 5분 만료) 3단계 플로우 (훅/단계별 컴포넌트로 리팩토링)
+- ✅ 회원가입 (`/signup`) — 이메일 OTP 인증(6자리, 5분 만료) 3단계 플로우 (훅/단계별 컴포넌트로 리팩토링), **이메일당 5분 5회 rate limit** (`/api/auth/verify-otp`)
 - ✅ 관리자 로그인 (`/admin/login`) — Credentials 인증, **이메일당 15분 5회 rate limit**
 - ✅ 일반 회원 로그인 (`/login`) — **이메일당 15분 5회 + IP당 15분 20회 rate limit** (로그인 성공 시도는 카운트하지 않음)
 - ✅ 최초 관리자 설정 (`/setup`) — DB Admin 없을 때만 접근
@@ -70,11 +70,11 @@
 - ✅ **Tiptap 단일화** — BlockNote 완전 제거(에디터·리더·`@blocknote/*` 의존성 4개). 실 DB 확인 결과 BlockNote 포맷 글 0건이라 안전하게 제거, 전체 글 Tiptap 포맷
 - ✅ 비개발자용 `CONTENT_GUIDE.md` 작성 (홍보팀 가이드)
 - ✅ 브랜드 컬러·디자인 시스템 (`globals.css`, `--primary: #1E4E8C`)
-- ✅ **Vitest 유닛 테스트 86개** (OTP, SSRF 가드, 문의 액션, SEO, rate-limit, 답장 템플릿, blog/cases 검색, page-content, CMS 액션, 일반 회원 로그인 rate limiting)
+- ✅ **Vitest 유닛 테스트 89개** (OTP, SSRF 가드, 문의 액션, SEO, rate-limit, 답장 템플릿, blog/cases 검색, page-content, CMS 액션, 일반 회원 로그인 rate limiting, OTP 인증 rate limiting)
 - ✅ **Playwright E2E 골든패스 4개** (문의 제출, 관리자 로그인 성공/실패, 블로그 발행 — 관리자 테스트는 `E2E_ADMIN_EMAIL/PASSWORD` 없으면 자동 skip)
 - ✅ CI(`ci.yml`)에 lint + typecheck + test 스텝 추가 (기존엔 build만 실행)
 - ✅ `.env.example` 생성, README 전면 현행화 (npm/포트3100/Turbopack/Supabase/Sentry/GA4/테스트 반영)
-- ✅ **관리자 로그인·문의 폼 rate limiting** (Prisma `RateLimitHit` 테이블 기반)
+- ✅ **관리자 로그인·문의 폼·회원가입 OTP 인증 rate limiting** (Prisma `RateLimitHit` 테이블 기반)
 - ✅ **보안 헤더** (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, HSTS) — CSP는 의도적 제외(아래 알려진 이슈 참고)
 - ✅ **프로덕션 TLS 검증 정상화** — `NODE_TLS_REJECT_UNAUTHORIZED="0"` 제거, Supabase 루트 CA 명시 신뢰로 교체
 - ✅ **git 히스토리 보안 정리** — 커밋돼 있던 실제 인증 쿠키 파일(ck.txt 등) 완전 제거, `.gitignore` 추가
@@ -87,7 +87,6 @@
 ### 보안
 
 - 🔧 CSP(Content-Security-Policy) 미적용 — script-src/connect-src를 잘못 설정하면 OAuth·GA4·Sentry·영상임베드가 조용히 깨질 위험이 있어 보류. 브라우저로 직접 검증 가능한 환경에서 재검토 필요
-- 🔧 OTP 코드 사용 후 즉시 무효화 로직 재검토
 
 ---
 

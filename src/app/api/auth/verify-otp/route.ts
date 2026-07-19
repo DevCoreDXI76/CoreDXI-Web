@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidEmail, normalizeEmail } from "@/lib/otp";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
@@ -23,6 +24,20 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { success: false, message: "6자리 인증 코드를 입력해 주세요." },
         { status: 400 }
+      );
+    }
+
+    const rateLimit = await checkRateLimit(`otp-verify:${email}`, {
+      max: 5,
+      windowMs: 5 * 60 * 1000,
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `너무 많이 시도했습니다. ${rateLimit.retryAfterSeconds}초 후 다시 시도해 주세요.`,
+        },
+        { status: 429 }
       );
     }
 
