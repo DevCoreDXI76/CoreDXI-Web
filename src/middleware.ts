@@ -10,6 +10,8 @@ export default auth((req) => {
   const csp = buildCsp(nonce);
 
   const requestHeaders = new Headers(req.headers);
+  requestHeaders.delete("content-security-policy");
+  requestHeaders.delete("content-security-policy-report-only");
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy-Report-Only", csp);
 
