@@ -146,7 +146,7 @@ export default async function RootLayout({
         <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} nonce={nonce}>
           <AuthProvider>
             {children}
             <Toaster richColors position="top-center" />
