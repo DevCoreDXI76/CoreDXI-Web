@@ -92,7 +92,6 @@
 ### 코드 품질
 
 - 🔧 BlockNote 레거시 에디터 의존성 정리 계획 수립 — 장기적으로 Tiptap 단일화 고려 (아래 4번 참고)
-- 🔧 `/admin/inquiries` → `/admin/contact` 구 경로 리다이렉트는 일정 기간 후 제거 가능
 
 ---
 
