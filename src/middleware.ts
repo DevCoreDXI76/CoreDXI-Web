@@ -1,29 +1,44 @@
 import NextAuth from "next-auth";
 import authConfig from "@/auth.config";
 import { NextResponse } from "next/server";
+import { buildCsp } from "@/lib/csp";
 
 const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const csp = buildCsp(nonce);
+
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  const withCsp = (response: NextResponse): NextResponse => {
+    response.headers.set("Content-Security-Policy-Report-Only", csp);
+    return response;
+  };
+
+  const next = () =>
+    withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
+
   if (
     req.nextUrl.pathname.startsWith("/concepts") &&
     process.env.NODE_ENV === "production"
   ) {
-    return new NextResponse("Not Found", { status: 404 });
+    return withCsp(new NextResponse("Not Found", { status: 404 }));
   }
 
   if (!req.nextUrl.pathname.startsWith("/admin")) {
-    return NextResponse.next();
+    return next();
   }
 
   if (req.nextUrl.pathname === "/admin/login") {
-    return NextResponse.next();
+    return next();
   }
 
   if (!req.auth) {
     const login = new URL("/admin/login", req.url);
     login.searchParams.set("callbackUrl", req.nextUrl.pathname);
-    return NextResponse.redirect(login);
+    return withCsp(NextResponse.redirect(login));
   }
 
   const { accountType, role } = req.auth.user ?? {};
@@ -33,12 +48,14 @@ export default auth((req) => {
   ) {
     const login = new URL("/admin/login", req.url);
     login.searchParams.set("error", "Forbidden");
-    return NextResponse.redirect(login);
+    return withCsp(NextResponse.redirect(login));
   }
 
-  return NextResponse.next();
+  return next();
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/concepts", "/concepts/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
 };
