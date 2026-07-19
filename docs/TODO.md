@@ -127,7 +127,6 @@
 
 | 이슈 | 설명 | 우선순위 |
 |------|------|----------|
-| CSP Report-Only 잔존 위반 | `next-themes` 다크모드 anti-FOUC 인라인 스크립트(`ThemeProvider`가 `<html>`에 주입)에 nonce가 적용되지 않아 모든 페이지 로드 시 CSP 위반 리포트가 발생함(Report-Only라 기능 차단은 없음). `src/app/layout.tsx`의 `<ThemeProvider>`에 `nonce={nonce}` prop 추가 필요 — Phase 3(enforcing 전환) 전에 반드시 수정할 것 | 중간 |
 | **Prisma 마이그레이션 주의** | `DATABASE_URL`이 개발/프로덕션 분리 없이 단일 Supabase 프로젝트를 가리킴. `prisma migrate dev`는 `contacts`/`contact_settings`(Supabase 직접 생성 테이블) 때문에 드리프트 감지→스키마 전체 리셋을 유도함. **반드시 수동 `migration.sql` 작성 + `prisma migrate deploy`만 사용할 것** | 높음 (데이터 손실 위험) |
 | BlockNote 레거시 | 신규 글은 Tiptap만 사용하나 과거 글 호환을 위해 두 에디터 스택 공존 | 낮음 |
 | next-auth beta | `5.0.0-beta.31` — 2026-07-07 기준 아직 stable 미출시, 조치 불필요 | 낮음 |
