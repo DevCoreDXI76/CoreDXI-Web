@@ -85,17 +85,17 @@ export default async function CaseDetailPage({ params }: PageProps) {
         }}
       />
       <Header />
-      <main className="min-h-screen bg-gray-50 pt-24 pb-16">
+      <main className="min-h-screen bg-background pt-24 pb-16">
         <article className="mx-auto max-w-3xl px-6">
           <Link
             href="/cases"
-            className="mb-6 inline-flex text-sm font-medium text-[#1E4E8C] hover:underline"
+            className="mb-6 inline-flex text-sm font-medium text-primary hover:underline"
           >
             ← 목록으로
           </Link>
 
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-            <div className="relative aspect-[16/9] bg-gray-100">
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <div className="relative aspect-[16/9] bg-muted">
               <Image
                 src={item.thumbnailUrl}
                 alt={item.title}
@@ -108,13 +108,13 @@ export default async function CaseDetailPage({ params }: PageProps) {
 
             <div className="space-y-6 p-6 md:p-8">
               <div>
-                <span className="inline-flex rounded-full bg-[#1E4E8C]/10 px-3 py-1 text-sm font-medium text-[#1E4E8C]">
+                <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary dark:text-blue-300">
                   {item.metrics}
                 </span>
-                <h1 className="mt-3 text-2xl font-bold text-gray-900 md:text-3xl">
+                <h1 className="mt-3 text-2xl font-bold text-foreground md:text-3xl">
                   {item.title}
                 </h1>
-                <p className="mt-1 text-gray-500">{item.clientName}</p>
+                <p className="mt-1 text-muted-foreground">{item.clientName}</p>
               </div>
 
               {embedUrl ? (
@@ -132,13 +132,13 @@ export default async function CaseDetailPage({ params }: PageProps) {
                   href={item.videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex text-sm font-medium text-[#1E4E8C] hover:underline"
+                  className="inline-flex text-sm font-medium text-primary hover:underline dark:text-blue-300"
                 >
                   동영상 보기 →
                 </a>
               ) : null}
 
-              <div className="whitespace-pre-wrap leading-relaxed text-gray-700">
+              <div className="whitespace-pre-wrap leading-relaxed text-foreground">
                 {item.content}
               </div>
             </div>

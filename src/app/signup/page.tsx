@@ -25,7 +25,7 @@ function SignupPageContent() {
   const flow = useSignupFlow();
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-violet-100/80 via-indigo-50 to-sky-100/80">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-violet-100/80 via-indigo-50 to-sky-100/80 dark:from-violet-950/40 dark:via-background dark:to-sky-950/30">
       <header className="px-6 py-5">
         <Logo
           size={30}
@@ -36,7 +36,7 @@ function SignupPageContent() {
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 pb-12">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+        <div className="w-full max-w-md rounded-2xl bg-card p-8 shadow-xl">
           {flow.step === 1 && (
             <SignupStepEmail
               email={flow.email}

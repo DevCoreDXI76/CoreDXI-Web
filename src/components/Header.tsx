@@ -30,6 +30,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 /** 로그아웃 후 이동 URL — Vercel 기본 도메인으로 붙는 것을 막고 공식 도메인으로 통일 */
 function publicLogoutUrl(): string {
@@ -126,7 +127,7 @@ export function Header() {
       className={[
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         isScrolled
-          ? "bg-white/80 backdrop-blur-lg border-b border-slate-200/60"
+          ? "bg-background/80 backdrop-blur-lg border-b border-border/60"
           : "bg-transparent",
       ].join(" ")}
     >
@@ -147,7 +148,7 @@ export function Header() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="relative px-4 py-2 text-sm font-medium text-slate-600 rounded-md transition-all duration-200 hover:text-slate-900 hover:bg-slate-100"
+                  className="relative px-4 py-2 text-sm font-medium text-muted-foreground rounded-md transition-all duration-200 hover:text-foreground hover:bg-accent"
                 >
                   {item.label}
                 </Link>
@@ -157,12 +158,13 @@ export function Header() {
 
           {/* ─── 우측: 버튼 2개 (lg 이상) + 햄버거 (lg 미만) ─── */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
 
             {/* [홍보팀] 로그인 여부에 따라 오른쪽 버튼 구역이 바뀝니다. 비로그인: 로그인·도입 문의 / 로그인: 프로필·로그아웃·도입 문의 */}
             <div className="hidden lg:flex items-center gap-2">
               {isLoggedIn ? (
                 <>
-                  <div className="flex items-center gap-2 rounded-full border border-border/60 bg-white/80 py-1 pl-1 pr-2 shadow-sm">
+                  <div className="flex items-center gap-2 rounded-full border border-border/60 bg-background/80 py-1 pl-1 pr-2 shadow-sm">
                     {session.user?.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -186,7 +188,7 @@ export function Header() {
                   <button
                     type="button"
                     onClick={() => void signOut({ callbackUrl: publicLogoutUrl() })}
-                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-slate-600 rounded-md transition-all duration-200 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-muted-foreground rounded-md transition-all duration-200 hover:text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     로그아웃
                   </button>
@@ -201,7 +203,7 @@ export function Header() {
                 <>
                   <Link
                     href={HEADER_BUTTONS.login.href}
-                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-slate-600 rounded-md transition-all duration-200 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-muted-foreground rounded-md transition-all duration-200 hover:text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     {HEADER_BUTTONS.login.label}
                   </Link>
@@ -246,7 +248,7 @@ export function Header() {
         id="mobile-menu"
         className={[
           "lg:hidden overflow-hidden transition-all duration-300 ease-in-out",
-          "bg-white/98 backdrop-blur-md border-t border-border/30",
+          "bg-background/98 backdrop-blur-md border-t border-border/30",
           isMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0",
         ].join(" ")}
         aria-hidden={!isMenuOpen}

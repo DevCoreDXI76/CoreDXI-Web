@@ -13,9 +13,9 @@ export function CaseCard({ item }: CaseCardProps) {
   return (
     <Link
       href={`/cases/${item.slug}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         <Image
           src={item.thumbnailUrl}
           alt={item.title}
@@ -25,13 +25,13 @@ export function CaseCard({ item }: CaseCardProps) {
         />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
-        <span className="inline-flex w-fit rounded-full bg-[#1E4E8C]/10 px-2.5 py-0.5 text-xs font-medium text-[#1E4E8C]">
+        <span className="inline-flex w-fit rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary dark:text-blue-300">
           {item.metrics}
         </span>
-        <h2 className="text-lg font-semibold text-gray-900 group-hover:text-[#1E4E8C]">
+        <h2 className="text-lg font-semibold text-foreground group-hover:text-primary dark:group-hover:text-blue-300">
           {item.title}
         </h2>
-        <p className="text-sm text-gray-500">{item.clientName}</p>
+        <p className="text-sm text-muted-foreground">{item.clientName}</p>
       </div>
     </Link>
   );

@@ -132,23 +132,23 @@ export default async function BlogPostPage({ params }: PageProps) {
       />
       <Link
         href={`/blog/category/${post.category.slug}`}
-        className="text-sm font-medium text-[#1E4E8C] hover:underline"
+        className="text-sm font-medium text-primary hover:underline"
       >
         {post.category.name}
       </Link>
-      <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+      <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
         {post.title}
       </h1>
       {post.excerpt ? (
-        <p className="mt-4 text-lg text-gray-600">{post.excerpt}</p>
+        <p className="mt-4 text-lg text-muted-foreground">{post.excerpt}</p>
       ) : null}
       {post.publishedAt ? (
-        <p className="mt-4 text-sm text-gray-400">
+        <p className="mt-4 text-sm text-muted-foreground">
           {formatKstDateLong(post.publishedAt)}
         </p>
       ) : null}
 
-      <div className="mt-10 rounded-xl border border-gray-100 bg-white p-4 shadow-sm md:p-8">
+      <div className="mt-10 rounded-xl border border-border bg-card p-4 shadow-sm md:p-8">
         <BlogPostContentServer content={content} />
       </div>
     </article>

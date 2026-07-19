@@ -13,6 +13,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { buildSiteJsonLd } from "@/lib/seo-jsonld";
 import { SITE_URL } from "@/lib/seo";
 
@@ -97,7 +98,7 @@ export default function RootLayout({
 
   return (
     /* lang="ko" — 화면 읽기 프로그램과 SEO를 위해 한국어로 설정 */
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         {/* [홍보팀] Google Analytics(구글 애널리틱스) 방문자 추적 코드입니다. .env의 NEXT_PUBLIC_GA_MEASUREMENT_ID 값을 수정하세요. */}
         {gaMeasurementId ? (
@@ -141,10 +142,12 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider>
-          {children}
-          <Toaster richColors position="top-center" />
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <AuthProvider>
+            {children}
+            <Toaster richColors position="top-center" />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

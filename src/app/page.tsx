@@ -54,7 +54,7 @@ export default async function HomePage() {
 
         {/* ── 블로그 섹션 ──────────────────────────────────── */}
         {posts.length > 0 && (
-          <section className="bg-slate-50 py-20">
+          <section className="bg-muted py-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               {/* 섹션 헤더 */}
               <div className="mb-8 flex items-end justify-between gap-6">
@@ -62,16 +62,16 @@ export default async function HomePage() {
                   <p className="text-sm font-semibold tracking-tight text-primary">
                     오늘의 주요 기술 인사이트
                   </p>
-                  <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                  <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                     최신 업데이트와 실전 인사이트를 매거진처럼.
                   </h2>
-                  <p className="max-w-2xl text-base leading-relaxed text-slate-600">
+                  <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">
                     CoreDXI의 제품 개발 과정에서 얻은 지식과 시행착오를 공개합니다.
                   </p>
                 </div>
                 <Link
                   href="/blog"
-                  className="hidden shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md md:inline-flex"
+                  className="hidden shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md md:inline-flex"
                   aria-label="기술 블로그로 이동"
                 >
                   기술 블로그
@@ -81,9 +81,9 @@ export default async function HomePage() {
 
               {/* 피처드 포스트 */}
               {featured && (
-                <article className="group mb-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <article className="group mb-8 overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                   <div className="grid grid-cols-1 lg:grid-cols-5">
-                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100 lg:aspect-auto lg:col-span-3 lg:min-h-[360px]">
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted lg:aspect-auto lg:col-span-3 lg:min-h-[360px]">
                       <Image
                         src={featured.coverImageUrl}
                         alt={featured.title}
@@ -101,20 +101,20 @@ export default async function HomePage() {
                           <TagIcon className="h-3.5 w-3.5" aria-hidden="true" />
                           {featured.tag}
                         </span>
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                           {formatKstDateLong(featured.createdAt)}
                         </div>
                       </div>
 
                       <div className="space-y-3">
-                        <h3 className="text-xl font-bold leading-snug tracking-tight text-slate-900 sm:text-2xl">
+                        <h3 className="text-xl font-bold leading-snug tracking-tight text-foreground sm:text-2xl">
                           <Link href={featured.href} className="hover:underline">
                             {featured.title}
                           </Link>
                         </h3>
                         {featured.excerpt ? (
-                          <p className="text-sm leading-relaxed text-slate-600 line-clamp-3">
+                          <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3">
                             {featured.excerpt}
                           </p>
                         ) : null}
@@ -140,10 +140,10 @@ export default async function HomePage() {
                 <>
                   <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-bold tracking-tight text-slate-900">
+                      <h3 className="text-xl font-bold tracking-tight text-foreground">
                         최신 기술 글
                       </h3>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-muted-foreground">
                         제품 개발 히스토리를 기반으로 실전형 글을 쌓아갑니다.
                       </p>
                     </div>
@@ -161,9 +161,9 @@ export default async function HomePage() {
                     {latest.map((post) => (
                       <article
                         key={post.slug}
-                        className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                        className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                       >
-                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+                        <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
                           <Image
                             src={post.coverImageUrl}
                             alt={post.title}
@@ -175,17 +175,17 @@ export default async function HomePage() {
 
                         <div className="flex flex-col gap-4 p-5">
                           <div className="flex flex-wrap items-center justify-between gap-3">
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:text-blue-300">
                               <TagIcon className="h-3.5 w-3.5" aria-hidden="true" />
                               {post.tag}
                             </span>
-                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                               <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                               {formatKstDateLong(post.createdAt)}
                             </span>
                           </div>
 
-                          <h4 className="text-base font-bold leading-snug tracking-tight text-slate-900">
+                          <h4 className="text-base font-bold leading-snug tracking-tight text-foreground">
                             <Link href={post.href} className="hover:underline">
                               {post.title}
                             </Link>
@@ -199,7 +199,7 @@ export default async function HomePage() {
 
               {/* 블로그 포스트가 없을 때 */}
               {posts.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center text-slate-500">
+                <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center text-muted-foreground">
                   <p className="text-sm">곧 첫 번째 인사이트를 공개할 예정입니다.</p>
                 </div>
               )}
@@ -209,15 +209,15 @@ export default async function HomePage() {
 
         {/* ── Mini About ───────────────────────────────────── */}
         <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-          <div className="rounded-3xl border border-slate-200 bg-white px-6 py-10 shadow-sm sm:px-10">
+          <div className="rounded-3xl border border-border bg-card px-6 py-10 shadow-sm sm:px-10">
             <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-primary">CoreDXI</p>
-                <p className="text-2xl font-bold tracking-tight text-slate-900">
+                <p className="text-sm font-semibold text-primary dark:text-blue-300">CoreDXI</p>
+                <p className="text-2xl font-bold tracking-tight text-foreground">
                   우리는 지식을 공유하며 함께 성장하는 IT 전문가 집단,
                   CoreDXI입니다.
                 </p>
-                <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
+                <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
                   기술을 &quot;보여주는 것&quot;에 그치지 않고, 고객의 비즈니스 문제를
                   해결하는 제품으로 연결합니다. 우리가 일하는 방식과 축적된
                   노하우를 확인해 보세요.

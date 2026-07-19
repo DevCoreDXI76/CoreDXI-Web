@@ -64,7 +64,7 @@ export function CaseFilterGrid({ initialItems }: Props) {
     <div className="space-y-8">
       <div className="flex flex-wrap gap-3">
         <Select value={industry} onValueChange={(v) => v && setIndustry(v)}>
-          <SelectTrigger className="w-44 bg-white">
+          <SelectTrigger className="w-44 bg-card">
             <SelectValue placeholder="업종" />
           </SelectTrigger>
           <SelectContent>
@@ -81,7 +81,7 @@ export function CaseFilterGrid({ initialItems }: Props) {
           value={solutionType}
           onValueChange={(v) => v && setSolutionType(v)}
         >
-          <SelectTrigger className="w-52 bg-white">
+          <SelectTrigger className="w-52 bg-card">
             <SelectValue placeholder="솔루션 유형" />
           </SelectTrigger>
           <SelectContent>
@@ -96,11 +96,11 @@ export function CaseFilterGrid({ initialItems }: Props) {
       </div>
 
       {isLoading ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-500">
+        <div className="rounded-xl border border-dashed border-border bg-card py-16 text-center text-muted-foreground">
           불러오는 중…
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-500">
+        <div className="rounded-xl border border-dashed border-border bg-card py-16 text-center text-muted-foreground">
           조건에 맞는 성공사례가 없습니다.
         </div>
       ) : (
