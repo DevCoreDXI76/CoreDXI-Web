@@ -29,7 +29,16 @@ describe("POST /api/csp-report", () => {
     expect(response.status).toBe(204);
     expect(Sentry.captureMessage).toHaveBeenCalledWith(
       "CSP Violation",
-      expect.objectContaining({ level: "warning" })
+      expect.objectContaining({
+        level: "warning",
+        extra: {
+          report: {
+            "blocked-uri": "https://evil.example.com/x.js",
+            "violated-directive": "script-src",
+            "document-uri": "https://coredxi.com/",
+          },
+        },
+      })
     );
   });
 
