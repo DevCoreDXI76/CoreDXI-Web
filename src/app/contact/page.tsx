@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { pageMetadata } from "@/lib/seo";
 import { buildFaqJsonLd } from "@/lib/seo-jsonld";
 import { CONTACT_FAQ_ITEMS } from "@/lib/contact-faq";
@@ -17,11 +18,13 @@ export const dynamic = "force-dynamic";
 export default async function ContactPage() {
   const notificationEmail = await getContactNotificationEmail();
   const faqJsonLd = buildFaqJsonLd(CONTACT_FAQ_ITEMS);
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <ContactPageClient

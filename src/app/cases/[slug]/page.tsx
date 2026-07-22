@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Header } from "@/components/Header";
 import { getPortfolioBySlugOrId } from "@/lib/portfolio";
@@ -55,6 +56,7 @@ export default async function CaseDetailPage({ params }: PageProps) {
     redirect(`/cases/${item.slug}`);
   }
 
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const embedUrl = item.videoUrl ? getVideoEmbedUrl(item.videoUrl) : null;
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: "성공사례", path: "/cases" },
@@ -74,12 +76,14 @@ export default async function CaseDetailPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbJsonLd),
         }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(caseStudyJsonLd),
         }}

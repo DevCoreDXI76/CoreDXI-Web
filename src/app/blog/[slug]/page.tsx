@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { BlogPostContentServer } from "@/components/editor/BlogPostContentServer";
 import { prisma } from "@/lib/prisma";
@@ -79,6 +80,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   });
   if (!post) notFound();
 
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const content = normalizeBlogContent(post.content);
   const postUrl = siteUrl(`/blog/${slug}`);
 
@@ -122,10 +124,12 @@ export default async function BlogPostPage({ params }: PageProps) {
     <article>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(breadcrumbJsonLd),
         }}
