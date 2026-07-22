@@ -45,6 +45,7 @@ Permissions-Policy, HSTS는 이미 적용되어 있으나 CSP만 빠져 있다. 
    - `buildCsp(nonce: string): string` 순수 함수로 CSP 문자열 조립 로직 분리 (유닛 테스트 대상).
 3. **`src/app/layout.tsx` 수정**
    - `next/headers`의 `headers()`로 `x-nonce` 읽어 GA4 `<Script nonce={nonce}>`, JSON-LD `<script nonce={nonce}>`에 적용.
+   - **주의**: 사이트 공통 JSON-LD(layout.tsx)뿐 아니라 페이지에서 직접 렌더하는 JSON-LD도 각각 nonce 적용 필요. Phase 2 모니터링에서 `src/app/cases/[slug]/page.tsx`(누락 확인), `src/app/blog/[slug]/page.tsx`, `src/app/contact/page.tsx`에도 동일 패턴의 `<script type="application/ld+json">`이 있어 각 페이지에서 개별적으로 `headers()`를 호출해 nonce를 적용함(2026-07-22 수정).
 4. **`src/app/api/csp-report/route.ts` 신설**
    - `application/csp-report`, `application/reports+json` 바디를 받아 파싱.
    - `Sentry.captureMessage("CSP Violation", { level: "warning", extra: {...} })`로 로깅(Sentry가 동일 위반 자동 그룹핑, 별도 rate-limit 불필요).
