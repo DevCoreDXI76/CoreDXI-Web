@@ -29,9 +29,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/:path*",
+        source: "/:path((?!ads\\.txt$).*)",
         has: [{ type: "host", value: "coredxi.com" }],
-        destination: "https://www.coredxi.com/:path*",
+        destination: "https://www.coredxi.com/:path",
         permanent: true,
       },
     ];
