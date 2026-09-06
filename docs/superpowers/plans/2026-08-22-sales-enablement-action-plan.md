@@ -41,7 +41,7 @@ Phase 1 잔여(퍼널 대시보드 실측, 08/29 점검)는 이 트랙과 병행
 | 0-4 | 솔루션 소개서 — **2026-08-30 사용자 결정으로 1장 → 4~5장 슬라이드 PDF로 확장** (표지·업계 문제·4단계·AX 체크 QR·회사/연락처). 검토: 사용자 1차 → 영업이사 2차. 게시: `/solutions` AX 컨설팅 카드 다운로드 버튼(CMS 필드) | AI 비서(`coredxi-consulting-pptx`+`coredxi-docs`) → 사용자·영업이사 검토 → 개발팀 게시 | `public/docs/coredxi-ax-consulting-brochure.pdf` (URL 고정, `-onepager` 이름 폐기) · 상세 플랜 `2026-08-30-ax-consulting-brochure-action-plan.md` | 🚧 2026-09-01 v3 제작 완료(`docs/superpowers/assets/brochure/20260901_…_v3.pptx/.pdf`) — v2(영업이사 S2 의견 3건: 수치 30~50% 범위+면책·현장 용어·레퍼런스 구체화)에 이어 사용자 키포인트 4건 반영: 2p 페인포인트 2종 추가(시작점 막막함·노하우 인력 의존, 아이엔지 v4 자료 참고), 3p 4단계는 /solutions 프로세스와 정합 확인(변경 없음), 4p 이모지·아이콘 강화, 5p '왜 CoreDXI'(IT 대기업 20년 경력·고객 맞춤형 AI 전략·측정 가능한 성과). **2026-09-03 사용자 최종 확정(S2 종료)**, S3(PowerPoint PDF 내보내기, 사용자)·S4(홈페이지 게시, 개발팀) 착수 대기 |
 | 0-5 | 영업이사용 `?ref=` 코드 확정(예: `sales-kim`) + 관리자 계정(EDITOR) 발급 + `SALES_NOTIFY_EMAIL` 환경변수 값 확정 | 사용자 | Vercel 환경변수 | ✅ 2026-08-26 — ref=`sales-kim`, EDITOR 계정 `obaamg1017@coredxi.com`을 `scripts/create-sales-editor-account.ts`로 생성(임시 비밀번호는 사용자에게 별도 전달, 커밋·문서에 미포함), `SALES_NOTIFY_EMAIL=devcoredxi00@coredxi.com`을 `.env.local` + Vercel Production/Preview 환경변수에 등록 완료 |
 | 0-6 | `AxCheckResponse` 수동 `migration.sql` 작성 (설계 4번) — `prisma migrate dev` 금지 | 개발팀(Claude Code) | `prisma/migrations/20260825120000_add_ax_check_response/migration.sql`(설계 4번의 예시 파일명 `20260827120000`에서 실제 작업일 기준 `20260825120000`으로 확정) | ✅ 2026-08-25 |
-| 0-7 | 3단계 뉴스레터 발송 담당자(콘텐츠기획) 지정 — 미지정이면 3단계 발송은 보류 유지 | 사용자 | Notion 업무 DB 담당자 필드 | ⬜ |
+| 0-7 | 3단계 뉴스레터 발송 담당자(콘텐츠기획) 지정 — 미지정이면 3단계 발송은 보류 유지 | 사용자 | Notion 업무 DB 담당자 필드 | ✅ 2026-09-02 A-5에서 "시스템 자동 발송 + 사용자 승인"으로 결정, **2026-09-06 사용자 재확정: 담당 = 사용자 본인 + AI 비서**(별도 콘텐츠기획 담당자 없음) |
 
 ---
 
@@ -59,7 +59,7 @@ Phase 1 잔여(퍼널 대시보드 실측, 08/29 점검)는 이 트랙과 병행
 | 1-8 | Playwright 골든패스 1개(`ax-check.spec.ts`) | 개발팀 | E2E 통과 | 🚧 스펙 작성 완료, 로컬 DB(`migrate deploy`) 반영 전이라 실행 미확인 |
 | 1-9 | `prisma migrate deploy`, lint/tsc/vitest/E2E, PR, 배포 | 개발팀 | CI 녹색 | 🚧 lint/tsc/vitest 통과 확인 완료, `migrate deploy`·E2E 실행·PR·배포는 사용자 |
 | 1-10 | **영업이사 실기기 테스트** — 본인 폰에서 링크 열기→제출→메일 확인→`/admin/leads` 확인, 30분 사용법 안내 | 사용자 + 영업이사 | 체크리스트 통과 | 🚧 2026-09-02 1차 테스트에서 "담당 이사 검토 후 수동 발송" 워크플로우가 지켜지지 않음을 확인 → 자동 팔로업 전환 결정(`docs/superpowers/plans/2026-09-02-sales-channel-auto-followup-action-plan.md`). 전환분(C단계, 2026-09-02~03 구현 완료) 위에서 재테스트 필요 |
-| 1-11 | **첫 링크 발송** — 0-2의 타깃 10개사 중 3~5곳. 이후 2주간 "전송 수 / 제출 수"를 영업이사가 수기 기록(Notion 작업 로그) | 영업이사 | 완료율 수치 | ⬜ |
+| 1-11 | **첫 링크 발송** — 0-2의 타깃 10개사 중 3~5곳. 이후 2주간 "전송 수 / 제출 수"를 영업이사가 수기 기록(Notion 작업 로그) | 영업이사 | 완료율 수치 | ⬜ **마감 2026-09-11로 재설정(09-06 결정)** — 09/10까지 발송 없으면 사용자가 지인 채널 2~3곳 직접 발송. 실응답 5건 + HOT 1건 확보 전 신규 기능 착수 동결 |
 | 1-12 | `docs/TODO.md`·Notion 업무 DB 상태 갱신, 작업 로그 기록 | AI 비서 세션 | – | 🚧 `docs/TODO.md`·이 표 갱신 완료(2026-08-25), Notion 업무 DB는 별도 처리 필요 |
 
 **1단계 완료 기준**: 영업이사가 본인 폰에서 끝까지 통과 + 실제 고객 1곳 이상 제출 + `/admin/leads`에 등급이 붙어 보임.

@@ -1,6 +1,6 @@
 # CoreDXI-Web PRD (Product Requirements Document)
 
-> 최종 업데이트: 2026-08-22
+> 최종 업데이트: 2026-09-06
 > 작성 기준: 코드베이스 분석 (Next.js App Router, `src/` 구조)
 
 ---
@@ -39,7 +39,7 @@ CoreDXI는 복잡한 기업 협업을 단순화하고 AI를 통해 비즈니스 
 |-------------|------|
 | **잠재 고객** | B2B 기업의 의사결정자(임원, 사업 담당자) — 솔루션·성공사례·문의 페이지 이용. **1순위 세그먼트(2026-08-22)**: IT·통신·AV 시스템 구축 업체 대표·영업 담당자 — `/ax-check` 인터뷰 깔때기 이용 |
 | **영업이사** | 관리자 패널(EDITOR)에서 `/admin/leads` 리드 조회·등급 확인·상태 변경, `?ref=` 링크 발송 |
-| **홍보·마케팅팀** | 블로그 작성, 성공사례 등록, 메인 텍스트·이미지 수정 |
+| **홍보·마케팅팀** | 블로그 작성, 성공사례 등록, 메인 텍스트·이미지 수정 — **2026-09-06 현실화**: 별도 홍보팀은 없으며 이 역할은 기술이사(사용자) + AI 비서가 수행. CMS는 "코드 없이 편집" 목적은 유지하되 확장 우선순위는 낮춤 |
 | **개발·운영팀** | 관리자 계정 관리, 고객 데이터 조회, 인프라 모니터링 |
 | **일반 회원** | OAuth·이메일 가입, 특정 콘텐츠 접근 (현재 제한적) |
 
@@ -71,13 +71,13 @@ CoreDXI는 복잡한 기업 협업을 단순화하고 AI를 통해 비즈니스 
 | AX 체크 결과 재열람 | `/ax-check/result/[token]` | 메일 링크용 토큰 페이지 — T0 결과 요약 메일에 링크 포함(2026-09-02) |
 | 성공사례 목록 | `/cases` | Prisma `Portfolio` DB → 카드 그리드 |
 | 성공사례 상세 | `/cases/[id]` | 썸네일·동영상 embed·본문, 동적 SEO 메타데이터 |
-| 블로그 목록 | `/blog` | 발행 글 목록 + URL 검색 필터(`?q=`). **2026-08-14 기준 게시물 전량 삭제 상태(재발행 준비 중)** — 경위·재건 전략은 `docs/superpowers/specs/2026-08-14-content-brand-strategy-design.md` 참고 |
-| 블로그 상세 | `/blog/[slug]` | Tiptap/BlockNote 본문 렌더, JSON-LD, 하단 CTA(`BlogPostCta` — 문의 유도 + 뉴스레터 앵커 링크, `cta_location: "blog_post_bottom"`) |
+| 블로그 목록 | `/blog` | 발행 글 목록 + URL 검색 필터(`?q=`). 2026-08-14 게시물 전량 삭제 후 **2026-08-15 "AI 실무 활용" 4편 재건 발행 완료** — 경위·재건 전략은 `docs/superpowers/specs/2026-08-14-content-brand-strategy-design.md` 참고 |
+| 블로그 상세 | `/blog/[slug]` | Tiptap 본문 렌더(BlockNote 레거시는 제거 완료), JSON-LD, 하단 CTA(`BlogPostCta` — 문의 유도 + 뉴스레터 앵커 링크, `cta_location: "blog_post_bottom"`) |
 | 블로그 카테고리 | `/blog/category/[slug]` | 카테고리별 필터링 |
 | 문의하기 | `/contact` | 문의 폼(Supabase 저장) + 알림 이메일(Resend) |
 | 이용약관 | `/terms` | 정적 법적 문서 |
 | 개인정보처리방침 | `/privacy` | 정적 법적 문서 |
-| 뉴스레터 구독 해지 | `/unsubscribe/[token]` | 이메일 하단 링크로 접근, 토큰 기반 즉시 해지(구현·검증 완료, 배포 대기) |
+| 뉴스레터 구독 해지 | `/unsubscribe/[token]` | 이메일 하단 링크로 접근, 토큰 기반 즉시 해지(2026-08-08 배포 완료) |
 
 ### 5-2. 인증 시스템
 
@@ -98,14 +98,14 @@ CoreDXI는 복잡한 기업 협업을 단순화하고 AI를 통해 비즈니스 
 | 메뉴 | 경로 | 상태 | 기능 |
 |------|------|------|------|
 | 대시보드 | `/admin/dashboard` | ✅ 완료 | 통계 카드(블로그·문의·포트폴리오·회원 수), GA4 분석(방문자 요약·인기 페이지·전환 퍼널), 퀵액션, 활동 로그 |
-| 홈 페이지 편집 | `/admin/main` | ⬜ 플레이스홀더 | 히어로 섹션 CMS (미구현) |
-| 회사소개 편집 | `/admin/about` | ⬜ 플레이스홀더 | About 페이지 CMS (미구현) |
-| 솔루션 편집 | `/admin/solutions` | ⬜ 플레이스홀더 | Solutions 페이지 CMS (미구현) |
+| 홈 페이지 편집 | `/admin/main` | ✅ 완료 | 히어로 문구·버튼·이미지·신뢰지표 편집 (`PageContent` 테이블, 텍스트 범위) |
+| 회사소개 편집 | `/admin/about` | ✅ 완료 | 히어로·미션·핵심가치·지표·CTA 문구 편집 (`PageContent`) |
+| 솔루션 편집 | `/admin/solutions` | ✅ 완료 | 히어로·솔루션 카드 3종·프로세스 4단계·CTA·소개서 다운로드 버튼 문구/URL 편집 (`PageContent`). 카드 개수·순서 등 구조 편집은 범위 밖(3번 결정 완료 항목 참고) |
 | 성공사례 관리 | `/admin/portfolio` | ✅ 완료 | 목록·신규 등록·수정·삭제 |
 | 블로그 관리 | `/admin/blog` | ✅ 완료 | 글 목록·신규 작성(Tiptap 에디터)·수정·발행 |
 | 블로그 주제 관리 | `/admin/blog/topics` | ✅ 완료 | 카테고리 CRUD |
 | 문의 관리 | `/admin/contact` | ✅ 완료 | 문의 목록·상태 변경·알림 이메일 설정 |
-| 리드 관리 | `/admin/leads` | ✅ 완료 | AX 체크 응답 목록(등급 HOT/WARM/COLD·상태·ref), 상세·메모·상태 변경·CSV·삭제 — 영업이사용. **팔로업 메일 패널 구현 완료(2026-09-02~03)**: 예정/보류/발송/실패 상태, 보류·해제·지금 보내기·본문 수정·이력 + 상단 발송 카운트. 프로덕션 검증(C-8) 일부 진행 중 |
+| 리드 관리 | `/admin/leads` | ✅ 완료 | AX 체크 응답 목록(등급 HOT/WARM/COLD·상태·ref), 상세·메모·상태 변경·CSV·삭제 — 영업이사용. **팔로업 메일 패널 구현 완료(2026-09-02~03)**: 예정/보류/발송/실패 상태, 보류·해제·지금 보내기·본문 수정·이력 + 상단 발송 카운트. 프로덕션 검증(C-8) 2026-09-03 완료 |
 | 관리자 계정 | `/admin/users` | ✅ 완료 | 관리자 목록·Role 변경(SUPER_ADMIN/EDITOR/VIEWER) |
 | 관리자 등록 | `/admin/register` | ✅ 완료 | 새 관리자 생성 |
 | 고객 관리 | `/admin/customers` | ✅ 완료 | 일반 회원 목록·상세·수정·삭제 |
@@ -153,7 +153,7 @@ CoreDXI는 복잡한 기업 협업을 단순화하고 AI를 통해 비즈니스 
 | 데이터베이스 | PostgreSQL (Supabase 호스팅) | - |
 | 스토리지 | Supabase Storage (`blog-images` 버킷) | - |
 | 인증 | NextAuth v5 (Auth.js) | 5.0.0-beta.31 |
-| 에디터 | Tiptap (WYSIWYG) + BlockNote (레거시 호환) | 3.13.0 |
+| 에디터 | Tiptap (WYSIWYG) — BlockNote 완전 제거(2026-07) | 3.13.0 (`overrides` 고정) |
 | 이메일 | Resend | - |
 | 모니터링 | Sentry | - |
 | 분석 | Google Analytics 4 (Data API) | - |
@@ -167,7 +167,8 @@ CoreDXI는 복잡한 기업 협업을 단순화하고 AI를 통해 비즈니스 
   이메일 워크플로우 전환(고객 자동 발송 제거 → 초안 생성 + 영업이사 수동 발송, **2026-09-02 자동 발송 방식으로 대체 결정 — 위 "영업채널 자동 팔로업 전환" 참고**)을
   첫 링크 발송(1-11) 전에 반영. 설계: `docs/superpowers/specs/2026-08-30-ax-check-experience-upgrade-design.md`
 - **Phase 1.5 2단계 잔여 항목 (09/08~09/26 예정)** — AX 체크 완료율 점검(20% 미만 시 문항 8→6), `/solutions` 단일 오퍼 재편, `/about` 레퍼런스 중심 축약, 블로그 1편. 상세: `docs/TODO.md` 1-B, `docs/superpowers/plans/2026-08-22-sales-enablement-action-plan.md`
-- **Phase 2 착수 시점** — CMS 구조 편집·블로그 댓글/반응·관리자 다크모드는 Phase 1.5 종료 후(11월 이후) 착수 검토
+- **Phase 2 착수 시점** — Phase 1.5 종료 후(11월 이후). **2026-09-06 재정의**: CMS 구조 편집·블로그 댓글/반응·관리자 다크모드는 아이디어 주차장으로 이동하고, Phase 2는 "영업 도구 고도화"(카톡 실시간 알림, `/admin/leads` 필드 확장, 응답 데이터 기반 문항·LLM·업종 확장, 콘텐츠 파생 파이프라인, Notion-CRM 연계 재검토)로 재정의. 상세: 기획서 3-B·4번 Phase 2·7-C
+- **전체 방향 재검토 (2026-09-06)** — Phase 1.5 기술은 계획을 앞섰으나 실응답 0건. 사용자 결정: ① 영업이사 첫 링크 발송 마감 09/11(09/10까지 없으면 사용자 직접 2~3곳) ② 뉴스레터·콘텐츠 발송 담당 = 사용자 + AI 비서(시스템 자동 + 승인) ③ Phase 2 재정의. **신규 기능 착수 게이트: AX 체크 실응답 5건 + HOT 1건** — 충족 전 E 2차(T2 너처·Calendly·LLM·Broadcasts)와 3단계 항목 코드 착수 금지. 사이트의 역할 정의를 "리드 육성 플랫폼"에서 "영업이사의 도구 + 리드 구조화 장치"로 변경
 - **전환 퍼널 분석 대시보드 2단계(시각화 UI) 구현 완료 (2026-08-14)** — `/admin/dashboard`의 `Ga4FunnelPanel`이 최근 30일 이벤트 카운트 기반 근사 퍼널(방문→스크롤 참여→CTA 클릭→문의 제출)과 뉴스레터 구독 건수를 가로 바 형태로 표시. GA4 정식 Funnel Exploration이 아닌 eventCount/sessions 근사치이며, 스크롤 깊이(`percent`) 구간 세분화는 커스텀 디멘션 등록 확인 전까지 보류(이벤트 총합만 사용). 설계: `docs/superpowers/specs/2026-08-14-funnel-dashboard-stage2-design.md`. **실측(실 GA4 데이터 렌더링·배포 후 실시간 이벤트 확인) 2026-08-30 완료** — 프로덕션에서 전환 퍼널 실 데이터 확인 및 블로그 하단 CTA `cta_click`(`cta_location=blog_post_bottom`) 실시간 수신 확인(`docs/superpowers/plans/2026-08-14-phase1-item4-5-action-plan.md` 2번 표 순서 5~7). **Phase 1 공식 종료**
 
 ### 6-2. 데이터베이스 스키마 (Prisma)
@@ -198,6 +199,7 @@ CoreDXI는 복잡한 기업 협업을 단순화하고 AI를 통해 비즈니스 
 ```mermaid
 flowchart TB
     subgraph PublicPages["공개 페이지"]
+        AxCheck["/ax-check"]
         Home["/"]
         About["/about"]
         Solutions["/solutions"]
@@ -218,7 +220,8 @@ flowchart TB
         PortfolioAdmin["portfolio"]
         ContactAdmin["contact"]
         UserAdmin["users / customers"]
-        CmsPlaceholder["main / about / solutions (미구현)"]
+        PageCms["main / about / solutions (PageContent)"]
+        Leads["leads (AX 체크 리드·팔로업)"]
     end
 
     subgraph APILayer["API Routes /api"]
@@ -249,6 +252,9 @@ flowchart TB
     AuthAPI --> Prisma
     Signup --> Resend
     Dashboard --> GA4
+    AxCheck --> Prisma
+    AxCheck --> Resend
+    Leads --> Resend
     Prisma --> PostgreSQL
 ```
 
@@ -336,4 +342,4 @@ src/
 | **EDITOR** | 블로그·포트폴리오 편집 권한 |
 | **VIEWER** | 조회 전용 권한 |
 | **Tiptap** | 블로그 에디터로 사용하는 WYSIWYG 라이브러리 |
-| **BlockNote** | 이전 버전 블로그 글 호환을 위한 레거시 에디터 |
+| **BlockNote** | 과거 사용했던 레거시 에디터 — 2026-07 완전 제거(실 DB에 BlockNote 포맷 글 0건 확인) |
