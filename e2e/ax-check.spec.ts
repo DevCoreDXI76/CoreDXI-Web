@@ -13,9 +13,9 @@ test("AX 체크 제출 골든패스", async ({ page }) => {
   await page.getByRole("radio", { name: "10~30명" }).click();
   await page.getByRole("button", { name: "다음" }).click();
 
-  await page.getByRole("checkbox", { name: "제안서·견적서 작성" }).click();
+  await page.getByRole("checkbox", { name: "견적·내역서·투찰 서류 작성" }).click();
   await page
-    .getByRole("checkbox", { name: "입찰 공고 탐색·서류 준비(나라장터 등)" })
+    .getByRole("checkbox", { name: "나라장터 입찰 공고 탐색·적격심사 서류 준비" })
     .click();
   await page.getByRole("button", { name: "다음" }).click();
 
