@@ -36,6 +36,10 @@ test("AX 체크 제출 골든패스", async ({ page }) => {
   await page.getByRole("radio", { name: "제가 결정합니다" }).click();
   await page.getByRole("button", { name: "다음" }).click();
 
+  // Q9 — 안전서류 분기 ON 값(월 4~8시간)을 선택해 결과 화면 분기 블록도 함께 검증한다.
+  await page.getByRole("radio", { name: "월 4~8시간" }).click();
+  await page.getByRole("button", { name: "다음" }).click();
+
   // 마지막 단계: 연락처 + 동의
   await page.getByLabel("회사명").fill(company);
   await page.getByLabel("성함").fill("테스트담당자");
@@ -55,6 +59,13 @@ test("AX 체크 제출 골든패스", async ({ page }) => {
       "정리된 상세 진단서를 영업일 기준 2~3일 내 메일로 보내드립니다. 우선 과제가 뚜렷한"
     )
   ).toBeVisible();
+
+  // Q9에서 분기 ON 값을 선택했으므로 안전서류 블록·CTA가 함께 보여야 한다.
+  await expect(page.getByText("현장 안전서류, 매번 새로 만들고 계시죠.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "10분 데모 신청" })).toHaveAttribute(
+    "href",
+    "/contact?source=safety_docs"
+  );
 
   // 관리자 계정이 없는 환경(E2E_ADMIN_EMAIL 미설정)에서는 여기서 skip한다.
   skipWithoutAdminCredentials(test);
