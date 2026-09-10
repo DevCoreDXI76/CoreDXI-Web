@@ -62,6 +62,10 @@ export type AxCheckLeadRecord = {
   followupError: string | null;
   followupAttempts: number;
   t0SentAt: Date | null;
+  /** Q9(안전서류 작성 시간) 월 4시간 이상 — 제출 시점에 계산되어 저장된 값. */
+  safetyDocsBranch: boolean;
+  /** 안전서류 도입 사례 PDF URL. 미설정이면 null(해당 CTA 숨김). */
+  caseStudyUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

@@ -325,7 +325,7 @@ describe("buildCustomerEmailDraft — 안전서류 분기 블록", () => {
       { company: "테스트회사", name: "홍길동" },
       { mode: "auto" }
     );
-    expect(draft.body).not.toContain(".pdf");
+    expect(draft.body).not.toContain(SAFETY_DOCS_BRANCH_COPY.caseStudyCtaLabel);
   });
 
   it("데모 신청 CTA 링크(source=safety_docs)를 항상 포함한다(분기 ON일 때)", () => {

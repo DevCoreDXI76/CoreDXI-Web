@@ -334,7 +334,10 @@ export async function listAxCheckResponses(): Promise<AxCheckListResult> {
     });
 
     const leads: AxCheckLeadRecord[] = sorted.map((r) => {
-      const summary = r.summary as unknown as { priorities: AxCheckLeadRecord["priorities"] };
+      const summary = r.summary as unknown as {
+        priorities: AxCheckLeadRecord["priorities"];
+        safetyDocsBranch?: boolean;
+      };
       return {
         id: r.id,
         refCode: r.refCode,
@@ -358,6 +361,9 @@ export async function listAxCheckResponses(): Promise<AxCheckListResult> {
         followupError: r.followupError,
         followupAttempts: r.followupAttempts,
         t0SentAt: r.t0SentAt,
+        // 구버전 레코드(이 필드 추가 전 응답)는 분기 없음으로 안전하게 처리한다(getAxCheckResultByToken과 동일 패턴).
+        safetyDocsBranch: summary.safetyDocsBranch ?? false,
+        caseStudyUrl: getSafetyDocsCaseStudyUrl(),
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
       };

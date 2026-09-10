@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * AxCheckForm.tsx — AX 체크(인터뷰 깔때기) 8문항 마법사 폼
+ * AxCheckForm.tsx — AX 체크(인터뷰 깔때기) 9문항 마법사 폼
  *
  * [홍보팀] 질문 문구 자체는 여기가 아니라 src/lib/ax-check/catalog.ts에서 수정합니다.
  * 카톡 인앱 브라우저 기준 모바일 우선 — 한 화면에 질문 1개, 큰 터치 영역, 진행 표시.
@@ -25,7 +25,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AxCheckPriorityCards } from "@/components/ax-check/AxCheckPriorityCards";
 import { AxCheckIntro } from "./AxCheckIntro";
 
-const TOTAL_STEPS = AX_CHECK_QUESTIONS.length + 1; // 8문항 + 연락처/동의 1단계
+const TOTAL_STEPS = AX_CHECK_QUESTIONS.length + 1; // 9문항 + 연락처/동의 1단계
 
 const EMPTY_ANSWERS: AxCheckAnswers = {
   q1: "",
