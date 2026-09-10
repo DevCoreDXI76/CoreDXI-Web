@@ -10,7 +10,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { prisma } from "@/lib/prisma";
 import { sendResendEmail } from "@/lib/resend";
-import { SALES_SIGNATURE } from "./catalog";
+import { SALES_SIGNATURE, getSafetyDocsCaseStudyUrl } from "./catalog";
 import { buildCustomerEmailDraft, wrapEmailBodyAsHtml } from "./email-draft";
 import { normalizeLegacyPriorities } from "./summarize";
 import type { AxCheckAnswers } from "./summarize";
@@ -63,7 +63,10 @@ export async function sendFollowupEmail(
     let body = record.followupBody;
 
     if (!subject || !body) {
-      const summary = record.summary as unknown as { priorities: unknown };
+      const summary = record.summary as unknown as {
+        priorities: unknown;
+        safetyDocsBranch?: boolean;
+      };
       const draft = buildCustomerEmailDraft(
         record.answers as AxCheckAnswers,
         {
@@ -71,9 +74,10 @@ export async function sendFollowupEmail(
           grade: record.grade,
           score: record.score,
           catalogVersion: record.catalogVersion,
+          safetyDocsBranch: summary.safetyDocsBranch ?? false,
         },
         { company: record.company, name: record.name },
-        { mode: "auto" }
+        { mode: "auto", links: { caseStudyUrl: getSafetyDocsCaseStudyUrl() } }
       );
       subject = subject ?? draft.subject;
       body = body ?? draft.body;
