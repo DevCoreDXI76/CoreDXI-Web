@@ -37,6 +37,7 @@ const EMPTY_ANSWERS: AxCheckAnswers = {
   q6: "",
   q7: "",
   q8: "",
+  q9: "",
 };
 
 type ContactState = {
@@ -68,6 +69,8 @@ export function AxCheckForm({ refCode }: Props) {
   const [priorities, setPriorities] = useState<AxCheckPriority[] | null>(null);
   // T0 요약 메일이 실제로 발송된 경우에만 결과 화면에서 "메일을 보내드렸습니다"를 표시한다.
   const [t0Sent, setT0Sent] = useState(false);
+  const [safetyDocsBranch, setSafetyDocsBranch] = useState(false);
+  const [caseStudyUrl, setCaseStudyUrl] = useState<string | null>(null);
 
   const currentQuestion: AxCheckQuestion | null =
     step < AX_CHECK_QUESTIONS.length ? AX_CHECK_QUESTIONS[step]! : null;
@@ -140,6 +143,8 @@ export function AxCheckForm({ refCode }: Props) {
       trackEvent("ax_check_submit", { source: refCode ?? "direct" });
       setT0Sent(result.t0Sent);
       setPriorities(result.priorities);
+      setSafetyDocsBranch(result.safetyDocsBranch);
+      setCaseStudyUrl(result.caseStudyUrl);
     } catch (e) {
       // 서버 액션이 예기치 않게 거절되면(네트워크·DB 장애 등) 조용히 아무것도 안 보이는
       // 대신 사용자에게 오류를 노출한다.
@@ -158,7 +163,12 @@ export function AxCheckForm({ refCode }: Props) {
             결과 요약 메일을 {contact.email}로 보내드렸습니다.
           </p>
         ) : null}
-        <AxCheckPriorityCards company={contact.company} priorities={priorities} />
+        <AxCheckPriorityCards
+          company={contact.company}
+          priorities={priorities}
+          safetyDocsBranch={safetyDocsBranch}
+          caseStudyUrl={caseStudyUrl}
+        />
       </div>
     );
   }

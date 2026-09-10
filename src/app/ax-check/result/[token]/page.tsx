@@ -36,6 +36,8 @@ export default async function AxCheckResultPage({ params }: Props) {
           <AxCheckPriorityCards
             company={result.data.company}
             priorities={result.data.priorities}
+            safetyDocsBranch={result.data.safetyDocsBranch}
+            caseStudyUrl={result.data.caseStudyUrl}
           />
         </div>
       </main>
