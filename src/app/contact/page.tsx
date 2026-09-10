@@ -15,10 +15,15 @@ export const metadata: Metadata = pageMetadata({
 
 export const dynamic = "force-dynamic";
 
-export default async function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ source?: string }>;
+}) {
   const notificationEmail = await getContactNotificationEmail();
   const faqJsonLd = buildFaqJsonLd(CONTACT_FAQ_ITEMS);
   const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const { source } = await searchParams;
 
   return (
     <>
@@ -30,6 +35,7 @@ export default async function ContactPage() {
       <ContactPageClient
         notificationEmail={notificationEmail}
         faqItems={CONTACT_FAQ_ITEMS}
+        source={source}
       />
     </>
   );
