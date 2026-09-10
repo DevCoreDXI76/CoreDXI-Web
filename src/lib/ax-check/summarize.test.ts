@@ -12,6 +12,7 @@ function baseAnswers(overrides: Partial<AxCheckAnswers> = {}): AxCheckAnswers {
     q6: "speed",
     q7: "within_3_months",
     q8: "self_decide",
+    q9: "under_4h",
     ...overrides,
   };
 }
@@ -219,5 +220,17 @@ describe("objectParticle — 목적격 조사(을/를) 받침 판정", () => {
 
   it("한글이 아닌 문자로 끝나면 '를'로 안전하게 기본값 처리한다", () => {
     expect(objectParticle("기타 업무 ABC")).toBe("를");
+  });
+});
+
+describe("summarizeAxCheck — Q9 안전서류 분기", () => {
+  it.each(["4_8h", "8_16h", "over_16h"])("Q9=%s면 safetyDocsBranch: true", (q9) => {
+    const summary = summarizeAxCheck(baseAnswers({ q9 }));
+    expect(summary.safetyDocsBranch).toBe(true);
+  });
+
+  it.each(["none", "under_4h", "unknown"])("Q9=%s면 safetyDocsBranch: false", (q9) => {
+    const summary = summarizeAxCheck(baseAnswers({ q9 }));
+    expect(summary.safetyDocsBranch).toBe(false);
   });
 });

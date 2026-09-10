@@ -23,6 +23,7 @@ import {
   objectParticle,
   Q3_MAX_SELECT,
   Q5_NEEDS_DATA_PREP,
+  SAFETY_DOCS_BRANCH_ON_VALUES,
   SMALL_TEAM_SIZE,
   SMALL_TEAM_STEP_LABEL,
   TASK_CARDS,
@@ -43,6 +44,7 @@ export type AxCheckAnswers = {
   q6: string;
   q7: string;
   q8: string;
+  q9: string;
 };
 
 export type AxCheckPriority = {
@@ -62,6 +64,8 @@ export type AxCheckSummary = {
   grade: CatalogLeadGrade;
   score: number;
   catalogVersion: string;
+  /** Q9(안전서류 작성 시간) 월 4시간 이상 응답 — 결과 화면·T1 메일 분기 블록 노출 여부. */
+  safetyDocsBranch: boolean;
 };
 
 /** Q7·Q8·Q3 선택 개수로 리드 등급을 판정한다 (설계 3번 "리드 등급 규칙(v1)"). */
@@ -137,8 +141,9 @@ export function summarizeAxCheck(answers: AxCheckAnswers): AxCheckSummary {
 
   const grade = gradeAxCheck(answers);
   const score = computeScore(grade, selectedTasks.length);
+  const safetyDocsBranch = SAFETY_DOCS_BRANCH_ON_VALUES.has(answers.q9);
 
-  return { priorities, grade, score, catalogVersion: CATALOG_VERSION };
+  return { priorities, grade, score, catalogVersion: CATALOG_VERSION, safetyDocsBranch };
 }
 
 /**
