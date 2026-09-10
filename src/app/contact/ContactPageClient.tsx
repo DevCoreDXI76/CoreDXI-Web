@@ -4,6 +4,10 @@ import { Check, Clock, Mail } from "lucide-react";
 import { useMemo, useState } from "react";
 import { submitContactForm } from "@/actions/contact";
 import { trackEvent } from "@/lib/ga4-events";
+import {
+  SAFETY_DOCS_DEMO_INQUIRY_TYPE,
+  SAFETY_DOCS_DEMO_SOURCE,
+} from "@/lib/ax-check/catalog";
 import { Header } from "@/components/Header";
 import { ContactFaqSection } from "@/components/contact/ContactFaqSection";
 import type { ContactFaqItem } from "@/lib/contact-faq";
@@ -37,14 +41,20 @@ const MARKETING_POINTS = [
 type Props = {
   notificationEmail: string;
   faqItems: ContactFaqItem[];
+  source?: string;
 };
 
-export function ContactPageClient({ notificationEmail, faqItems }: Props) {
+export function ContactPageClient({ notificationEmail, faqItems, source }: Props) {
+  const isSafetyDocsDemo = source === SAFETY_DOCS_DEMO_SOURCE;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [inquiryType, setInquiryType] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(
+    isSafetyDocsDemo
+      ? "현장 안전서류(위험성평가표·표준작업계획서·TBM일지) 관련 10분 데모를 요청합니다."
+      : ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedInquiryTypeLabel = useMemo(
@@ -54,14 +64,14 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!inquiryType) {
+    if (!isSafetyDocsDemo && !inquiryType) {
       alert("문의 유형을 선택해 주세요.");
       return;
     }
 
-    const typeLabel =
-      INQUIRY_TYPE_OPTIONS.find((o) => o.value === inquiryType)?.label ??
-      inquiryType;
+    const typeLabel = isSafetyDocsDemo
+      ? SAFETY_DOCS_DEMO_INQUIRY_TYPE
+      : (INQUIRY_TYPE_OPTIONS.find((o) => o.value === inquiryType)?.label ?? inquiryType);
 
     setIsSubmitting(true);
     try {
@@ -86,7 +96,7 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
       setLastName("");
       setEmail("");
       setInquiryType("");
-      setMessage("");
+      setMessage(isSafetyDocsDemo ? message : "");
     } finally {
       setIsSubmitting(false);
     }
@@ -106,6 +116,13 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
                 CoreDXI 도입·상담이 필요하시면 아래 양식을 작성해 주세요. 담당
                 영업팀이 빠르게 연락드리겠습니다.
               </p>
+
+              {isSafetyDocsDemo ? (
+                <p className="mt-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-foreground">
+                  AX 체크에서 안전서류 데모 신청으로 와주셨네요. 아래 내용을 확인하고 제출해
+                  주시면 담당 이사가 10분 데모 일정을 안내드립니다.
+                </p>
+              ) : null}
 
               <form onSubmit={handleSubmit} className="mt-8 space-y-5">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -143,28 +160,37 @@ export function ContactPageClient({ notificationEmail, faqItems }: Props) {
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="inquiry-type">문의 유형</Label>
-                  <Select
-                    value={inquiryType}
-                    onValueChange={(v) => {
-                      if (v) setInquiryType(v);
-                    }}
-                  >
-                    <SelectTrigger id="inquiry-type" className="w-full">
-                      <SelectValue placeholder="선택해 주세요">
-                        {selectedInquiryTypeLabel}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {INQUIRY_TYPE_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {isSafetyDocsDemo ? (
+                  <div className="space-y-1.5">
+                    <Label>문의 유형</Label>
+                    <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                      {SAFETY_DOCS_DEMO_INQUIRY_TYPE} (자동 설정)
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="inquiry-type">문의 유형</Label>
+                    <Select
+                      value={inquiryType}
+                      onValueChange={(v) => {
+                        if (v) setInquiryType(v);
+                      }}
+                    >
+                      <SelectTrigger id="inquiry-type" className="w-full">
+                        <SelectValue placeholder="선택해 주세요">
+                          {selectedInquiryTypeLabel}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INQUIRY_TYPE_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <Label htmlFor="message">어떻게 도와드릴까요?</Label>

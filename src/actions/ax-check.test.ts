@@ -85,6 +85,7 @@ function validAnswers(overrides: Record<string, unknown> = {}) {
     q6: "speed",
     q7: "within_3_months",
     q8: "self_decide",
+    q9: "under_4h",
     ...overrides,
   };
 }
@@ -382,6 +383,88 @@ describe("submitAxCheck happy path", () => {
   });
 });
 
+describe("submitAxCheck — 안전서류 분기(Q9)", () => {
+  it("Q9가 4_8h/8_16h/over_16h면 safetyDocsBranch: true와 caseStudyUrl을 반환한다", async () => {
+    process.env.AX_CHECK_SAFETY_CASE_STUDY_URL = "https://www.coredxi.com/docs/safety-rag-case-study.pdf";
+    const result = await submitAxCheck(
+      validInput({ answers: validAnswers({ q9: "4_8h" }) })
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.safetyDocsBranch).toBe(true);
+      expect(result.caseStudyUrl).toBe("https://www.coredxi.com/docs/safety-rag-case-study.pdf");
+    }
+    delete process.env.AX_CHECK_SAFETY_CASE_STUDY_URL;
+  });
+
+  it("Q9가 under_4h면 safetyDocsBranch: false를 반환한다", async () => {
+    const result = await submitAxCheck(
+      validInput({ answers: validAnswers({ q9: "under_4h" }) })
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.safetyDocsBranch).toBe(false);
+    }
+  });
+
+  it("caseStudyUrl 미설정 시 null을 반환한다", async () => {
+    delete process.env.AX_CHECK_SAFETY_CASE_STUDY_URL;
+    const result = await submitAxCheck(
+      validInput({ answers: validAnswers({ q9: "over_16h" }) })
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.caseStudyUrl).toBeNull();
+    }
+  });
+
+  it("분기 ON이면 영업이사 알림 메일에 24시간 액션 안내 줄을 넣는다", async () => {
+    process.env.SALES_NOTIFY_EMAIL = "sales@coredxi.com";
+    await submitAxCheck(validInput({ answers: validAnswers({ q9: "8_16h" }) }));
+
+    const salesCall = sendResendEmailMock.mock.calls.find(
+      (call) => call[0]?.to === "sales@coredxi.com"
+    );
+    expect(salesCall?.[0]?.text).toContain("안전서류 분기 ON");
+  });
+
+  it("분기 OFF면 영업이사 알림 메일에 안전서류 안내 줄이 없다", async () => {
+    process.env.SALES_NOTIFY_EMAIL = "sales@coredxi.com";
+    await submitAxCheck(validInput({ answers: validAnswers({ q9: "none" }) }));
+
+    const salesCall = sendResendEmailMock.mock.calls.find(
+      (call) => call[0]?.to === "sales@coredxi.com"
+    );
+    expect(salesCall?.[0]?.text).not.toContain("안전서류 분기 ON");
+  });
+});
+
+describe("getAxCheckResultByToken — 안전서류 분기", () => {
+  it("summary.safetyDocsBranch가 true인 레코드는 safetyDocsBranch: true를 반환한다", async () => {
+    prismaMock.axCheckResponse.findUnique.mockResolvedValue({
+      company: "테스트회사",
+      summary: { priorities: [], safetyDocsBranch: true },
+    });
+    const result = await getAxCheckResultByToken("tok");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.safetyDocsBranch).toBe(true);
+    }
+  });
+
+  it("구버전 레코드(safetyDocsBranch 필드 없음)는 false로 안전하게 처리한다", async () => {
+    prismaMock.axCheckResponse.findUnique.mockResolvedValue({
+      company: "테스트회사",
+      summary: { priorities: [] },
+    });
+    const result = await getAxCheckResultByToken("tok");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.safetyDocsBranch).toBe(false);
+    }
+  });
+});
+
 describe("getAxCheckResultByToken", () => {
   it("rejects an unknown token", async () => {
     prismaMock.axCheckResponse.findUnique.mockResolvedValue(null);
@@ -409,7 +492,12 @@ describe("getAxCheckResultByToken", () => {
 
     expect(result).toEqual({
       success: true,
-      data: { company: "테스트회사", priorities: [priority] },
+      data: {
+        company: "테스트회사",
+        priorities: [priority],
+        safetyDocsBranch: false,
+        caseStudyUrl: null,
+      },
     });
   });
 

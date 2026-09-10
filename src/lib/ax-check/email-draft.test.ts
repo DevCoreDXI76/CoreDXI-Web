@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCustomerEmailDraft, buildT0Email } from "./email-draft";
-import { SALES_SIGNATURE } from "./catalog";
+import { SALES_SIGNATURE, SAFETY_DOCS_BRANCH_COPY } from "./catalog";
 import type { AxCheckAnswers, AxCheckSummary } from "./summarize";
 
 function baseAnswers(overrides: Partial<AxCheckAnswers> = {}): AxCheckAnswers {
@@ -13,6 +13,7 @@ function baseAnswers(overrides: Partial<AxCheckAnswers> = {}): AxCheckAnswers {
     q6: "speed",
     q7: "within_3_months",
     q8: "self_decide",
+    q9: "under_4h",
     ...overrides,
   };
 }
@@ -36,6 +37,7 @@ function baseSummary(overrides: Partial<AxCheckSummary> = {}): AxCheckSummary {
     grade: "HOT",
     score: 320,
     catalogVersion: "v2-draft",
+    safetyDocsBranch: false,
     ...overrides,
   };
 }
@@ -280,5 +282,69 @@ describe("html 버전 — 로고 포함 서명", () => {
     );
     // <div> 태그 사이에 "\n"이 남아있으면 pre-wrap 컨테이너에서 줄바꿈이 두 번 겹친다.
     expect(draft.html).not.toMatch(/<\/div>\s*\n\s*<div/);
+  });
+});
+
+describe("buildCustomerEmailDraft — 안전서류 분기 블록", () => {
+  it("safetyDocsBranch: false면 분기 블록을 넣지 않는다", () => {
+    const draft = buildCustomerEmailDraft(
+      baseAnswers(),
+      baseSummary({ safetyDocsBranch: false }),
+      { company: "테스트회사", name: "홍길동" },
+      { mode: "auto" }
+    );
+    expect(draft.body).not.toContain(SAFETY_DOCS_BRANCH_COPY.resultHeadline);
+  });
+
+  it("safetyDocsBranch: true면 분기 블록 + 한 줄 추가 문구를 T1 본문에 넣는다(auto 모드)", () => {
+    const draft = buildCustomerEmailDraft(
+      baseAnswers({ q9: "4_8h" }),
+      baseSummary({ safetyDocsBranch: true }),
+      { company: "테스트회사", name: "홍길동" },
+      { mode: "auto" }
+    );
+    expect(draft.body).toContain(SAFETY_DOCS_BRANCH_COPY.resultHeadline);
+    expect(draft.body).toContain(SAFETY_DOCS_BRANCH_COPY.resultBody);
+    expect(draft.body).toContain(SAFETY_DOCS_BRANCH_COPY.emailExtraLine);
+  });
+
+  it("caseStudyUrl이 있으면 사례 PDF 링크 줄을 포함한다", () => {
+    const draft = buildCustomerEmailDraft(
+      baseAnswers({ q9: "4_8h" }),
+      baseSummary({ safetyDocsBranch: true }),
+      { company: "테스트회사", name: "홍길동" },
+      { mode: "auto", links: { caseStudyUrl: "https://www.coredxi.com/docs/safety-rag-case-study.pdf" } }
+    );
+    expect(draft.body).toContain("https://www.coredxi.com/docs/safety-rag-case-study.pdf");
+  });
+
+  it("caseStudyUrl이 없으면 사례 PDF 링크 줄이 빠진다", () => {
+    const draft = buildCustomerEmailDraft(
+      baseAnswers({ q9: "4_8h" }),
+      baseSummary({ safetyDocsBranch: true }),
+      { company: "테스트회사", name: "홍길동" },
+      { mode: "auto" }
+    );
+    expect(draft.body).not.toContain(SAFETY_DOCS_BRANCH_COPY.caseStudyCtaLabel);
+  });
+
+  it("데모 신청 CTA 링크(source=safety_docs)를 항상 포함한다(분기 ON일 때)", () => {
+    const draft = buildCustomerEmailDraft(
+      baseAnswers({ q9: "4_8h" }),
+      baseSummary({ safetyDocsBranch: true }),
+      { company: "테스트회사", name: "홍길동" },
+      { mode: "auto" }
+    );
+    expect(draft.body).toContain("source=safety_docs");
+  });
+
+  it("금지 표현을 포함하지 않는다", () => {
+    const draft = buildCustomerEmailDraft(
+      baseAnswers({ q9: "over_16h" }),
+      baseSummary({ safetyDocsBranch: true }),
+      { company: "테스트회사", name: "홍길동" },
+      { mode: "auto" }
+    );
+    expect(draft.body).not.toContain("AI로 위험성평가표를 만들어");
   });
 });

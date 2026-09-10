@@ -8,16 +8,18 @@
  * ✅ v2: 영업이사 인터뷰(액션플랜 0-2, 2026-08-31 회신) 반영 완료 — 실제 고객 용어로 라벨 교체,
  * 반복 업무 2건(하자보수/정기점검 보고서, 감리·시공 체크리스트) 추가.
  * 참고: docs/superpowers/specs/2026-08-31-sales-director-interview-response.md
+ * ✅ v3: Q9(안전서류 작성 시간) 문항 추가, 분기 로직 도입 — Safety-RAG 오너 분기 전달물
+ * (2026-09-10) 반영. 참고: docs/20260910_전달_사내_SafetyRAG오너_AX체크안전서류분기전달물_v1.md
  *
  * 설계: docs/superpowers/specs/2026-08-22-sales-funnel-ax-check-design.md 3번·4번
  */
 
-export const CATALOG_VERSION = "v2";
+export const CATALOG_VERSION = "v3";
 
 export type AxCheckOption = { value: string; label: string };
 
 export type AxCheckSingleQuestion = {
-  id: "q1" | "q2" | "q4" | "q5" | "q6" | "q7" | "q8";
+  id: "q1" | "q2" | "q4" | "q5" | "q6" | "q7" | "q8" | "q9";
   type: "single";
   prompt: string;
   options: readonly AxCheckOption[];
@@ -111,6 +113,24 @@ export const Q8_AUTHORITY: readonly AxCheckOption[] = [
   { value: "undecided", label: "아직 정해지지 않았습니다" },
 ] as const;
 
+// Q9 — 현장 안전서류 작성 소요 시간 (Safety-RAG 오너 분기 전달물 2026-09-10 반영)
+// 참고: docs/20260910_전달_사내_SafetyRAG오너_AX체크안전서류분기전달물_v1.md 1번
+export const Q9_SAFETY_DOCS_TIME: readonly AxCheckOption[] = [
+  { value: "none", label: "거의 없음" },
+  { value: "under_4h", label: "월 4시간 미만" },
+  { value: "4_8h", label: "월 4~8시간" },
+  { value: "8_16h", label: "월 8~16시간" },
+  { value: "over_16h", label: "월 16시간 이상" },
+  { value: "unknown", label: "잘 모르겠음 / 담당자마다 다름" },
+] as const;
+
+/**
+ * Q9이 이 값 중 하나면(월 4시간 이상) 안전서류 분기 ON — summarize.ts가 계산해
+ * AxCheckSummary.safetyDocsBranch로 저장한다. 임계값은 오너 결정(2026-09-10, 현장 감각
+ * 기준 4시간) — 응답이 쌓이면 재조정 가능하므로 상수로 분리해 둔다.
+ */
+export const SAFETY_DOCS_BRANCH_ON_VALUES = new Set(["4_8h", "8_16h", "over_16h"]);
+
 export const AX_CHECK_QUESTIONS: readonly AxCheckQuestion[] = [
   { id: "q1", type: "single", prompt: "귀사의 주력 사업은 무엇인가요?", options: Q1_INDUSTRY, allowOther: true },
   { id: "q2", type: "single", prompt: "임직원 규모는?", options: Q2_COMPANY_SIZE },
@@ -127,6 +147,12 @@ export const AX_CHECK_QUESTIONS: readonly AxCheckQuestion[] = [
   { id: "q6", type: "single", prompt: "AI 도입으로 가장 기대하는 효과는?", options: Q6_EXPECTED_BENEFIT },
   { id: "q7", type: "single", prompt: "도입 검토 시점은?", options: Q7_TIMING },
   { id: "q8", type: "single", prompt: "도입 결정은 어떻게 이뤄지나요?", options: Q8_AUTHORITY },
+  {
+    id: "q9",
+    type: "single",
+    prompt: "귀사는 현장 안전서류(위험성평가표·표준작업계획서·TBM일지 등) 작성에 월 평균 몇 시간을 쓰고 계신가요?",
+    options: Q9_SAFETY_DOCS_TIME,
+  },
 ] as const;
 
 /** id로 문항 정의를 찾는다 (관리자 상세 화면에서 답변 코드값을 라벨로 바꿀 때 사용). */
@@ -453,10 +479,45 @@ export const INTRO_COPY = {
   steps: ["진단", "설계", "구축", "교육"],
   reassurances: [
     "AI를 몰라도 됩니다 — 모든 질문이 선택지로 되어 있습니다.",
-    "3분, 8개 질문이면 끝납니다.",
+    "3분, 9개 질문이면 끝납니다.",
     "제출한다고 영업 전화가 자동으로 가지 않습니다 — 결과는 화면에서 바로 확인하시고, 상세 진단 메일은 영업일 기준 2~3일 내 자동으로 발송됩니다. 우선 과제가 뚜렷한 경우 담당 이사가 직접 연락드립니다.",
   ],
   previewLabel: "제출 즉시 화면에서 바로 확인",
   previewExample: "예: '제안서·견적서 자동 초안 생성' — 최근 1년 제안서 20건 정리부터 시작",
   cta: "3분 진단 시작하기",
 } as const;
+
+/**
+ * 안전서류 분기(Q9 3·4·5번 선택) 결과 화면·T1 메일에 붙는 공통 카피.
+ * [홍보팀] 문구만 바꾸려면 이 객체 안의 문자열만 수정하면 됩니다.
+ *
+ * 금지 표현: "AI로 위험성평가표를 만들어 드립니다" — 정부 KRAS가 무료로 제공하는 서비스라
+ * 이 표현을 쓰면 안 됩니다. "서류 세트를 귀사 공종·서식에 맞게 + 직접 구축·운영 경험"
+ * 축으로만 다듬어 주세요. 화자는 항상 "코어디엑스아이"이고 개인 직함을 쓰지 않습니다.
+ * 참고: docs/20260910_전달_사내_SafetyRAG오너_AX체크안전서류분기전달물_v1.md 3번
+ */
+export const SAFETY_DOCS_BRANCH_COPY = {
+  resultHeadline: "현장 안전서류, 매번 새로 만들고 계시죠.",
+  resultBody:
+    "코어디엑스아이는 위험성평가표·표준작업계획서·TBM일지 3종을 현장·공종에 맞춰 순서대로 초안 생성하는 시스템을 직접 만들어 운영하고 있습니다. 슬라이드가 아니라 지금 돌아가는 실물입니다.",
+  caseStudyCtaLabel: "도입 사례 보기(PDF)",
+  demoCtaLabel: "10분 데모 신청",
+  emailExtraLine:
+    '귀사 서식·공종에 맞춰 구축하는 "안전서류 AI 도입 패키지"(4~6주)도 준비되어 있습니다. 데모 후 안내드립니다.',
+} as const;
+
+/** "10분 데모 신청" CTA가 /contact로 넘기는 쿼리 값 — ContactPageClient가 이 값으로 유입 경로를 식별한다. */
+export const SAFETY_DOCS_DEMO_SOURCE = "safety_docs";
+
+/** source=safety_docs로 들어온 문의의 고정 문의 유형 라벨 — 관리자 문의 목록에서 이 값으로 필터링해 데모 신청 건수를 센다. */
+export const SAFETY_DOCS_DEMO_INQUIRY_TYPE = "안전서류 AI 도입 데모 신청";
+
+/**
+ * 안전서류 도입 사례 PDF URL — 미설정이면 null(결과 화면·T1 메일에서 "도입 사례 보기(PDF)"
+ * 버튼이 통째로 빠진다, AX_CHECK_BROCHURE_URL과 동일한 관례). Safety-RAG 오너로부터 최종
+ * PDF(`_draft` 제거본)를 받으면 public/docs/에 올리고 이 환경변수를 등록한다.
+ */
+export function getSafetyDocsCaseStudyUrl(): string | null {
+  const url = process.env.AX_CHECK_SAFETY_CASE_STUDY_URL?.trim();
+  return url || null;
+}

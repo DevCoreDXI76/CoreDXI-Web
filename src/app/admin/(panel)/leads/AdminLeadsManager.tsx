@@ -10,6 +10,11 @@ import {
 import type { AxCheckLeadRecord, LeadStatus } from "@/lib/ax-check/types";
 import { LEAD_STATUS_OPTIONS } from "@/lib/ax-check/types";
 import { formatKstDateTime } from "@/lib/format-kst-date";
+import {
+  SAFETY_DOCS_BRANCH_ON_VALUES,
+  SAFETY_DOCS_DEMO_INQUIRY_TYPE,
+  getQuestionById,
+} from "@/lib/ax-check/catalog";
 import { LeadList } from "./LeadList";
 import { LeadDetailPanel } from "./LeadDetailPanel";
 import { FOLLOWUP_STATUS_LABEL } from "./FollowupStatusBadge";
@@ -94,6 +99,29 @@ export function AdminLeadsManager({ initialLeads, loadError, initialSelectedId }
     }),
     [leads]
   );
+
+  const q9Question = getQuestionById("q9");
+  const safetyDocsStats = useMemo(() => {
+    if (!q9Question) return { branchOn: 0, distribution: [] as { label: string; count: number }[] };
+
+    const counts = new Map<string, number>();
+    for (const lead of leads) {
+      const q9 = lead.answers.q9;
+      if (typeof q9 !== "string" || !q9) continue;
+      counts.set(q9, (counts.get(q9) ?? 0) + 1);
+    }
+
+    const distribution = q9Question.options.map((option) => ({
+      label: option.label,
+      count: counts.get(option.value) ?? 0,
+    }));
+
+    const branchOn = [...counts.entries()]
+      .filter(([value]) => SAFETY_DOCS_BRANCH_ON_VALUES.has(value))
+      .reduce((sum, [, count]) => sum + count, 0);
+
+    return { branchOn, distribution };
+  }, [leads, q9Question]);
 
   const selectedLead = useMemo(
     () => leads.find((l) => l.id === selectedId) ?? null,
@@ -202,6 +230,28 @@ export function AdminLeadsManager({ initialLeads, loadError, initialSelectedId }
           <p className="mt-1 text-xl font-bold text-red-600">{followupCounts.failed}</p>
         </div>
       </div>
+
+      {q9Question ? (
+        <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-slate-900">Q9 안전서류 분기 집계</p>
+            <p className="text-xs text-slate-400">
+              데모 신청 건수는 /admin/contact에서 &ldquo;{SAFETY_DOCS_DEMO_INQUIRY_TYPE}&rdquo; 유형으로 확인
+            </p>
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            분기 ON(월 4시간 이상): <span className="font-bold text-primary">{safetyDocsStats.branchOn}건</span>
+          </p>
+          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 sm:grid-cols-3">
+            {safetyDocsStats.distribution.map((d) => (
+              <div key={d.label} className="flex justify-between gap-2">
+                <dt className="truncate">{d.label}</dt>
+                <dd className="font-semibold text-slate-800">{d.count}건</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : null}
 
       <LeadList leads={leads} selectedId={selectedId} onSelect={setSelectedId} />
 

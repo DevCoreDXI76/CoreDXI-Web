@@ -29,6 +29,7 @@ import {
   SALES_SIGNATURE,
   getOptionLabel,
   getQuestionById,
+  getSafetyDocsCaseStudyUrl,
   type AxCheckQuestion,
 } from "@/lib/ax-check/catalog";
 import { normalizeLegacyPriorities, summarizeAxCheck } from "@/lib/ax-check/summarize";
@@ -139,8 +140,11 @@ export async function submitAxCheck(input: AxCheckFormInput): Promise<AxCheckSub
     };
   }
 
-  const { priorities, grade, score, catalogVersion } = summarizeAxCheck(input.answers);
+  const { priorities, grade, score, catalogVersion, safetyDocsBranch } = summarizeAxCheck(
+    input.answers
+  );
   const resultToken = generateAxCheckResultToken();
+  const caseStudyUrl = getSafetyDocsCaseStudyUrl();
 
   const followupEnabled = isFollowupEnabled();
   const followupScheduledAt = computeFollowupScheduledAt(new Date());
@@ -158,7 +162,7 @@ export async function submitAxCheck(input: AxCheckFormInput): Promise<AxCheckSub
         catalogVersion,
         grade,
         score,
-        summary: { priorities },
+        summary: { priorities, safetyDocsBranch },
         marketingOptIn: input.marketingOptIn,
         resultToken,
         followupStatus: followupEnabled ? "SCHEDULED" : "HELD",
@@ -252,6 +256,11 @@ export async function submitAxCheck(input: AxCheckFormInput): Promise<AxCheckSub
         `- 가장 시간이 드는 업무: ${q3Labels.join(", ")}`,
         `- 검토 시점: ${q7Label}`,
         `- 의사결정 구조: ${q8Label}`,
+        ...(safetyDocsBranch
+          ? [
+              "- ⚠ 안전서류 분기 ON — 24시간 내 사례 PDF 카톡 발송 + 10분 데모 제안, 노션 로그에 회사명·응답 구간·반응 기록",
+            ]
+          : []),
         "",
         followupEnabled
           ? `상세 진단 메일 예정: ${formatKstFollowupSchedule(followupScheduledAt)}`
@@ -266,7 +275,7 @@ export async function submitAxCheck(input: AxCheckFormInput): Promise<AxCheckSub
     }
   }
 
-  return { success: true, priorities, resultToken, t0Sent };
+  return { success: true, priorities, resultToken, t0Sent, safetyDocsBranch, caseStudyUrl };
 }
 
 export async function getAxCheckResultByToken(token: string): Promise<AxCheckResultLookupResult> {
@@ -285,10 +294,19 @@ export async function getAxCheckResultByToken(token: string): Promise<AxCheckRes
       return { success: false, error: "유효하지 않은 결과 링크입니다." };
     }
 
-    const summary = response.summary as unknown as { priorities: AxCheckLeadRecord["priorities"] };
+    const summary = response.summary as unknown as {
+      priorities: AxCheckLeadRecord["priorities"];
+      safetyDocsBranch?: boolean;
+    };
     return {
       success: true,
-      data: { company: response.company, priorities: normalizeLegacyPriorities(summary.priorities) },
+      data: {
+        company: response.company,
+        priorities: normalizeLegacyPriorities(summary.priorities),
+        // 구버전 레코드(이 필드 추가 전 응답)는 분기 없음으로 안전하게 처리한다.
+        safetyDocsBranch: summary.safetyDocsBranch ?? false,
+        caseStudyUrl: getSafetyDocsCaseStudyUrl(),
+      },
     };
   } catch (e) {
     console.error("[getAxCheckResultByToken]", e);
@@ -316,7 +334,10 @@ export async function listAxCheckResponses(): Promise<AxCheckListResult> {
     });
 
     const leads: AxCheckLeadRecord[] = sorted.map((r) => {
-      const summary = r.summary as unknown as { priorities: AxCheckLeadRecord["priorities"] };
+      const summary = r.summary as unknown as {
+        priorities: AxCheckLeadRecord["priorities"];
+        safetyDocsBranch?: boolean;
+      };
       return {
         id: r.id,
         refCode: r.refCode,
@@ -340,6 +361,9 @@ export async function listAxCheckResponses(): Promise<AxCheckListResult> {
         followupError: r.followupError,
         followupAttempts: r.followupAttempts,
         t0SentAt: r.t0SentAt,
+        // 구버전 레코드(이 필드 추가 전 응답)는 분기 없음으로 안전하게 처리한다(getAxCheckResultByToken과 동일 패턴).
+        safetyDocsBranch: summary.safetyDocsBranch ?? false,
+        caseStudyUrl: getSafetyDocsCaseStudyUrl(),
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
       };

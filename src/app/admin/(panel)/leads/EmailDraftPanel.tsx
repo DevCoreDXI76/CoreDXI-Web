@@ -44,11 +44,12 @@ export function EmailDraftPanel({ lead, onLeadPatch }: Props) {
       grade: lead.grade,
       score: lead.score,
       catalogVersion: lead.catalogVersion,
+      safetyDocsBranch: lead.safetyDocsBranch,
     },
     { company: lead.company, name: lead.name },
     // 실제 자동 발송(followup.ts)과 동일한 mode:auto — 미리보기·수정 시드가 실제 발송본과
-    // 달라지지 않도록 반드시 맞춰야 한다.
-    { mode: "auto" }
+    // 달라지지 않도록 반드시 맞춰야 한다. links도 함께 맞춰야 caseStudyUrl(PDF 줄) 유무가 일치한다.
+    { mode: "auto", links: { caseStudyUrl: lead.caseStudyUrl } }
   );
 
   const hasOverride = Boolean(lead.followupSubject && lead.followupBody);

@@ -7,7 +7,7 @@ import { AxCheckForm } from "./AxCheckForm";
 export const metadata: Metadata = pageMetadata({
   title: "AX 체크 — 3분 AI 도입 진단",
   description:
-    "중소기업의 AI 도입·AX 전환을 함께하는 CoreDXI가 8개 질문으로 귀사의 우선 과제 3가지를 무료로 진단해 드립니다.",
+    "중소기업의 AI 도입·AX 전환을 함께하는 CoreDXI가 9개 질문으로 귀사의 우선 과제 3가지를 무료로 진단해 드립니다.",
   path: "/ax-check",
 });
 

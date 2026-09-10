@@ -14,6 +14,8 @@
 
 import {
   FOLLOWUP_COPY,
+  SAFETY_DOCS_BRANCH_COPY,
+  SAFETY_DOCS_DEMO_SOURCE,
   escapeHtml,
   getOptionLabel,
   getQuestionById,
@@ -64,17 +66,39 @@ function formatPriorityBlock(priority: AxCheckPriority, index: number): string[]
   ].filter((line): line is string => line !== null);
 }
 
+/**
+ * 안전서류 분기(summary.safetyDocsBranch) 블록 본문 — T1(상세본) 끝에 붙는다.
+ * caseStudyUrl이 없으면 "도입 사례 보기(PDF)" 줄을 생략한다(AX_CHECK_BROCHURE_URL과 동일 관례).
+ */
+function buildSafetyDocsBranchLines(caseStudyUrl?: string | null): string[] {
+  const demoUrl = `https://www.coredxi.com/contact?source=${SAFETY_DOCS_DEMO_SOURCE}`;
+  const lines = [
+    "",
+    SAFETY_DOCS_BRANCH_COPY.resultHeadline,
+    SAFETY_DOCS_BRANCH_COPY.resultBody,
+  ];
+  if (caseStudyUrl) {
+    lines.push(`${SAFETY_DOCS_BRANCH_COPY.caseStudyCtaLabel}: ${caseStudyUrl}`);
+  }
+  lines.push(`${SAFETY_DOCS_BRANCH_COPY.demoCtaLabel}: ${demoUrl}`);
+  lines.push("", SAFETY_DOCS_BRANCH_COPY.emailExtraLine);
+  return lines;
+}
+
 export function buildCustomerEmailDraft(
   answers: AxCheckAnswers,
   summary: AxCheckSummary,
   contact: { company: string; name: string },
-  opts?: { mode?: "manual" | "auto" }
+  opts?: { mode?: "manual" | "auto"; links?: { caseStudyUrl?: string | null } }
 ): AxCheckEmailDraft {
   const mode = opts?.mode ?? "manual";
   const { company, name } = contact;
   const industryLabel = getOptionLabel(getQuestionById("q1"), answers.q1);
   const priorityLines = summary.priorities.flatMap((p, i) => formatPriorityBlock(p, i));
   const count = summary.priorities.length;
+  const safetyDocsLines = summary.safetyDocsBranch
+    ? buildSafetyDocsBranchLines(opts?.links?.caseStudyUrl)
+    : [];
 
   if (mode === "auto") {
     const body = [
@@ -87,6 +111,7 @@ export function buildCustomerEmailDraft(
       FOLLOWUP_COPY.t1.processParagraph,
       "",
       FOLLOWUP_COPY.t1.callToAction(company),
+      ...safetyDocsLines,
       "",
       FOLLOWUP_COPY.optOutNotice,
       "",
@@ -107,6 +132,7 @@ export function buildCustomerEmailDraft(
     "",
     ...priorityLines,
     "CoreDXI는 진단(2주) → 설계 → 구축 → 교육 순서로 프로젝트를 진행합니다. 반복 업무를 실제로 줄이는 것까지 함께 챙깁니다.",
+    ...safetyDocsLines,
     "",
     "[[통화에서 말씀 주신 ___ 관련해서는 별도로 안내드리겠습니다.]]",
     "",

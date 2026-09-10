@@ -53,6 +53,7 @@ function baseRecord(overrides: Record<string, unknown> = {}) {
           expectedEffect: "효과",
         },
       ],
+      safetyDocsBranch: false,
     },
     followupSubject: null,
     followupBody: null,
@@ -111,6 +112,35 @@ describe("sendFollowupEmail", () => {
     const call = sendResendEmailMock.mock.calls[0]![0];
     expect(call.text).not.toMatch(/\[\[.*\]\]/);
     expect(call.to).toBe("user@example.com");
+  });
+
+  it("safetyDocsBranch: true인 레코드는 caseStudyUrl을 담아 자동 발송 초안을 만든다", async () => {
+    process.env.AX_CHECK_SAFETY_CASE_STUDY_URL = "https://www.coredxi.com/docs/safety-rag-case-study.pdf";
+    prismaMock.axCheckResponse.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.axCheckResponse.findUnique.mockResolvedValue(
+      baseRecord({
+        summary: {
+          priorities: [
+            {
+              title: "제안서·견적서 자동 초안 생성",
+              why: "이유",
+              echo: "echo",
+              industryExample: null,
+              roadmap: ["1주차", "1개월차", "3개월차"],
+              expectedEffect: "효과",
+            },
+          ],
+          safetyDocsBranch: true,
+        },
+      })
+    );
+    prismaMock.axCheckResponse.update.mockResolvedValue({});
+
+    await sendFollowupEmail("lead-1");
+
+    const sentBody = sendResendEmailMock.mock.calls[0]?.[0]?.text as string;
+    expect(sentBody).toContain("https://www.coredxi.com/docs/safety-rag-case-study.pdf");
+    delete process.env.AX_CHECK_SAFETY_CASE_STUDY_URL;
   });
 
   it("text와 함께 로고가 포함된 html도 같이 보낸다(override·생성 초안 둘 다)", async () => {
