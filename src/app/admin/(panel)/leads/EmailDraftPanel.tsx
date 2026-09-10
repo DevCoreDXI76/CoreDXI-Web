@@ -20,6 +20,7 @@ import {
 } from "@/actions/ax-check";
 import { buildCustomerEmailDraft } from "@/lib/ax-check/email-draft";
 import { formatKstDateTime } from "@/lib/format-kst-date";
+import { SAFETY_DOCS_BRANCH_ON_VALUES } from "@/lib/ax-check/catalog";
 import type { AxCheckLeadRecord } from "@/lib/ax-check/types";
 import { FollowupStatusBadge } from "./FollowupStatusBadge";
 
@@ -37,6 +38,8 @@ export function EmailDraftPanel({ lead, onLeadPatch }: Props) {
   const [isPending, setIsPending] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const safetyDocsBranch = SAFETY_DOCS_BRANCH_ON_VALUES.has(lead.answers.q9);
+
   const autoDraft = buildCustomerEmailDraft(
     lead.answers,
     {
@@ -44,6 +47,7 @@ export function EmailDraftPanel({ lead, onLeadPatch }: Props) {
       grade: lead.grade,
       score: lead.score,
       catalogVersion: lead.catalogVersion,
+      safetyDocsBranch,
     },
     { company: lead.company, name: lead.name },
     // 실제 자동 발송(followup.ts)과 동일한 mode:auto — 미리보기·수정 시드가 실제 발송본과

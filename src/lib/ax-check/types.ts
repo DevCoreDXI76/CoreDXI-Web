@@ -26,7 +26,16 @@ export type AxCheckFormInput = {
 
 export type AxCheckSubmitResult =
   /** t0Sent — T0(즉시 요약) 메일이 실제로 발송됐는지. 결과 화면 문구가 이 값에 따라 달라진다. */
-  | { success: true; priorities: AxCheckPriority[]; resultToken: string; t0Sent: boolean }
+  | {
+      success: true;
+      priorities: AxCheckPriority[];
+      resultToken: string;
+      t0Sent: boolean;
+      /** Q9(안전서류 작성 시간) 월 4시간 이상 — 결과 화면 분기 블록 노출 여부. */
+      safetyDocsBranch: boolean;
+      /** 안전서류 도입 사례 PDF URL. 미설정이면 null(해당 CTA 숨김). */
+      caseStudyUrl: string | null;
+    }
   | { success: false; error: string };
 
 /** 관리자 목록/상세용 레코드 — 이메일·전화번호 등 개인정보 포함. */
@@ -81,6 +90,8 @@ export type UpdateAxCheckFollowupResult =
 export type AxCheckResultPageData = {
   company: string;
   priorities: AxCheckPriority[];
+  safetyDocsBranch: boolean;
+  caseStudyUrl: string | null;
 };
 
 export type AxCheckResultLookupResult =
