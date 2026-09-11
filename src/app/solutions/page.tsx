@@ -158,7 +158,7 @@ export default async function SolutionsPage() {
                   </p>
                 ))}
               </div>
-              <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 {content.caseStudyPdfUrl && (
                   <BrochureDownloadButton
                     href={content.caseStudyPdfUrl}
