@@ -64,6 +64,12 @@ function normalize(data: SolutionsContent): SolutionsContent {
     ctaDesc: data.ctaDesc.trim(),
     brochureLabel: data.brochureLabel.trim(),
     brochureUrl: data.brochureUrl.trim(),
+    caseStudyEyebrow: data.caseStudyEyebrow.trim(),
+    caseStudyTitle: data.caseStudyTitle.trim(),
+    caseStudyParagraphs: data.caseStudyParagraphs.map((p) => p.trim()),
+    caseStudyPdfLabel: data.caseStudyPdfLabel.trim(),
+    caseStudyPdfUrl: data.caseStudyPdfUrl.trim(),
+    caseStudyDemoLabel: data.caseStudyDemoLabel.trim(),
   };
 }
 
