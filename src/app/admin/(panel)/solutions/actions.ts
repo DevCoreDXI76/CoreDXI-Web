@@ -42,8 +42,7 @@ function validate(data: SolutionsContent): string | null {
   }
   if (
     data.caseStudyTitle.trim() &&
-    (data.caseStudyParagraphs.length === 0 ||
-      data.caseStudyParagraphs.some((p) => !p.trim()))
+    data.caseStudyParagraphs.every((p) => !p.trim())
   ) {
     return "AX 사례 섹션 제목을 입력했다면 본문 문단을 1개 이상 입력해 주세요.";
   }
